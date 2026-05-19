@@ -1,0 +1,112 @@
+Screen { background: #060709; }
+
+Header { background: #0b0d11; color: #b8e986; }
+
+#main { height: 1fr; }
+
+#config-panel {
+    width: 46;
+    background: #0b0d11;
+    border-right: solid #22272f;
+    padding: 0;
+}
+#config-scroll {
+    height: 1fr;
+    padding: 1 2;
+    background: #0b0d11;
+}
+#config-scroll > * { height: auto; }
+
+#log-panel {
+    width: 1fr;
+    background: #060709;
+    padding: 0 1;
+}
+
+.field-label {
+    color: #5a6170;
+    height: 1;
+    margin-top: 1;
+    margin-bottom: 0;
+}
+
+Input {
+    border: solid #22272f;
+    background: #11141a;
+    color: #e8e4d8;
+    height: 3;
+}
+Input:focus { border: solid #b8e986; }
+
+Select { border: solid #22272f; background: #11141a; height: 3; }
+
+#lang-model { height: auto; margin-top: 0; }
+#lang-model Vertical { width: 1fr; height: auto; }
+#lang-model Vertical:first-of-type { padding-right: 1; }
+
+Checkbox {
+    color: #828a97;
+    background: transparent;
+    border: none;
+    padding: 0;
+    height: auto;
+}
+Checkbox:focus { border: none; }
+
+Rule { height: auto; margin: 1 0 0 0; }
+
+.resume-banner {
+    height: auto;
+    padding: 1 1;
+    margin-bottom: 1;
+    border: solid #22272f;
+    background: #11141a;
+    color: #e8e4d8;
+}
+.resume-banner.hidden { display: none; }
+.resume-banner.aborted {
+    border: solid #ffb442;
+    background: #1f1a0a;
+}
+.resume-banner.done {
+    border: solid #b8e986;
+    background: #0d1f0d;
+}
+
+#run-btn {
+    margin: 1 2;
+    width: 1fr;
+    background: #0d1f0d;
+    border: solid #b8e986;
+    color: #b8e986;
+    text-style: bold;
+    height: 3;
+}
+#run-btn:hover { background: #162b16; }
+#run-btn.-running {
+    background: #1f1a0a;
+    border: solid #ffb442;
+    color: #ffb442;
+}
+
+#progress-area {
+    height: 3;
+    background: #0b0d11;
+    border-top: solid #22272f;
+    padding: 0 2;
+    align: left middle;
+}
+#step-label {
+    width: 44;
+    color: #5a6170;
+    content-align: left middle;
+}
+#progress-bar { width: 1fr; color: #b8e986; }
+#time-label {
+    width: 8;
+    color: #3d4450;
+    content-align: right middle;
+    text-align: right;
+}
+
+Footer { background: #0b0d11; color: #3d4450; }

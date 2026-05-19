@@ -1,0 +1,27 @@
+# --- Secrets / credentials ---
+.env
+client_secrets.json
+.youtube_token.pickle
+*.pickle
+
+# --- Python build / caches ---
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+.hf-cache/
+
+# --- Pipeline data (large / runtime) ---
+input/
+output/
+
+# --- Visualizer (Remotion) build / deps / test data ---
+node_modules/
+out/
+preview/
+public/
+uploads/
+
+# --- OS ---
+.DS_Store

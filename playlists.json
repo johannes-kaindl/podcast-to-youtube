@@ -1,0 +1,4 @@
+{
+  "_comment": "Playlist-Mapping für Auto-Assignment beim Upload. Schlüssel 'default' greift wenn kein show_name-spezifischer Eintrag matched — aktuell landen alle Uploads in 'uplink'. Multi-Playlist-Setup später: zusätzliche show_name-Keys dazulegen, die übersteuern den default. Override pro Upload via CLI: --playlist-id PL... Playlist-IDs aus YouTube Studio holen: Playlist öffnen → URL enthält 'list=PL...'.",
+  "default": "PLUWgNBtUgXIltLXBMIl20UCy2kjynY-E5"
+}
