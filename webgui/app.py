@@ -46,6 +46,35 @@ def _load_state(stem: str) -> dict:
         return default
 
 
+def _load_transcript_snippet(stem: str, max_lines: int = 8) -> list[dict]:
+    txt = OUTPUT_ROOT / stem / f"{stem}.txt"
+    if not txt.exists():
+        return []
+    lines = []
+    for raw in txt.read_text(encoding="utf-8").splitlines():
+        s = raw.strip()
+        if not s:
+            continue
+        if ":" in s:
+            spk, _, text = s.partition(":")
+            lines.append({"spk": spk.strip(), "text": text.strip()})
+        else:
+            lines.append({"spk": "", "text": s})
+        if len(lines) >= max_lines:
+            break
+    return lines
+
+
+def _load_metadata(stem: str) -> dict | None:
+    meta_file = OUTPUT_ROOT / stem / f"{stem}.youtube-meta.json"
+    if not meta_file.exists():
+        return None
+    try:
+        return json.loads(meta_file.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return None
+
+
 class AudioProbeRequest(BaseModel):
     path: str
 
@@ -164,6 +193,8 @@ async def runs_detail(stem: str, request: Request):
             "variant": variant,
             "page_mood": page_mood,
             "active": active,
+            "transcript_lines": _load_transcript_snippet(stem),
+            "youtube_meta": _load_metadata(stem),
         },
     )
 

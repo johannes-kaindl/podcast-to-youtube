@@ -1,0 +1,27 @@
+{% if youtube_meta %}
+<section class="card" data-tone="accent">
+  <header class="card-header">
+    <span class="caps">YouTube metadata</span>
+    <span class="pill" data-tone="success"><span class="dot"></span>Generated</span>
+  </header>
+  <div class="card-body">
+    <div class="meta-title">{{ youtube_meta.title | default(stem) }}</div>
+    <p class="meta-desc" style="margin-top: 12px;">{{ youtube_meta.description | default("") | truncate(280) }}</p>
+    {% if youtube_meta.tags %}
+    <div class="caps" style="margin-top: 16px; margin-bottom: 8px;">Tags · {{ youtube_meta.tags | length }}</div>
+    <div class="tags">
+      {% for tag in youtube_meta.tags[:12] %}<span class="tag">{{ tag }}</span>{% endfor %}
+      {% if youtube_meta.tags | length > 12 %}<span class="tag">+{{ youtube_meta.tags | length - 12 }} more</span>{% endif %}
+    </div>
+    {% endif %}
+    {% if youtube_meta.chapters %}
+    <div class="caps" style="margin-top: 16px; margin-bottom: 8px;">Chapters · {{ youtube_meta.chapters | length }}</div>
+    <div class="chapters">
+      {% for chapter in youtube_meta.chapters[:8] %}
+        <div class="chapter"><span class="ts">{{ chapter.timestamp | default("00:00") }}</span><span>{{ chapter.title | default(chapter.label | default("")) }}</span></div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+</section>
+{% endif %}

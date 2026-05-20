@@ -26,6 +26,8 @@
   <div class="stack">
     {% include "_partials/log_panel.html" %}
 
+    {% include "_partials/transcript_preview.html" %}
+
     {% if variant in ("ready-to-upload", "done") and state.phases.render.status == "done" %}
       <section class="card">
         <header class="card-header">
@@ -77,6 +79,8 @@
         <dt>Output</dt><dd>output/{{ stem }}</dd>
       </dl>
     </section>
+
+    {% include "_partials/metadata_card.html" %}
   </aside>
 </div>
 

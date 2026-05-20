@@ -1,0 +1,18 @@
+{% if transcript_lines %}
+<section class="card">
+  <header class="card-header">
+    <span class="caps">Transcript preview</span>
+    <span class="pill" data-tone="success"><span class="dot"></span>Phase 1 complete</span>
+  </header>
+  <div class="card-body">
+    <div class="transcript">
+      {% for line in transcript_lines %}
+        <div class="line" data-spk="{{ 'a' if loop.index0 % 2 == 0 else 'b' }}">
+          {% if line.spk %}<span class="spk">{{ line.spk }}</span>{% endif %}
+          <span class="text">{{ line.text }}</span>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
