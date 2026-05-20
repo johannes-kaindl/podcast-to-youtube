@@ -6,7 +6,7 @@ import json
 from datetime import datetime
 from pathlib import Path
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
@@ -261,6 +261,72 @@ async def runs_progress_fragment(stem: str, request: Request,
         request,
         "_partials/progress_bar.html",
         {"progress": {"value": value, "label": label}},
+    )
+
+
+def _find_mp4(stem: str) -> Path | None:
+    output_dir = OUTPUT_ROOT / stem
+    if not output_dir.exists():
+        return None
+    mp4s = sorted(output_dir.glob(f"{stem}-*.mp4"))
+    if not mp4s:
+        mp4s = sorted(output_dir.glob("*.mp4"))
+    return mp4s[-1] if mp4s else None
+
+
+def _parse_range(header: str | None, size: int) -> tuple[int, int] | None:
+    if not header or not header.startswith("bytes="):
+        return None
+    spec = header[6:].split(",")[0].strip()
+    if "-" not in spec:
+        return None
+    start_s, end_s = spec.split("-", 1)
+    try:
+        start = int(start_s) if start_s else 0
+        end = int(end_s) if end_s else size - 1
+    except ValueError:
+        return None
+    if start < 0 or end >= size or start > end:
+        return None
+    return start, end
+
+
+@app.get("/runs/{stem}/preview.mp4")
+async def runs_preview_mp4(stem: str, request: Request):
+    mp4 = _find_mp4(stem)
+    if mp4 is None:
+        raise HTTPException(status_code=404, detail="MP4 not found")
+    size = mp4.stat().st_size
+    range_header = request.headers.get("Range")
+    rng = _parse_range(range_header, size)
+
+    def file_iter(start: int, end: int, chunk_size: int = 65536):
+        with mp4.open("rb") as f:
+            f.seek(start)
+            remaining = end - start + 1
+            while remaining > 0:
+                chunk = f.read(min(chunk_size, remaining))
+                if not chunk:
+                    break
+                yield chunk
+                remaining -= len(chunk)
+
+    if rng is None:
+        return StreamingResponse(
+            file_iter(0, size - 1),
+            media_type="video/mp4",
+            headers={"Content-Length": str(size), "Accept-Ranges": "bytes"},
+        )
+    start, end = rng
+    return StreamingResponse(
+        file_iter(start, end),
+        status_code=206,
+        media_type="video/mp4",
+        headers={
+            "Content-Range": f"bytes {start}-{end}/{size}",
+            "Accept-Ranges": "bytes",
+            "Content-Length": str(end - start + 1),
+        },
     )
 
 

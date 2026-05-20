@@ -243,3 +243,37 @@ def test_resume_banner_complete_variant(client, populated_output):
     r = client.get("/runs/done/resume-banner")
     assert r.status_code == 200
     assert "complete" in r.text.lower() or "loop closed" in r.text.lower()
+
+
+def test_preview_mp4_404_when_missing(client, tmp_path, monkeypatch):
+    from webgui import app as app_mod
+    monkeypatch.setattr(app_mod, "OUTPUT_ROOT", tmp_path / "output")
+    r = client.get("/runs/no-such-run/preview.mp4")
+    assert r.status_code == 404
+
+
+def test_preview_mp4_serves_file(client, tmp_path, monkeypatch):
+    from webgui import app as app_mod
+    output = tmp_path / "output" / "stem-1"
+    output.mkdir(parents=True)
+    mp4 = output / "stem-1-dialogue.mp4"
+    mp4.write_bytes(b"\x00\x00\x00\x20ftypmp42" + b"\x00" * 1000)
+    monkeypatch.setattr(app_mod, "OUTPUT_ROOT", tmp_path / "output")
+    r = client.get("/runs/stem-1/preview.mp4")
+    assert r.status_code == 200
+    assert r.headers["content-type"] == "video/mp4"
+    assert len(r.content) > 1000
+
+
+def test_preview_mp4_range_request(client, tmp_path, monkeypatch):
+    from webgui import app as app_mod
+    output = tmp_path / "output" / "stem-2"
+    output.mkdir(parents=True)
+    mp4 = output / "stem-2-dialogue.mp4"
+    content = bytes(range(256)) * 4  # 1024 deterministic bytes
+    mp4.write_bytes(content)
+    monkeypatch.setattr(app_mod, "OUTPUT_ROOT", tmp_path / "output")
+    r = client.get("/runs/stem-2/preview.mp4", headers={"Range": "bytes=100-199"})
+    assert r.status_code == 206
+    assert r.headers["content-range"] == "bytes 100-199/1024"
+    assert r.content == content[100:200]

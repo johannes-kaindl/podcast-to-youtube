@@ -26,6 +26,18 @@
   <div class="stack">
     {% include "_partials/log_panel.html" %}
 
+    {% if variant in ("ready-to-upload", "done") and state.phases.render.status == "done" %}
+      <section class="card">
+        <header class="card-header">
+          <span class="caps">Rendered video · ready</span>
+          <span class="muted mono" style="margin-left:auto; font-size: 11px;">output/{{ stem }}/{{ state.phases.render.output | default("video.mp4") }}</span>
+        </header>
+        <div class="card-body" style="padding: 0;">
+          <video controls preload="metadata" style="width: 100%; max-height: 540px;" src="/runs/{{ stem }}/preview.mp4"></video>
+        </div>
+      </section>
+    {% endif %}
+
     {% if variant == "ready-to-upload" %}
       {% include "_partials/upload_card.html" %}
     {% endif %}
