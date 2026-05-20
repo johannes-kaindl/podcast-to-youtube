@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "audio": "/tmp/interview.m4a",
+  "stem": "interview",
+  "started_at": "2026-05-12T22:01:00Z",
+  "updated_at": "2026-05-12T22:26:09Z",
+  "config": {"show_name": "Notizen aus der Kammer", "episode": "Spezial", "viz_type": "dialogue"},
+  "phases": {
+    "transcribe": {"status": "done"}, "meta": {"status": "done"},
+    "render":     {"status": "done", "output": "interview-dialogue.mp4"},
+    "upload":     {"status": "skipped"}
+  }
+}

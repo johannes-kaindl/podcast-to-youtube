@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "audio": "/tmp/probefolge.m4a",
+  "stem": "probefolge",
+  "started_at": "2026-05-16T21:08:00Z",
+  "updated_at": "2026-05-16T21:19:44Z",
+  "config": {"show_name": "Pilot", "episode": "Test", "viz_type": "dialogue"},
+  "phases": {
+    "transcribe": {"status": "done", "finished_at": "2026-05-16T21:10:18Z"},
+    "meta":       {"status": "done", "finished_at": "2026-05-16T21:11:02Z"},
+    "render":     {"status": "aborted", "started_at": "2026-05-16T21:11:02Z", "finished_at": "2026-05-16T21:19:44Z", "error": "RuntimeError: render exit 1"},
+    "upload":     {"status": "skipped"}
+  }
+}

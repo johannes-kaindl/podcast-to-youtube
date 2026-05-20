@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "audio": "/tmp/folge-079.m4a",
+  "stem": "folge-079",
+  "started_at": "2026-05-09T11:24:00Z",
+  "updated_at": "2026-05-09T11:25:14Z",
+  "config": {"show_name": "Notizen aus der Kammer", "episode": "Folge 79"},
+  "phases": {
+    "transcribe": {"status": "done"}, "meta": {"status": "running"},
+    "render":     {"status": "pending"}, "upload": {"status": "pending"}
+  }
+}

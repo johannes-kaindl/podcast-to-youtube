@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "audio": "/tmp/folge-081.m4a",
+  "stem": "folge-081",
+  "started_at": "2026-05-18T09:14:00Z",
+  "updated_at": "2026-05-18T09:36:18Z",
+  "config": {"show_name": "Notizen aus der Kammer", "episode": "Folge 81", "language": "de", "model": "large-v3-turbo", "viz_type": "dialogue", "diarize": true, "num_speakers": null, "privacy": "private"},
+  "phases": {
+    "transcribe": {"status": "done", "started_at": "2026-05-18T09:14:00Z", "finished_at": "2026-05-18T09:17:14Z"},
+    "meta":       {"status": "done", "started_at": "2026-05-18T09:17:14Z", "finished_at": "2026-05-18T09:17:56Z", "title": "Warum Aufmerksamkeit keine Ressource ist"},
+    "render":     {"status": "done", "started_at": "2026-05-18T09:17:56Z", "finished_at": "2026-05-18T09:30:11Z", "size_mb": 198.0, "output": "folge-081-dialogue.mp4"},
+    "upload":     {"status": "done", "started_at": "2026-05-18T09:30:11Z", "finished_at": "2026-05-18T09:36:18Z", "url": "https://youtu.be/qC7w-2hL", "video_id": "qC7w-2hL"}
+  }
+}
