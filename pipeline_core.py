@@ -89,7 +89,7 @@ _STEP_MARKERS = [
     (re.compile(r"SCHRITT 3:"),               3, "Schritt 3/4 · Video rendern …",        53),
     (re.compile(r"SCHRITT 4:"),               4, "Schritt 4/4 · YouTube-Upload …",       96),
 ]
-_RENDER_PCT_RE = re.compile(r"(\d+\.?\d*)%")
+_RENDER_PCT_RE = re.compile(r"Rendering\s+(\d+\.?\d*)%")
 
 
 def match_line(line: str, current_step: int) -> ProgressEvent | None:
@@ -102,5 +102,5 @@ def match_line(line: str, current_step: int) -> ProgressEvent | None:
         if m:
             pct = float(m.group(1))
             overall = 53.0 + pct * 42.0 / 100.0
-            return ProgressEvent(overall, f"Schritt 3/4 · Rendering  {pct:.0f}%", 3)
+            return ProgressEvent(overall, f"Schritt 3/4 · Rendering {pct:.0f}%", 3)
     return None

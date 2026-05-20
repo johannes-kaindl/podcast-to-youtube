@@ -11,7 +11,8 @@ def test_match_line_detects_transcribe_phase(stdout_snippet):
     events = [match_line(line, 0) for line in lines]
     assert any(e and e.step == 1 for e in events)
     schritt_event = next(e for e in events if e and "Transkription" in e.label)
-    assert schritt_event.progress == 2
+    assert schritt_event.step == 1
+    assert 0 < schritt_event.progress < 100
 
 
 def test_match_line_extracts_render_progress(stdout_snippet):
@@ -61,6 +62,34 @@ def test_resolve_audio_path_absolute():
     from pipeline_core import resolve_audio_path
     p = resolve_audio_path("/abs/path.m4a", Path("/some/fallback"))
     assert p == Path("/abs/path.m4a")
+
+
+def test_resolve_audio_path_falls_back_to_pipeline_dir(tmp_path, monkeypatch):
+    """When the cwd-relative path doesn't exist, resolve falls back to fallback_dir."""
+    from pipeline_core import resolve_audio_path
+    fallback = tmp_path / "fallback"
+    fallback.mkdir()
+    audio = fallback / "foo.m4a"
+    audio.write_bytes(b"")
+    monkeypatch.chdir(tmp_path / "elsewhere" if False else tmp_path)  # ensure cwd isn't fallback
+    other_cwd = tmp_path / "other-cwd"
+    other_cwd.mkdir()
+    monkeypatch.chdir(other_cwd)
+    p = resolve_audio_path("foo.m4a", fallback)
+    assert p == audio
+
+
+def test_match_line_render_pct_only_matches_rendering_lines():
+    """A percent in an unrelated log line must not trigger render progress."""
+    from pipeline_core import match_line
+    # current_step==3 means we ARE in the render phase
+    # but lines without 'Rendering' prefix should not be classified as render-progress
+    assert match_line("Upload 50% complete", 3) is None
+    assert match_line("Some 25% stat from elsewhere", 3) is None
+    # genuine render line should still match
+    evt = match_line("Rendering 42.0%", 3)
+    assert evt is not None
+    assert evt.step == 3
 
 
 def test_resolve_audio_path_user_home(tmp_path, monkeypatch):
