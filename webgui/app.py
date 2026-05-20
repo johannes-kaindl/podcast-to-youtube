@@ -119,6 +119,50 @@ async def api_create_run(req: RunRequest):
     return RedirectResponse(url=f"/runs/{stem}", status_code=303)
 
 
+@app.get("/runs/{stem}", response_class=HTMLResponse)
+async def runs_detail(stem: str, request: Request):
+    state_file = OUTPUT_ROOT / stem / "run-state.json"
+    if not state_file.exists():
+        raise HTTPException(status_code=404, detail="Run not found")
+    state = _load_state(stem)
+    phases = state.get("phases", {})
+
+    # Variant precedence: aborted > done > ready-to-upload > running
+    if any(phases.get(p, {}).get("status") == "aborted"
+           for p in ("transcribe", "meta", "render", "upload")):
+        variant = "aborted"
+        page_mood = "error"
+    elif phases.get("upload", {}).get("status") == "done":
+        variant = "done"
+        page_mood = "success"
+    elif phases.get("render", {}).get("status") == "done":
+        variant = "ready-to-upload"
+        page_mood = "neutral"
+    elif any(phases.get(p, {}).get("status") == "running"
+             for p in ("transcribe", "meta", "render", "upload")):
+        variant = "running"
+        page_mood = "neutral"
+    else:
+        # Pending phases without a running process — partial-resume / warning
+        variant = "running"
+        page_mood = "warning"
+
+    active = registry.current is not None and registry.current.stem == stem
+
+    return templates.TemplateResponse(
+        request,
+        "run_detail.html",
+        {
+            "stem": stem,
+            "state": state,
+            "phases": phases,
+            "variant": variant,
+            "page_mood": page_mood,
+            "active": active,
+        },
+    )
+
+
 @app.get("/runs/{stem}/stream")
 async def runs_stream(stem: str, request: Request):
     """SSE stream — live from active job, or replay from persisted logfile."""

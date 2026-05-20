@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Run · {{ stem }} · {{ variant }}{% endblock %}
+{% block content %}
+<header class="run-header">
+  <div class="left">
+    <div class="crumbs"><a href="/runs">Runs</a> · <span>{{ stem }}</span></div>
+    <h1><span class="accent-mark">⟩</span>{{ stem }}</h1>
+    <p class="muted mono" style="margin-top:8px; font-size: 13px;">
+      {{ state.audio | default("") }} · started {{ state.started_at | default("—") }}
+    </p>
+  </div>
+  <div class="timer">
+    <small>Elapsed</small>
+    <span id="elapsed">{% if active %}00:00:00{% else %}—{% endif %}</span>
+  </div>
+</header>
+
+{% include "_partials/phase_indicator.html" %}
+
+<div id="progress" class="progress" style="margin-top: 16px;">
+  <div class="progress-track"><div class="progress-fill" style="--progress: 0%"></div></div>
+  <div class="progress-meta"><span>—</span><span>—</span></div>
+</div>
+
+<div class="run-grid" style="margin-top: 32px;">
+  <div class="stack">
+    {% include "_partials/log_panel.html" %}
+
+    {% if variant == "ready-to-upload" %}
+      {% include "_partials/upload_card.html" %}
+    {% endif %}
+
+    {% if variant == "aborted" %}
+      <section class="card" data-tone="error">
+        <header class="card-header"><span class="caps">Run aborted</span></header>
+        <div class="card-body">
+          <p>The pipeline stopped before reaching upload. Check the live-log tail.</p>
+          {% for phase_name, phase in phases.items() %}
+            {% if phase.get("status") == "aborted" %}
+              <p class="mono dim">Phase: {{ phase_name }} — {{ phase.get("error", "") }}</p>
+            {% endif %}
+          {% endfor %}
+        </div>
+      </section>
+    {% endif %}
+
+    {% if variant == "done" and state.phases.upload.url is defined %}
+      <section class="card" data-tone="success">
+        <header class="card-header"><span class="caps">Uploaded to YouTube</span></header>
+        <div class="card-body">
+          <a class="btn btn--primary" href="{{ state.phases.upload.url }}" target="_blank">Open on YouTube ↗</a>
+          <p class="mono dim" style="margin-top: 12px;">{{ state.phases.upload.url }}</p>
+        </div>
+      </section>
+    {% endif %}
+  </div>
+  <aside class="stack">
+    <section class="card card--padded">
+      <div class="caps" style="margin-bottom: 12px;">Run details</div>
+      <dl class="kv">
+        <dt>Stem</dt><dd>{{ stem }}</dd>
+        <dt>Visualizer</dt><dd>{{ state.config.viz_type | default("—") }}</dd>
+        <dt>Model</dt><dd>{{ state.config.model | default("—") }}</dd>
+        <dt>Language</dt><dd>{{ state.config.language | default("—") }}</dd>
+        <dt>Output</dt><dd>output/{{ stem }}</dd>
+      </dl>
+    </section>
+  </aside>
+</div>
+
+{% if active %}
+<script>
+  window.startEventSource("{{ stem }}");
+</script>
+{% endif %}
+{% endblock %}

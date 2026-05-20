@@ -204,3 +204,30 @@ def test_progress_fragment_renders(client):
     r = client.get("/runs/anything/progress?value=42&label=Rendering+45%25")
     assert r.status_code == 200
     assert "42" in r.text
+
+
+def test_runs_detail_running_variant(client, populated_output):
+    """Running state shows live-log section."""
+    r = client.get("/runs/running")
+    assert r.status_code == 200
+    # Running state should include the log panel
+    assert "stdout" in r.text.lower() or "log" in r.text.lower()
+
+
+def test_runs_detail_done_variant(client, populated_output):
+    """Done state shows YouTube URL."""
+    r = client.get("/runs/done")
+    assert r.status_code == 200
+    assert "youtu.be" in r.text or "youtube" in r.text.lower()
+
+
+def test_runs_detail_aborted_variant(client, populated_output):
+    """Aborted state shows error message."""
+    r = client.get("/runs/aborted")
+    assert r.status_code == 200
+    assert "aborted" in r.text.lower() or "error" in r.text.lower()
+
+
+def test_runs_detail_404_unknown_stem(client, populated_output):
+    r = client.get("/runs/does-not-exist")
+    assert r.status_code == 404
