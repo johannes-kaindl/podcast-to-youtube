@@ -1,0 +1,8 @@
+────────────────────────────────────────────────────────────
+SCHRITT 1: Transkription
+────────────────────────────────────────────────────────────
+[1/4] Modell laden (large-v3-turbo, de)
+[2/4] Transkribieren
+[3/4] Wort-Alignment
+[4/4] Speaker-Diarization
+✓ Transkription fertig

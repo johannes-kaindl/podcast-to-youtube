@@ -1,0 +1,9 @@
+────────────────────────────────────────────────────────────
+SCHRITT 3: Video rendern (Remotion)
+────────────────────────────────────────────────────────────
+Rendering 12.0%
+Rendering 24.0%
+Rendering 53.4%
+Rendering 87.2%
+Rendering 100.0%
+✓ Render fertig: output/folge-082-dialogue.mp4

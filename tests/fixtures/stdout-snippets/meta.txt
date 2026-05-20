@@ -1,0 +1,5 @@
+────────────────────────────────────────────────────────────
+SCHRITT 2: YouTube-Metadaten generieren
+────────────────────────────────────────────────────────────
+Metadaten generieren via MLX (qwen2.5-7b-instruct-4bit) …
+✓ Metadaten geschrieben
