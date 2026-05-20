@@ -27,6 +27,9 @@
           <a href="/runs" {% if request.url.path.startswith('/runs') %}class="is-active"{% endif %}>Runs</a>
         </nav>
         <div class="topbar-meta">
+          <button class="btn btn--ghost btn--sm" id="theme-toggle" type="button" title="Toggle theme">
+            <span id="theme-icon">☾</span>
+          </button>
           <span class="host-pill"><span class="dot"></span>localhost</span>
         </div>
       </div>

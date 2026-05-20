@@ -258,3 +258,19 @@ document.addEventListener('click', async (e) => {
     window.location.reload();
   }
 });
+
+document.addEventListener('click', async (e) => {
+  if (e.target.closest('#theme-toggle')) {
+    const html = document.documentElement;
+    const next = html.dataset.theme === 'dark' ? 'light' : 'dark';
+    html.dataset.theme = next;
+    localStorage.setItem('theme', next);
+    const icon = document.getElementById('theme-icon');
+    if (icon) icon.textContent = next === 'dark' ? '☾' : '☀';
+    fetch('/api/settings', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ theme: next }),
+    });
+  }
+});

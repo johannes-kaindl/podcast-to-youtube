@@ -3,6 +3,7 @@
 Single-User, localhost only. No auth, no CSRF.
 """
 import json
+import os
 import signal
 import subprocess
 from datetime import datetime
@@ -18,11 +19,13 @@ from pipeline_core import PipelineConfig, build_command, resolve_audio_path
 from .probe import audio_probe
 from .runner import registry, spawn_pipeline, spawn_upload, StreamEvent, latest_logfile, replay_logfile
 from .runs import list_runs, filter_runs
+from .settings import load_settings, save_settings
 
 REPO_ROOT = Path(__file__).parent.parent
 TEMPLATES_DIR = Path(__file__).parent / "templates"
 STATIC_DIR = Path(__file__).parent / "static"
 OUTPUT_ROOT = REPO_ROOT / "output"
+SETTINGS_PATH = Path(os.path.expanduser("~/.whisper-pipeline-ui.json"))
 
 app = FastAPI(title="Whisper-Pipeline WebGUI")
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
@@ -418,6 +421,26 @@ async def open_quicktime(req: OpenRequest):
     if not _path_is_safe(path):
         raise HTTPException(status_code=400, detail="Path outside repo")
     subprocess.run(["open", "-a", "QuickTime Player", str(path)], check=False)
+    return Response(status_code=204)
+
+
+class SettingsPatch(BaseModel):
+    theme: str | None = None
+    tail_default: bool | None = None
+    preferred_visualizer: str | None = None
+    preferred_model: str | None = None
+
+
+@app.get("/api/settings")
+async def api_get_settings():
+    return load_settings(SETTINGS_PATH)
+
+
+@app.post("/api/settings", status_code=204)
+async def api_post_settings(patch: SettingsPatch):
+    from fastapi import Response
+    payload = {k: v for k, v in patch.model_dump().items() if v is not None}
+    save_settings(SETTINGS_PATH, payload)
     return Response(status_code=204)
 
 
