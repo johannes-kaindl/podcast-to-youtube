@@ -28,28 +28,33 @@ cd -
 python auth_youtube.py
 ```
 
-## TUI (Empfohlen)
+## WebGUI (Empfohlen)
 
 ```bash
-podcast-video-upload              # Alias — TUI startet direkt
-podcast-video-upload podcast.m4a  # Audio-Pfad vorausgefüllt
+podcast-video-upload                 # Alias — startet WebGUI + öffnet Browser
+# oder ohne Alias:
+python webgui.py
 ```
 
-Oder ohne Alias:
+Im Browser auf `http://localhost:8765`. Drop deinen Podcast in die Source-Zone (oder Pfad eingeben),
+Optionen wählen, **Start pipeline** klicken. Live-Log + Phase-Progress per Server-Sent Events.
 
-```bash
-source .venv/bin/activate
-python tui.py podcast.m4a
-```
-
-Zweispaltig: Konfigurationsformular links, Live-Log rechts.
+Nach dem Render-Schritt zeigt die WebGUI die MP4-Vorschau direkt im Browser — Upload wird **nicht
+automatisch gestartet**. Privacy wählen (Private/Unlisted), dann **Upload to YouTube** klicken.
 
 | Taste | Funktion |
 |---|---|
-| `Ctrl+R` | Pipeline starten |
-| `Ctrl+Q` | Beenden |
+| `Ctrl+R` | Start-Pipeline-Modal öffnen |
 
-Felder: Audio-Pfad · Visualizer · Sprache (Standard: Auto) · Modell (Standard: large-v3-turbo) · Sprecher-Erkennung · Episode · Serienname · Schritte überspringen
+Felder: Audio-Pfad · Visualizer · Sprache · Modell · Sprecher-Erkennung · Episode · Channel/Serie · Skip-Phasen
+
+## TUI (Fallback)
+
+Die alte Textual-TUI bleibt erstmal als Fallback verfügbar (gleiche Pipeline, anderes Frontend):
+
+```bash
+python tui.py podcast.m4a
+```
 
 ## Nutzung (CLI)
 
@@ -125,13 +130,13 @@ python download_models.py --status
 
 ## Shell-Alias
 
-In `~/.zshrc` eingetragen:
+In `~/.zshrc` eintragen:
 
 ```bash
-podcast-video-upload [audio.m4a]
+alias podcast-video-upload='cd /Users/Shared/code/whisper-pipeline && source .venv/bin/activate && python webgui.py'
 ```
 
-Aktiviert automatisch die venv, startet `tui.py`, und deaktiviert die venv beim Beenden. Kein `cd` oder `source` nötig.
+Aktiviert automatisch die venv und startet die WebGUI im Default-Browser.
 
 ## YouTube-Kanal wechseln
 
