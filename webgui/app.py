@@ -14,7 +14,7 @@ from sse_starlette.sse import EventSourceResponse
 
 from pipeline_core import PipelineConfig, build_command, resolve_audio_path
 from .probe import audio_probe
-from .runner import registry, spawn_pipeline, StreamEvent, latest_logfile, replay_logfile
+from .runner import registry, spawn_pipeline, spawn_upload, StreamEvent, latest_logfile, replay_logfile
 from .runs import list_runs, filter_runs
 
 REPO_ROOT = Path(__file__).parent.parent
@@ -328,6 +328,48 @@ async def runs_preview_mp4(stem: str, request: Request):
             "Content-Length": str(end - start + 1),
         },
     )
+
+
+class UploadRequest(BaseModel):
+    privacy: str = "private"
+
+
+@app.post("/runs/{stem}/upload", status_code=202)
+async def runs_upload(stem: str, req: UploadRequest):
+    if req.privacy not in ("private", "unlisted"):
+        raise HTTPException(status_code=400, detail="Privacy must be 'private' or 'unlisted'")
+    mp4 = _find_mp4(stem)
+    if mp4 is None:
+        raise HTTPException(status_code=404, detail="MP4 not found")
+    if registry.current is not None:
+        raise HTTPException(
+            status_code=409,
+            detail={"error": "slot_busy", "stem": registry.current.stem,
+                    "kind": registry.current.kind},
+        )
+
+    output_dir = OUTPUT_ROOT / stem
+    ts = datetime.now().strftime("%Y-%m-%dT%H-%M-%S")
+    log_file = output_dir / f"run-{ts}.log"
+
+    spawn_upload(
+        video_path=mp4, stem=stem, privacy=req.privacy,
+        output_dir=output_dir, log_file=log_file, registry=registry,
+    )
+    return {"status": "accepted", "stem": stem}
+
+
+@app.post("/runs/{stem}/skip-upload", status_code=204)
+async def runs_skip_upload(stem: str):
+    from fastapi import Response
+    state_file = OUTPUT_ROOT / stem / "run-state.json"
+    if not state_file.exists():
+        raise HTTPException(status_code=404, detail="Run not found")
+    state = json.loads(state_file.read_text(encoding="utf-8"))
+    state.setdefault("phases", {})["upload"] = {"status": "skipped"}
+    state["updated_at"] = datetime.now().isoformat() + "Z"
+    state_file.write_text(json.dumps(state, indent=2))
+    return Response(status_code=204)
 
 
 @app.get("/")

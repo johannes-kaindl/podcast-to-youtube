@@ -236,3 +236,25 @@ document.addEventListener('keydown', (e) => {
     }
   }
 });
+
+document.addEventListener('click', async (e) => {
+  if (e.target.id === 'upload-btn' || e.target.closest('#upload-btn')) {
+    const privacy = document.querySelector('#upload-privacy input:checked')?.value || 'private';
+    const stem = window.location.pathname.split('/').pop();
+    const r = await fetch(`/runs/${stem}/upload`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ privacy }),
+    });
+    if (r.ok) {
+      if (window.startEventSource) window.startEventSource(stem);
+    } else {
+      alert(`Upload failed: ${r.status}`);
+    }
+  }
+  if (e.target.id === 'skip-upload-btn' || e.target.closest('#skip-upload-btn')) {
+    const stem = window.location.pathname.split('/').pop();
+    await fetch(`/runs/${stem}/skip-upload`, { method: 'POST' });
+    window.location.reload();
+  }
+});

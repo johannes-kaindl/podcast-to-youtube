@@ -220,5 +220,86 @@ def replay_logfile(log_file: Path, start_seq: int = 0):
         )
 
 
+def spawn_upload(
+    video_path: Path,
+    stem: str,
+    privacy: str,
+    output_dir: Path,
+    log_file: Path,
+    registry: JobRegistry,
+) -> ActiveJob:
+    """Spawn upload_youtube.py as a subprocess. Same plumbing as spawn_pipeline."""
+    import sys
+    cmd = [
+        sys.executable,
+        str(Path(__file__).parent.parent / "upload_youtube.py"),
+        str(video_path),
+        "--privacy", privacy,
+    ]
+    job = ActiveJob(
+        stem=stem, audio_path=video_path, output_dir=output_dir,
+        process=None, log_file=log_file, kind="upload",
+        queue=asyncio.Queue(),
+    )
+    if not registry.try_claim(job):
+        existing = registry.current
+        existing_stem = existing.stem if existing is not None else "<unknown>"
+        raise RuntimeError(f"Slot is busy with {existing_stem!r}")
+
+    try:
+        output_dir.mkdir(parents=True, exist_ok=True)
+        log_file.parent.mkdir(parents=True, exist_ok=True)
+        proc = subprocess.Popen(
+            cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+            text=True, bufsize=1,
+        )
+    except Exception:
+        registry.release(job)
+        raise
+    job.process = proc
+
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        loop = None
+
+    def _put(event: StreamEvent) -> None:
+        if loop is None or job.queue is None:
+            return
+        try:
+            loop.call_soon_threadsafe(job.queue.put_nowait, event)
+        except RuntimeError:
+            pass
+
+    def _reader():
+        try:
+            with log_file.open("a", encoding="utf-8", buffering=1) as f:
+                f.write(f"\n# Upload started {job.started_at.isoformat()}\n")
+                f.write(f"# Command: {shlex.join(cmd)}\n")
+                f.write("# " + ("─" * 60) + "\n\n")
+                for line in proc.stdout:
+                    line = line.rstrip("\n")
+                    f.write(line + "\n")
+                    if line:
+                        job.seq += 1
+                        _put(StreamEvent(
+                            type="log", seq=job.seq,
+                            data={"msg": line, "level": _classify_level(line)},
+                        ))
+            if proc.stdout is not None:
+                proc.stdout.close()
+            proc.wait()
+            job.seq += 1
+            _put(StreamEvent(
+                type="done", seq=job.seq,
+                data={"exit_code": proc.returncode, "kind": "upload"},
+            ))
+        finally:
+            registry.release(job)
+
+    threading.Thread(target=_reader, daemon=True, name=f"upload-{stem}").start()
+    return job
+
+
 # Module-level singleton (FastAPI app gets it via import)
 registry = JobRegistry()

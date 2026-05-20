@@ -277,3 +277,41 @@ def test_preview_mp4_range_request(client, tmp_path, monkeypatch):
     assert r.status_code == 206
     assert r.headers["content-range"] == "bytes 100-199/1024"
     assert r.content == content[100:200]
+
+
+def test_upload_returns_404_if_no_mp4(client, tmp_path, monkeypatch):
+    from webgui import app as app_mod, runner
+    runner.registry = runner.JobRegistry()
+    monkeypatch.setattr(app_mod, "registry", runner.registry)
+    monkeypatch.setattr(app_mod, "OUTPUT_ROOT", tmp_path / "output")
+    (tmp_path / "output" / "stem-z").mkdir(parents=True)
+    r = client.post("/runs/stem-z/upload", json={"privacy": "private"})
+    assert r.status_code == 404
+
+
+def test_upload_rejects_public_privacy(client, tmp_path, monkeypatch):
+    from webgui import app as app_mod
+    monkeypatch.setattr(app_mod, "OUTPUT_ROOT", tmp_path / "output")
+    (tmp_path / "output" / "stem-q").mkdir(parents=True)
+    (tmp_path / "output" / "stem-q" / "stem-q-dialogue.mp4").write_bytes(b"x")
+    r = client.post("/runs/stem-q/upload", json={"privacy": "public"})
+    assert r.status_code == 400
+
+
+def test_skip_upload_marks_state(client, tmp_path, monkeypatch):
+    import json as _json
+    from webgui import app as app_mod
+    monkeypatch.setattr(app_mod, "OUTPUT_ROOT", tmp_path / "output")
+    output = tmp_path / "output" / "stem-r"
+    output.mkdir(parents=True)
+    state = {
+        "schema_version": 1, "stem": "stem-r", "audio": "/x",
+        "started_at": "2026-05-20T10:00:00Z", "updated_at": "2026-05-20T10:30:00Z",
+        "phases": {"transcribe": {"status":"done"}, "meta": {"status":"done"},
+                   "render": {"status":"done"}, "upload": {"status":"pending"}},
+    }
+    (output / "run-state.json").write_text(_json.dumps(state))
+    r = client.post("/runs/stem-r/skip-upload")
+    assert r.status_code == 204
+    fresh = _json.loads((output / "run-state.json").read_text())
+    assert fresh["phases"]["upload"]["status"] == "skipped"
