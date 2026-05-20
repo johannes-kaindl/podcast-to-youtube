@@ -1,5 +1,6 @@
 """FastAPI endpoint tests via TestClient."""
 import shutil
+from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
@@ -89,3 +90,55 @@ def test_runs_filter_done(client, populated_output):
     assert "done" in r.text  # appears as the run row
     # Aborted should be filtered out
     assert 'data-status="aborted"' not in r.text
+
+
+def test_api_runs_starts_pipeline_mock(client, tmp_path, monkeypatch):
+    """POST /api/runs spawns a subprocess; client receives 303 to /runs/{stem}."""
+    import sys
+    from webgui import app as app_mod, runner
+
+    # Reset the singleton registry for test isolation
+    runner.registry = runner.JobRegistry()
+    monkeypatch.setattr(app_mod, "registry", runner.registry)
+
+    # Patch build_command to point at the mock pipeline
+    monkeypatch.setattr(
+        app_mod,
+        "build_command",
+        lambda cfg, _dir: [sys.executable, str(Path("tests/fixtures/mock_pipeline.py"))],
+    )
+    monkeypatch.setattr(app_mod, "OUTPUT_ROOT", tmp_path / "output")
+
+    body = {
+        "audio": str(Path(__file__).parent / "fixtures" / "sample.m4a"),
+        "viz": "dialogue", "language": "de", "model": "large-v3-turbo",
+        "diarize": "off", "episode": "EP X", "show_name": "Test",
+        "skip_transcribe": False, "skip_meta": False,
+        "skip_render": False, "skip_upload": True,
+    }
+    r = client.post("/api/runs", json=body, follow_redirects=False)
+    assert r.status_code == 303
+    assert r.headers["location"].startswith("/runs/")
+
+
+def test_api_runs_returns_409_when_busy(client, tmp_path, monkeypatch):
+    from webgui import app as app_mod, runner
+
+    runner.registry = runner.JobRegistry()
+    monkeypatch.setattr(app_mod, "registry", runner.registry)
+
+    # Pre-claim the slot
+    runner.registry.try_claim(runner.ActiveJob(
+        stem="busy-stem", audio_path=Path("/x"), output_dir=Path("/y"),
+        process=None, log_file=Path("/z"), kind="pipeline",
+    ))
+
+    body = {
+        "audio": "/whatever.m4a", "viz": "dialogue", "language": "de",
+        "model": "large-v3-turbo", "diarize": "off", "episode": "X",
+        "show_name": "X", "skip_transcribe": False, "skip_meta": False,
+        "skip_render": False, "skip_upload": True,
+    }
+    r = client.post("/api/runs", json=body)
+    assert r.status_code == 409
+    assert "busy-stem" in r.text

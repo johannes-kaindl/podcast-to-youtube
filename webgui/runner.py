@@ -69,15 +69,18 @@ def spawn_pipeline(
     registry: JobRegistry,
     kind: JobKind = "pipeline",
 ) -> ActiveJob:
-    """Spawn a pipeline subprocess. Returns the ActiveJob.
+    """Spawn a pipeline subprocess. Returns the ActiveJob (with attached asyncio.Queue).
 
     Raises RuntimeError if the registry slot is already taken.
-    A background daemon thread reads stdout and writes each line to log_file.
-    Once the subprocess exits, the registry is released.
+    A background daemon thread reads stdout, writes each line to log_file, AND
+    pushes a StreamEvent into job.queue (via loop.call_soon_threadsafe) so an
+    SSE consumer can drain events on the main asyncio loop. Once the subprocess
+    exits, the registry is released and a "done" event is emitted.
     """
     job = ActiveJob(
         stem=stem, audio_path=audio_path, output_dir=output_dir,
         process=None, log_file=log_file, kind=kind,
+        queue=asyncio.Queue(),
     )
     if not registry.try_claim(job):
         # Capture the current slot owner outside the format-string so a
@@ -104,6 +107,24 @@ def spawn_pipeline(
         raise
     job.process = proc
 
+    # Capture the running event loop so the reader thread can push to the queue.
+    # If there's no loop (e.g. spawn_pipeline called from a sync context like a
+    # bare unit test), fall back to None — queue events are silently dropped.
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        loop = None
+
+    def _put(event: StreamEvent) -> None:
+        if loop is None or job.queue is None:
+            return
+        try:
+            loop.call_soon_threadsafe(job.queue.put_nowait, event)
+        except RuntimeError:
+            # Loop already closed (e.g. test client teardown, server shutdown).
+            # Reader thread continues writing to the log file regardless.
+            pass
+
     def _reader():
         try:
             with log_file.open("w", encoding="utf-8", buffering=1) as f:
@@ -113,9 +134,22 @@ def spawn_pipeline(
                 for line in proc.stdout:
                     line = line.rstrip("\n")
                     f.write(line + "\n")
+                    if line:
+                        job.seq += 1
+                        _put(StreamEvent(
+                            type="log",
+                            seq=job.seq,
+                            data={"msg": line, "level": _classify_level(line)},
+                        ))
             if proc.stdout is not None:
                 proc.stdout.close()
             proc.wait()
+            job.seq += 1
+            _put(StreamEvent(
+                type="done",
+                seq=job.seq,
+                data={"exit_code": proc.returncode, "kind": kind},
+            ))
         finally:
             registry.release(job)
 
