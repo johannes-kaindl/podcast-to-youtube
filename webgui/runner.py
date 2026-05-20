@@ -4,6 +4,7 @@ JobRegistry is in-memory, single-slot. Both pipeline runs and uploads
 share this slot — only one subprocess can run at a time.
 """
 import asyncio
+import shlex
 import subprocess
 import threading
 from dataclasses import dataclass, field
@@ -79,29 +80,41 @@ def spawn_pipeline(
         process=None, log_file=log_file, kind=kind,
     )
     if not registry.try_claim(job):
-        raise RuntimeError(f"Slot is busy with {registry.current.stem!r}")
+        # Capture the current slot owner outside the format-string so a
+        # release-between-check-and-format race can't raise AttributeError.
+        existing = registry.current
+        existing_stem = existing.stem if existing is not None else "<unknown>"
+        raise RuntimeError(f"Slot is busy with {existing_stem!r}")
 
-    output_dir.mkdir(parents=True, exist_ok=True)
-    log_file.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        output_dir.mkdir(parents=True, exist_ok=True)
+        log_file.parent.mkdir(parents=True, exist_ok=True)
 
-    proc = subprocess.Popen(
-        cmd,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        text=True,
-        bufsize=1,
-    )
+        proc = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            bufsize=1,
+        )
+    except Exception:
+        # Popen (or mkdir) failed BEFORE the slot-releasing reader-thread starts.
+        # Without this, the registry singleton would be permanently stuck.
+        registry.release(job)
+        raise
     job.process = proc
 
     def _reader():
         try:
             with log_file.open("w", encoding="utf-8", buffering=1) as f:
-                f.write(f"# Pipeline-Run started {datetime.now().isoformat()}\n")
-                f.write(f"# Command: {' '.join(cmd)}\n")
+                f.write(f"# Pipeline-Run started {job.started_at.isoformat()}\n")
+                f.write(f"# Command: {shlex.join(cmd)}\n")
                 f.write("# " + ("─" * 60) + "\n\n")
                 for line in proc.stdout:
                     line = line.rstrip("\n")
                     f.write(line + "\n")
+            if proc.stdout is not None:
+                proc.stdout.close()
             proc.wait()
         finally:
             registry.release(job)

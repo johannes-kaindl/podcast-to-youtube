@@ -112,3 +112,23 @@ def test_spawn_pipeline_fails_when_slot_busy(tmp_path):
             registry=reg,
         )
     assert "busy" in str(exc.value).lower() or "slot" in str(exc.value).lower()
+
+
+def test_spawn_pipeline_releases_slot_when_popen_fails(tmp_path):
+    """Critical: if Popen raises (bad binary, OS error), the slot must NOT
+    stay claimed — otherwise the singleton registry becomes permanently
+    unusable. Regression guard for T6/T7 code-quality review finding."""
+    from webgui.runner import spawn_pipeline, JobRegistry
+
+    reg = JobRegistry()
+    with pytest.raises(FileNotFoundError):
+        spawn_pipeline(
+            cmd=["/nonexistent/binary/that/cannot/be/found-xyz"],
+            stem="failed-spawn",
+            audio_path=Path("/tmp/a.m4a"),
+            output_dir=tmp_path / "out",
+            log_file=tmp_path / "out" / "x.log",
+            registry=reg,
+        )
+    # Slot must be free even though Popen blew up
+    assert reg.current is None
