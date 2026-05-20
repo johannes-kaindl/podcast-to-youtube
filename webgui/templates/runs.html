@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Whisper-Pipeline · Past runs{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <div class="eyebrow">Output · {{ total_count }} runs</div>
+    <h1>Past runs</h1>
+    <p class="lede">Everything the chamber has seen. Newest first. Click to open.</p>
+  </div>
+  <div class="row-end">
+    <a class="btn btn--primary" href="/">+ New run</a>
+  </div>
+</div>
+
+{% if runs %}
+<div class="runs-toolbar">
+  {% for chip, label in [("all","All"), ("done","Done"), ("aborted","Aborted"), ("unfinished","Unfinished"), ("not-uploaded","Not uploaded")] %}
+    <a class="filter-chip {% if active_filter == chip %}is-active{% endif %}" href="?filter={{ chip }}">{{ label }}</a>
+  {% endfor %}
+</div>
+
+<div class="runs-table">
+  <div class="runs-row is-header">
+    <span>Date</span>
+    <span>Stem · Episode</span>
+    <span>Phases</span>
+    <span>YouTube</span>
+    <span style="text-align:right;">Time</span>
+    <span></span>
+  </div>
+  {% for run in runs %}
+    {% include "_partials/runs_row.html" %}
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty">
+  <h3>No signal. The chamber is quiet.</h3>
+  <p>No runs yet. Drop a podcast file on the start screen and the pipeline will leave a trail here.</p>
+  <a class="btn btn--primary" href="/">+ Start your first run</a>
+</div>
+{% endif %}
+{% endblock %}

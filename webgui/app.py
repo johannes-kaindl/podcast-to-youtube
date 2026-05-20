@@ -9,6 +9,7 @@ from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 
 from .probe import audio_probe
+from .runs import list_runs, filter_runs
 
 REPO_ROOT = Path(__file__).parent.parent
 TEMPLATES_DIR = Path(__file__).parent / "templates"
@@ -34,6 +35,22 @@ async def api_audio_probe(req: AudioProbeRequest):
     from pipeline_core import resolve_audio_path
     audio_path = resolve_audio_path(req.path, REPO_ROOT)
     return audio_probe(audio_path, OUTPUT_ROOT)
+
+
+@app.get("/runs")
+async def runs_view(request: Request, filter: str = "all"):
+    all_runs = list_runs(OUTPUT_ROOT)
+    runs = filter_runs(all_runs, filter)
+    return templates.TemplateResponse(
+        request,
+        "runs.html",
+        {
+            "runs": runs,
+            "active_filter": filter,
+            "total_count": len(all_runs),
+            "page_mood": "neutral",
+        },
+    )
 
 
 @app.get("/")

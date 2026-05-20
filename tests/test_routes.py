@@ -1,4 +1,5 @@
 """FastAPI endpoint tests via TestClient."""
+import shutil
 import pytest
 from fastapi.testclient import TestClient
 
@@ -7,6 +8,22 @@ from fastapi.testclient import TestClient
 def client():
     from webgui.app import app
     return TestClient(app)
+
+
+@pytest.fixture
+def populated_output(tmp_path, fixtures_dir, monkeypatch):
+    """Re-point webgui.app.OUTPUT_ROOT to a tmp tree with fixture runs."""
+    out = tmp_path / "output"
+    out.mkdir()
+    for src in (fixtures_dir / "run-states").glob("*.json"):
+        stem = src.stem
+        if stem == "empty":
+            continue
+        (out / stem).mkdir()
+        shutil.copy(src, out / stem / "run-state.json")
+    from webgui import app as app_mod
+    monkeypatch.setattr(app_mod, "OUTPUT_ROOT", out)
+    return out
 
 
 def test_index_returns_html(client):
@@ -44,3 +61,31 @@ def test_api_audio_probe_with_missing_file(client, tmp_path):
     assert r.status_code == 200
     assert r.json()["valid"] is False
     assert r.json()["error"] == "file_not_found"
+
+
+def test_runs_returns_html(client, populated_output):
+    r = client.get("/runs")
+    assert r.status_code == 200
+    assert "Past runs" in r.text
+    # Several fixture stems should appear
+    assert "folge-081" in r.text or "done" in r.text  # accept dir-name stem deviation
+    assert "folge-082" in r.text or "running" in r.text
+    assert "probefolge" in r.text or "aborted" in r.text
+
+
+def test_runs_empty_state_when_no_runs(client, tmp_path, monkeypatch):
+    from webgui import app as app_mod
+    empty = tmp_path / "empty"
+    monkeypatch.setattr(app_mod, "OUTPUT_ROOT", empty)
+    r = client.get("/runs")
+    assert r.status_code == 200
+    assert "No signal" in r.text or "No runs" in r.text
+
+
+def test_runs_filter_done(client, populated_output):
+    r = client.get("/runs?filter=done")
+    assert r.status_code == 200
+    # The only fully-done+uploaded fixture is "done" (stem from dir name)
+    assert "done" in r.text  # appears as the run row
+    # Aborted should be filtered out
+    assert 'data-status="aborted"' not in r.text

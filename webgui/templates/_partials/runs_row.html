@@ -1,0 +1,38 @@
+<a class="runs-row" href="/runs/{{ run.stem }}">
+  <span class="date">{{ run.started_at.strftime("%Y-%m-%d · %H:%M") }}</span>
+  <span style="min-width:0;">
+    <div class="row" style="gap:12px;">
+      <span class="thumb {{ 'wave' if run.phases.render == 'done' else 'empty' }}"></span>
+      <span style="min-width:0;">
+        <span class="stem">{{ run.stem }}</span>
+        <div class="stem-meta">{{ run.show_name }}{% if run.episode %} · {{ run.episode }}{% endif %}</div>
+      </span>
+    </div>
+  </span>
+  <span>
+    <span class="phases--compact">
+      {% for phase_name in ["transcribe", "meta", "render", "upload"] %}
+        {% set status = run.phases[phase_name] %}
+        <span class="phase-pill" data-status="{{ status }}">
+          {% if status == "done" %}✓
+          {% elif status == "running" %}⟳
+          {% elif status == "aborted" %}✗
+          {% elif status == "skipped" %}·
+          {% else %}○{% endif %}
+        </span>
+      {% endfor %}
+    </span>
+  </span>
+  <span class="mono youtube-cell">
+    {% if run.youtube_url %}{{ run.youtube_url.replace("https://", "") }}
+    {% elif run.phases.upload == "skipped" and run.phases.render == "done" %}Local only
+    {% elif run.phases.render == "aborted" or run.phases.meta == "aborted" or run.phases.transcribe == "aborted" %}Aborted
+    {% elif run.phases.render == "running" or run.phases.transcribe == "running" or run.phases.meta == "running" %}Running…
+    {% else %}—{% endif %}
+  </span>
+  <span class="duration">
+    {% if run.duration_s %}{{ "%d:%02d" | format(run.duration_s // 60, run.duration_s % 60) }}
+    {% else %}—{% endif %}
+  </span>
+  <span class="chev">→</span>
+</a>
