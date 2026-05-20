@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="en" data-aspect="gunshi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=1200">
+  <title>Run · folge-082 · aborted</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body data-screen-label="05 Run · aborted">
+  <div class="app">
+
+    <header class="topbar">
+      <div class="topbar-inner">
+        <a class="brand" href="index.html">
+          <span class="brand-mark"></span>
+          <span class="brand-name">Whisper<span class="dim">·Pipeline</span></span>
+        </a>
+        <nav class="topnav">
+          <a href="index.html">Start</a>
+          <a href="runs.html">Runs</a>
+          <a href="compare.html">States</a>
+        </nav>
+        <div class="topbar-meta">
+          <button class="btn btn--ghost btn--sm" type="button" data-open-modal="cheatsheet" style="padding: 4px 10px;">
+            <span class="mono" style="font-size: 11px; letter-spacing: 0.04em;">?</span>
+            <span class="caps" style="color: inherit;">Keys</span>
+          </button>
+          <span class="pill" data-tone="error"><span class="dot"></span>Aborted</span>
+          <span class="host-pill"><span class="dot"></span>localhost:8765</span>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <div class="page">
+
+        <!-- ─── RUN HEADER ─── -->
+        <header class="run-header">
+          <div class="left">
+            <div class="crumbs">
+              <a href="runs.html">Runs</a>
+              <span>·</span>
+              <span>folge-082-die-stille-zwischen-den-zeilen</span>
+            </div>
+            <h1><span class="accent-mark" style="color: var(--role-error);">⟩</span>folge-082-die-stille-zwischen-den-zeilen</h1>
+            <p class="muted mono" style="margin-top:8px; font-size: var(--text-sm);">
+              /Users/k/podcasts/raw/folge-082-die-stille-zwischen-den-zeilen.m4a · aborted 2026-05-20 · 14:13:55
+            </p>
+          </div>
+          <div class="timer">
+            <small>Elapsed before abort</small>
+            <span>00:11:44</span>
+          </div>
+        </header>
+
+        <!-- ─── PHASE INDICATOR (1,2 done · 3 aborted · 4 skipped) ─── -->
+        <div data-phases-wrapper class="phases">
+
+          <!-- STEPPER -->
+          <div data-phases-variant="stepper" class="phases--stepper">
+            <div class="phase" data-status="done">
+              <div class="glyph">✓</div>
+              <div class="phase-meta"><span class="phase-name">Transcribe</span><span class="phase-status">Done · 03:14</span></div>
+            </div>
+            <div class="phase" data-status="done">
+              <div class="glyph">✓</div>
+              <div class="phase-meta"><span class="phase-name">Metadata</span><span class="phase-status">Done · 00:42</span></div>
+            </div>
+            <div class="phase" data-status="aborted">
+              <div class="glyph">✗</div>
+              <div class="phase-meta"><span class="phase-name">Render</span><span class="phase-status">Aborted · 07:48</span></div>
+            </div>
+            <div class="phase" data-status="skipped">
+              <div class="glyph">·</div>
+              <div class="phase-meta"><span class="phase-name">Upload</span><span class="phase-status">Cancelled</span></div>
+            </div>
+          </div>
+
+          <!-- SUBWAY -->
+          <div data-phases-variant="subway" class="phases--subway" hidden>
+            <div class="rail">
+              <div class="rail-fill" style="--progress: 62%; background: linear-gradient(90deg, color-mix(in oklab, var(--role-error) 35%, transparent), var(--role-error)); box-shadow: 0 0 12px color-mix(in oklab, var(--role-error) 45%, transparent);"></div>
+              <div class="stops">
+                <div class="stop" data-status="done"><div class="dot"></div></div>
+                <div class="stop" data-status="done"><div class="dot"></div></div>
+                <div class="stop" data-status="aborted"><div class="dot"></div></div>
+                <div class="stop" data-status="skipped"><div class="dot"></div></div>
+              </div>
+            </div>
+            <div class="labels">
+              <div class="label"><span class="name">Transcribe</span><span class="meta">Done · 03:14</span></div>
+              <div class="label"><span class="name">Metadata</span><span class="meta">Done · 00:42</span></div>
+              <div class="label"><span class="name">Render</span><span class="meta">Aborted · 07:48</span></div>
+              <div class="label"><span class="name">Upload</span><span class="meta">Cancelled</span></div>
+            </div>
+          </div>
+
+          <!-- CARDS -->
+          <div data-phases-variant="cards" class="phases--cards" hidden>
+            <div class="phase-card" data-status="done">
+              <div class="top"><span class="idx">01</span><span class="glyph">✓</span></div>
+              <span class="pname">Transcribe</span><span class="pmeta">Done · 03:14</span>
+            </div>
+            <div class="phase-card" data-status="done">
+              <div class="top"><span class="idx">02</span><span class="glyph">✓</span></div>
+              <span class="pname">Metadata</span><span class="pmeta">Done · 00:42</span>
+            </div>
+            <div class="phase-card" data-status="aborted">
+              <div class="top"><span class="idx">03</span><span class="glyph">✗</span></div>
+              <span class="pname">Render</span><span class="pmeta">Aborted · 07:48</span>
+            </div>
+            <div class="phase-card" data-status="skipped">
+              <div class="top"><span class="idx">04</span><span class="glyph">·</span></div>
+              <span class="pname">Upload</span><span class="pmeta">Cancelled</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Overall progress (frozen at last) -->
+        <div class="progress" style="margin-top: var(--space-4);">
+          <div class="progress-track"><div class="progress-fill" data-state="aborted" style="--progress: 62%;"></div></div>
+          <div class="progress-meta">
+            <span>Render stopped at frame 4 580 / 7 386</span>
+            <span>Aborted · 11:44 elapsed</span>
+          </div>
+        </div>
+
+        <!-- ─── BODY ─── -->
+        <div class="run-grid" style="margin-top: var(--space-6);">
+          <div class="stack">
+
+            <!-- ERROR CARD -->
+            <section class="error-card">
+              <div class="spread" style="align-items: flex-start;">
+                <div class="stack-2" style="max-width: 60ch;">
+                  <h3 style="font-size: var(--text-xl);">Render aborted</h3>
+                  <p class="mono" style="font-size: var(--text-sm); color: var(--fg-secondary);">
+                    Remotion render exited with non-zero status at frame 4 580 / 7 386. Last 10 log lines below — full log on disk.
+                  </p>
+                </div>
+                <div class="row" style="gap: var(--space-2);">
+                  <button class="btn btn--ghost btn--sm" type="button">Copy error</button>
+                  <a class="btn btn--sm" href="#">Open full log ↗</a>
+                </div>
+              </div>
+
+              <div class="logpanel" style="margin-top: var(--space-4); background: var(--surface-vault);">
+                <header class="logpanel-head">
+                  <span class="dots"><span></span><span></span><span></span></span>
+                  <span class="title">stderr · tail (10)</span>
+                  <span class="meta">
+                    <span>aborted · sigkill received</span>
+                    <button class="tail" type="button" aria-pressed="false" title="Auto-scroll (off — run halted)">Tail</button>
+                  </span>
+                </header>
+                <div class="logpanel-body" style="max-height: 260px;">
+<div class="row">             <span class="ts">14:13:48</span><span class="mark">·</span><span class="msg">render · frame 4577 / 7386 · 28 fps</span></div>
+<div class="row warn">        <span class="ts">14:13:49</span><span class="mark">!</span><span class="msg">slow frame 4578 · 1.8s · waveform buffer near limit</span></div>
+<div class="row warn">        <span class="ts">14:13:50</span><span class="mark">!</span><span class="msg">slow frame 4579 · 2.4s · waveform buffer at limit</span></div>
+<div class="row error">       <span class="ts">14:13:51</span><span class="mark">✗</span><span class="msg">frame 4580 · TypeError: cannot read length of undefined</span></div>
+<div class="row error">       <span class="ts">14:13:51</span><span class="mark">✗</span><span class="msg">  at Visualizer/Dialogue.tsx:128:14</span></div>
+<div class="row error">       <span class="ts">14:13:51</span><span class="mark">✗</span><span class="msg">  at renderFrame · remotion/renderer/index.js:402:9</span></div>
+<div class="row error">       <span class="ts">14:13:51</span><span class="mark">✗</span><span class="msg">  at workerRender · remotion/renderer/workers.js:97:5</span></div>
+<div class="row error">       <span class="ts">14:13:55</span><span class="mark">✗</span><span class="msg">render · failed after 3 retries · exit code 1</span></div>
+<div class="row error">       <span class="ts">14:13:55</span><span class="mark">✗</span><span class="msg">pipeline · aborted at phase=render</span></div>
+<div class="row info">        <span class="ts">14:13:55</span><span class="mark">·</span><span class="msg">run-state written · resume hint: skip transcribe + metadata</span></div>
+                </div>
+              </div>
+
+              <div class="row" style="margin-top: var(--space-4); justify-content: space-between;">
+                <span class="mono dim" style="font-size: var(--text-xs);">
+                  output/folge-082-…/logs/run_20260520_140211.log · 142 KB
+                </span>
+                <div class="row" style="gap: var(--space-2);">
+                  <a class="btn" href="index.html">Configure resume</a>
+                  <a class="btn btn--primary" href="run_detail--running.html">
+                    <span style="font-family: var(--font-mono); font-size: 1.1em;">↻</span>
+                    <span>Retry from render</span>
+                  </a>
+                </div>
+              </div>
+            </section>
+
+            <!-- TRANSCRIPT (phase 1 still completed) -->
+            <section class="card">
+              <header class="card-header">
+                <span class="caps">Transcript</span>
+                <span class="pill" data-tone="success"><span class="dot"></span>Phase 1 salvaged</span>
+                <span class="muted mono" style="margin-left:auto; font-size: var(--text-xs);">2 speakers · 14 638 words · usable</span>
+              </header>
+              <div class="card-body">
+                <div class="transcript">
+                  <div class="line" data-spk="a">
+                    <span class="ts">00:00:12</span>
+                    <span class="spk">Alice</span>
+                    <span class="text">Bevor wir richtig anfangen — die Stille zwischen den Zeilen, das ist genau die Frage, die mich seit Wochen beschäftigt.</span>
+                  </div>
+                  <div class="line" data-spk="b">
+                    <span class="ts">00:00:24</span>
+                    <span class="spk">Bob</span>
+                    <span class="text">Ja, und das Interessante ist: die meisten Hörer:innen merken die Stille gar nicht. Sie merken nur, dass etwas fehlt.</span>
+                  </div>
+                  <div class="line" data-spk="a">
+                    <span class="ts">00:00:41</span>
+                    <span class="spk">Alice</span>
+                    <span class="text">Weil Aufmerksamkeit nicht auf Abwesenheit zielt. Stille wird erst hörbar, wenn etwas vorher da war.</span>
+                  </div>
+                </div>
+                <div class="row-end" style="margin-top: var(--space-4);">
+                  <a href="#" class="btn btn--ghost btn--sm">Open full transcript ↗</a>
+                </div>
+              </div>
+            </section>
+
+          </div>
+
+          <aside class="stack">
+
+            <section class="card card--padded">
+              <div class="caps" style="margin-bottom: var(--space-3);">Run details</div>
+              <dl class="kv">
+                <dt>Stem</dt><dd>folge-082-…</dd>
+                <dt>Visualizer</dt><dd>Dialogue</dd>
+                <dt>Model</dt><dd>large-v3-turbo</dd>
+                <dt>Aborted at</dt><dd>render · frame 4580</dd>
+                <dt>Exit code</dt><dd style="color: var(--role-error);">1 · TypeError</dd>
+                <dt>Output</dt><dd>output/folge-082-…</dd>
+                <dt>Run id</dt><dd>run_20260520_140211</dd>
+              </dl>
+              <div class="divider-soft"></div>
+              <div class="row-end" style="gap: var(--space-2);">
+                <button class="btn btn--ghost btn--sm" type="button">Open output ↗</button>
+              </div>
+            </section>
+
+            <section class="card" data-tone="warning">
+              <header class="card-header">
+                <span class="caps">Resume hint</span>
+              </header>
+              <div class="card-body">
+                <p class="mono" style="font-size: var(--text-sm); color: var(--fg-secondary); line-height: 1.6;">
+                  Phases 1 and 2 produced usable artefacts. The render aborted on a single frame — likely the waveform buffer issue from 14:13:49.
+                </p>
+                <ul class="mono" style="font-size: var(--text-sm); color: var(--fg-secondary); padding-left: 1.2em; margin: var(--space-3) 0 0;">
+                  <li><strong style="color: var(--fg-primary);">Skip transcribe</strong> · re-use transcript.json</li>
+                  <li><strong style="color: var(--fg-primary);">Skip metadata</strong> · re-use youtube.json</li>
+                  <li>Restart from <strong style="color: var(--accent);">render</strong></li>
+                </ul>
+              </div>
+            </section>
+
+            <section class="card" data-tone="accent">
+              <header class="card-header">
+                <span class="caps">YouTube metadata</span>
+                <span class="pill"><span class="dot"></span>Draft</span>
+              </header>
+              <div class="card-body">
+                <div class="meta-title">Die Stille zwischen den Zeilen — was wir nicht sagen, wenn wir reden</div>
+                <p class="meta-desc" style="margin-top: var(--space-3);">In Folge 82 reden Alice und Bob über das, was im Podcast-Schnitt verloren geht: die Pausen, die Atmer, die Sekunde Zögern vor dem nächsten Gedanken.</p>
+                <div class="tags" style="margin-top: var(--space-4);">
+                  <span class="tag">podcast</span>
+                  <span class="tag">stille</span>
+                  <span class="tag">schnitt</span>
+                  <span class="tag">deutsch</span>
+                  <span class="tag">folge-082</span>
+                </div>
+              </div>
+            </section>
+
+          </aside>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="tweaks.js"></script>
+</body>
+</html>

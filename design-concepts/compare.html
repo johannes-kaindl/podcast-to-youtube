@@ -1,0 +1,406 @@
+<!doctype html>
+<html lang="en" data-aspect="gunshi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=1400">
+  <title>Whisper-Pipeline · State compare</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* compare page only — give the page a bit more breathing room */
+    .compare-page { max-width: 1320px; }
+    .compare-page .compare-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--space-5);
+    }
+    .compare-col .mini-phases {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 0;
+      padding: var(--space-3);
+      background: var(--surface-inset);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+    }
+    .compare-col .mini-phases .mp {
+      display: grid; grid-template-columns: auto 1fr; gap: 8px; align-items:center;
+      padding: 0 var(--space-2); position: relative;
+    }
+    .compare-col .mini-phases .mp + .mp::before {
+      content: ''; position: absolute; left: 0; top: 50%; width: var(--space-2); height: 1px;
+      background: var(--border-default); transform: translate(-50%, -50%);
+    }
+    .compare-col .mini-phases .g {
+      width: 22px; height: 22px; border-radius: 999px;
+      border: 1.5px solid var(--border-default);
+      background: var(--surface-vault);
+      display: grid; place-items: center;
+      font-family: var(--font-mono); font-size: var(--text-xs);
+      color: var(--fg-tertiary);
+    }
+    .compare-col .mini-phases .mp[data-status="done"] .g    { color: var(--role-success); border-color: color-mix(in oklab, var(--role-success) 50%, transparent); background: color-mix(in oklab, var(--role-success) 12%, var(--surface-vault)); }
+    .compare-col .mini-phases .mp[data-status="running"] .g { color: var(--accent);       border-color: var(--accent); background: color-mix(in oklab, var(--accent) 15%, var(--surface-vault)); box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 15%, transparent); }
+    .compare-col .mini-phases .mp[data-status="aborted"] .g { color: var(--role-error);   border-color: color-mix(in oklab, var(--role-error) 55%, transparent); background: color-mix(in oklab, var(--role-error) 12%, var(--surface-vault)); }
+    .compare-col .mini-phases .mp[data-status="skipped"] .g { color: var(--fg-disabled);  border-style: dashed; background: transparent; }
+    .compare-col .mini-phases .mp[data-status="pending"] .g { color: var(--fg-tertiary); }
+    .compare-col .mini-phases .nm {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: var(--tracking-caps);
+      text-transform: uppercase;
+      color: var(--fg-secondary);
+      white-space: nowrap;
+    }
+    .compare-col .timer-block {
+      font-family: var(--font-mono);
+      display: flex; flex-direction: column; gap: 2px;
+    }
+    .compare-col .timer-block .v { font-size: var(--text-lg); color: var(--fg-primary); font-weight: 500; }
+    .compare-col .timer-block .k { font-size: var(--text-xs); color: var(--fg-tertiary); letter-spacing: var(--tracking-caps); text-transform: uppercase; }
+
+    .compare-col h2 {
+      font-family: var(--font-display);
+      font-size: var(--text-lg);
+      font-weight: 500;
+      letter-spacing: var(--tracking-tight);
+      margin: 0;
+    }
+
+    .compare-col .signature {
+      flex: 1;
+      min-height: 240px;
+      display: flex;
+      flex-direction: column;
+    }
+  </style>
+</head>
+<body data-screen-label="07 State compare">
+  <div class="app">
+
+    <header class="topbar">
+      <div class="topbar-inner">
+        <a class="brand" href="index.html">
+          <span class="brand-mark"></span>
+          <span class="brand-name">Whisper<span class="dim">·Pipeline</span></span>
+        </a>
+        <nav class="topnav">
+          <a href="index.html">Start</a>
+          <a href="runs.html">Runs</a>
+          <a href="compare.html" class="is-active">States</a>
+        </nav>
+        <div class="topbar-meta">
+          <button class="btn btn--ghost btn--sm" type="button" data-open-modal="cheatsheet" style="padding: 4px 10px;">
+            <span class="mono" style="font-size: 11px; letter-spacing: 0.04em;">?</span>
+            <span class="caps" style="color: inherit;">Keys</span>
+          </button>
+          <span class="host-pill"><span class="dot"></span>localhost:8765</span>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <div class="page compare-page">
+
+        <div class="page-header">
+          <div>
+            <div class="eyebrow">Review · same stem · four states</div>
+            <h1 style="margin-top: 8px;">Run-detail · state comparison</h1>
+            <p class="lede">The journey across one episode: <span class="mono" style="color: var(--accent);">running</span> while the pipeline works, <span class="mono" style="color: var(--accent);">ready-to-upload</span> when the user must decide, <span class="mono" style="color: var(--role-success);">done</span> when the loop closes, <span class="mono" style="color: var(--role-error);">aborted</span> when something gives.</p>
+          </div>
+          <div class="row-end">
+            <a class="btn btn--ghost" href="index.html">↩ Back to start</a>
+          </div>
+        </div>
+
+        <div class="compare-grid">
+
+          <!-- ─── RUNNING ─── -->
+          <div class="compare-col" data-state="running">
+            <div class="header">
+              <div class="stack-2">
+                <span class="state">⟳ Running</span>
+                <h2>Phase 3 · render</h2>
+              </div>
+              <a class="open" href="run_detail--running.html">Open ↗</a>
+            </div>
+
+            <div class="spread">
+              <div class="timer-block">
+                <span class="k">Elapsed</span>
+                <span class="v">00:07:42</span>
+              </div>
+              <div class="timer-block" style="text-align:right;">
+                <span class="k">ETA</span>
+                <span class="v" style="color: var(--accent);">02:21</span>
+              </div>
+            </div>
+
+            <div class="mini-phases">
+              <div class="mp" data-status="done"><div class="g">✓</div><div class="nm">Trans</div></div>
+              <div class="mp" data-status="done"><div class="g">✓</div><div class="nm">Meta</div></div>
+              <div class="mp" data-status="running"><div class="g"><span class="ico-running">⟳</span></div><div class="nm">Render</div></div>
+              <div class="mp" data-status="pending"><div class="g">○</div><div class="nm">Upload</div></div>
+            </div>
+
+            <div class="progress">
+              <div class="progress-track"><div class="progress-fill" style="--progress: 62%"></div></div>
+              <div class="progress-meta">
+                <span>frame 4 580 / 7 386</span>
+                <span>62%</span>
+              </div>
+            </div>
+
+            <div class="signature">
+              <div class="caps" style="margin-bottom: var(--space-2);">Signature · live log</div>
+              <div class="logpanel" style="flex: 1;">
+                <header class="logpanel-head">
+                  <span class="dots"><span></span><span></span><span></span></span>
+                  <span class="title">stdout</span>
+                  <span class="meta"><span class="live">live</span></span>
+                </header>
+                <div class="logpanel-body" style="max-height: 200px; font-size: 11px;">
+<div class="row phase">     <span class="ts">14:06:08</span><span class="mark">▶</span><span class="msg">render</span></div>
+<div class="row">           <span class="ts">14:06:24</span><span class="mark">·</span><span class="msg">bundle ready · 7386 fr</span></div>
+<div class="row">           <span class="ts">14:08:11</span><span class="mark">·</span><span class="msg">frame 2412 / 7386 · 33 fps</span></div>
+<div class="row warn">      <span class="ts">14:09:02</span><span class="mark">!</span><span class="msg">slow · waveform re-cache</span></div>
+<div class="row">           <span class="ts">14:09:53</span><span class="mark">·</span><span class="msg">frame 4580 / 7386 · 31 fps<span class="cursor"></span></span></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="row-end" style="border-top: 1px solid var(--border-subtle); padding-top: var(--space-3);">
+              <button class="btn btn--danger btn--sm">Abort</button>
+            </div>
+          </div>
+
+          <!-- ─── READY-TO-UPLOAD ─── -->
+          <div class="compare-col" data-state="running">
+            <div class="header">
+              <div class="stack-2">
+                <span class="state">↑ Awaiting upload</span>
+                <h2>Render done · trust moment</h2>
+              </div>
+              <a class="open" href="run_detail--ready-to-upload.html">Open ↗</a>
+            </div>
+
+            <div class="spread">
+              <div class="timer-block">
+                <span class="k">Pipeline</span>
+                <span class="v">00:15:59</span>
+              </div>
+              <div class="timer-block" style="text-align:right;">
+                <span class="k">Est. upload</span>
+                <span class="v" style="color: var(--accent);">~ 03:30</span>
+              </div>
+            </div>
+
+            <div class="mini-phases">
+              <div class="mp" data-status="done"><div class="g">✓</div><div class="nm">Trans</div></div>
+              <div class="mp" data-status="done"><div class="g">✓</div><div class="nm">Meta</div></div>
+              <div class="mp" data-status="done"><div class="g">✓</div><div class="nm">Render</div></div>
+              <div class="mp" data-status="pending" style="--ph-pending: var(--accent);"><div class="g" style="color: var(--accent); border-color: var(--accent); background: color-mix(in oklab, var(--accent) 15%, var(--surface-vault));">↑</div><div class="nm" style="color: var(--accent);">Upload</div></div>
+            </div>
+
+            <div class="progress">
+              <div class="progress-track"><div class="progress-fill" style="--progress: 75%"></div></div>
+              <div class="progress-meta">
+                <span>3 of 4 phases</span>
+                <span>75% · awaiting confirm</span>
+              </div>
+            </div>
+
+            <div class="signature">
+              <div class="caps" style="margin-bottom: var(--space-2);">Signature · upload card</div>
+              <div style="flex: 1; display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-4); background: var(--surface-inset); border-radius: var(--radius-md); border: 1px solid var(--border-subtle); border-top: 2px solid var(--accent);">
+                <div class="caps" style="color: var(--accent);">↑ Final phase</div>
+                <div style="font-family: var(--font-serif); font-style: italic; font-weight: 500; font-size: var(--text-md); letter-spacing: -0.01em; color: var(--fg-primary); line-height: 1.3;">
+                  Die Stille zwischen den Zeilen — was wir nicht sagen, wenn wir reden
+                </div>
+                <div class="mono dim" style="font-size: 11px; letter-spacing: 0.02em;">
+                  198 MB · est. 03:30
+                </div>
+                <div class="segmented" style="align-self: flex-start;">
+                  <label><input type="radio" name="vis-c" checked><span>Private</span></label>
+                  <label><input type="radio" name="vis-c"><span>Unlisted</span></label>
+                </div>
+              </div>
+            </div>
+
+            <div class="row-end" style="border-top: 1px solid var(--border-subtle); padding-top: var(--space-3);">
+              <a class="btn btn--primary btn--sm" href="run_detail--done.html">↑ Upload</a>
+            </div>
+          </div>
+
+          <!-- ─── DONE ─── -->
+          <div class="compare-col" data-state="done">
+            <div class="header">
+              <div class="stack-2">
+                <span class="state">✓ Done</span>
+                <h2>Loop closed · uploaded</h2>
+              </div>
+              <a class="open" href="run_detail--done.html">Open ↗</a>
+            </div>
+
+            <div class="spread">
+              <div class="timer-block">
+                <span class="k">Total</span>
+                <span class="v">00:19:43</span>
+              </div>
+              <div class="timer-block" style="text-align:right;">
+                <span class="k">Errors</span>
+                <span class="v" style="color: var(--role-success);">0</span>
+              </div>
+            </div>
+
+            <div class="mini-phases">
+              <div class="mp" data-status="done"><div class="g">✓</div><div class="nm">Trans</div></div>
+              <div class="mp" data-status="done"><div class="g">✓</div><div class="nm">Meta</div></div>
+              <div class="mp" data-status="done"><div class="g">✓</div><div class="nm">Render</div></div>
+              <div class="mp" data-status="done"><div class="g">✓</div><div class="nm">Upload</div></div>
+            </div>
+
+            <div class="progress">
+              <div class="progress-track"><div class="progress-fill" data-state="done" style="--progress: 100%"></div></div>
+              <div class="progress-meta">
+                <span>7 386 / 7 386</span>
+                <span>100%</span>
+              </div>
+            </div>
+
+            <div class="signature">
+              <div class="caps" style="margin-bottom: var(--space-2);">Signature · MP4 + YT link</div>
+              <div class="video-frame" style="aspect-ratio: 16/9;">
+                <div class="video-placeholder">
+                  <div style="display:flex; flex-direction:column; align-items:center; gap: 6px;">
+                    <span style="font-size: 24px; color: var(--accent); font-family: var(--font-mono);">▶</span>
+                    <span style="font-size: 10px;">folge-082.mp4 · 198 MB</span>
+                  </div>
+                </div>
+              </div>
+              <div style="margin-top: var(--space-3); padding: var(--space-3); background: var(--surface-inset); border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
+                <div class="caps" style="color: var(--role-success);">✓ Uploaded · private</div>
+                <div class="mono" style="margin-top: 4px; font-size: var(--text-xs); color: var(--role-link); word-break: break-all;">youtube.com/watch?v=4Lkv8gQa-9w</div>
+              </div>
+            </div>
+
+            <div class="row-end" style="border-top: 1px solid var(--border-subtle); padding-top: var(--space-3);">
+              <a class="btn btn--primary btn--sm" href="#">Open in browser ↗</a>
+            </div>
+          </div>
+
+          <!-- ─── ABORTED ─── -->
+          <div class="compare-col" data-state="aborted">
+            <div class="header">
+              <div class="stack-2">
+                <span class="state">✗ Aborted</span>
+                <h2>Render · frame 4 580</h2>
+              </div>
+              <a class="open" href="run_detail--aborted.html">Open ↗</a>
+            </div>
+
+            <div class="spread">
+              <div class="timer-block">
+                <span class="k">Elapsed</span>
+                <span class="v">00:11:44</span>
+              </div>
+              <div class="timer-block" style="text-align:right;">
+                <span class="k">Exit code</span>
+                <span class="v" style="color: var(--role-error);">1</span>
+              </div>
+            </div>
+
+            <div class="mini-phases">
+              <div class="mp" data-status="done"><div class="g">✓</div><div class="nm">Trans</div></div>
+              <div class="mp" data-status="done"><div class="g">✓</div><div class="nm">Meta</div></div>
+              <div class="mp" data-status="aborted"><div class="g">✗</div><div class="nm">Render</div></div>
+              <div class="mp" data-status="skipped"><div class="g">·</div><div class="nm">Upload</div></div>
+            </div>
+
+            <div class="progress">
+              <div class="progress-track"><div class="progress-fill" data-state="aborted" style="--progress: 62%"></div></div>
+              <div class="progress-meta">
+                <span>stopped at 4 580</span>
+                <span>62%</span>
+              </div>
+            </div>
+
+            <div class="signature">
+              <div class="caps" style="margin-bottom: var(--space-2);">Signature · stderr tail</div>
+              <div class="logpanel" style="flex: 1;">
+                <header class="logpanel-head">
+                  <span class="dots"><span></span><span></span><span></span></span>
+                  <span class="title">stderr</span>
+                  <span class="meta">aborted</span>
+                </header>
+                <div class="logpanel-body" style="max-height: 200px; font-size: 11px;">
+<div class="row warn">      <span class="ts">14:13:50</span><span class="mark">!</span><span class="msg">slow frame 4579</span></div>
+<div class="row error">     <span class="ts">14:13:51</span><span class="mark">✗</span><span class="msg">TypeError: cannot read length</span></div>
+<div class="row error">     <span class="ts">14:13:51</span><span class="mark">✗</span><span class="msg">  at Dialogue.tsx:128:14</span></div>
+<div class="row error">     <span class="ts">14:13:55</span><span class="mark">✗</span><span class="msg">failed after 3 retries</span></div>
+<div class="row info">      <span class="ts">14:13:55</span><span class="mark">·</span><span class="msg">resume hint written</span></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="row-end" style="border-top: 1px solid var(--border-subtle); padding-top: var(--space-3);">
+              <a class="btn btn--primary btn--sm" href="run_detail--running.html">↻ Retry render</a>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ─── INTERACTIVE-STATE CHECKLIST ─── -->
+        <div class="section-title">
+          <span class="caps">Interactive states — coverage</span>
+          <span class="rule"></span>
+        </div>
+
+        <div class="card card--padded">
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-5);">
+            <div class="stack-2">
+              <span class="caps">On <code>index.html</code></span>
+              <ul class="mono" style="font-size: var(--text-sm); color: var(--fg-secondary); padding-left: 1.1em; line-height: 1.85;">
+                <li><span style="color: var(--role-success);">✓</span> Audio path · valid feedback</li>
+                <li><span style="color: var(--role-success);">✓</span> Audio path · file-not-found error</li>
+                <li><span style="color: var(--role-success);">✓</span> Audio path · format-not-supported error</li>
+                <li><span style="color: var(--role-success);">✓</span> Drag-drop zone · idle (default)</li>
+                <li><span style="color: var(--role-success);">✓</span> Drag-drop zone · hover</li>
+                <li><span style="color: var(--role-success);">✓</span> Drag-drop zone · filled (with waveform)</li>
+                <li><span style="color: var(--role-success);">✓</span> Resume banner · all three variants</li>
+                <li><span style="color: var(--role-success);">✓</span> Pre-flight ETA block</li>
+                <li><span style="color: var(--role-success);">✓</span> Confirm-run modal</li>
+              </ul>
+            </div>
+            <div class="stack-2">
+              <span class="caps">On <code>run_detail</code></span>
+              <ul class="mono" style="font-size: var(--text-sm); color: var(--fg-secondary); padding-left: 1.1em; line-height: 1.85;">
+                <li><span style="color: var(--role-success);">✓</span> Running · phase 3 active, log live</li>
+                <li><span style="color: var(--role-success);">✓</span> Ready-to-upload · trust moment</li>
+                <li><span style="color: var(--role-success);">✓</span> Done · MP4 + upload-success</li>
+                <li><span style="color: var(--role-success);">✓</span> Aborted · error card with tail (10)</li>
+                <li><span style="color: var(--role-success);">✓</span> Phase indicator · 3 variants (tweaks)</li>
+                <li><span style="color: var(--role-success);">✓</span> Transcript preview · post-phase 1</li>
+                <li><span style="color: var(--role-success);">✓</span> Metadata card · post-phase 2</li>
+                <li><span style="color: var(--role-success);">✓</span> Log tail-toggle (auto-scroll)</li>
+              </ul>
+            </div>
+            <div class="stack-2">
+              <span class="caps">Cross-page</span>
+              <ul class="mono" style="font-size: var(--text-sm); color: var(--fg-secondary); padding-left: 1.1em; line-height: 1.85;">
+                <li><span style="color: var(--role-success);">✓</span> Past runs · dense table + waveform thumbs</li>
+                <li><span style="color: var(--role-success);">✓</span> Past runs · empty state</li>
+                <li><span style="color: var(--role-success);">✓</span> Filter chips + search</li>
+                <li><span style="color: var(--role-success);">✓</span> Keyboard cheatsheet (<kbd>?</kbd>)</li>
+                <li><span style="color: var(--role-success);">✓</span> Tweaks · aspect / theme / phases</li>
+                <li><span style="color: var(--role-success);">✓</span> Light theme</li>
+                <li><span style="color: var(--fg-tertiary);">·</span> Sortable columns (later)</li>
+                <li><span style="color: var(--fg-tertiary);">·</span> Real waveform from audio (later)</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="tweaks.js"></script>
+</body>
+</html>

@@ -1,0 +1,401 @@
+<!doctype html>
+<html lang="en" data-aspect="gunshi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=1200">
+  <title>Whisper-Pipeline · Start</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body data-screen-label="01 Start">
+  <div class="app">
+
+    <!-- ─── TOPBAR ─── -->
+    <header class="topbar">
+      <div class="topbar-inner">
+        <a class="brand" href="index.html">
+          <span class="brand-mark"></span>
+          <span class="brand-name">Whisper<span class="dim">·Pipeline</span></span>
+        </a>
+        <nav class="topnav">
+          <a href="index.html" class="is-active">Start</a>
+          <a href="runs.html">Runs</a>
+          <a href="compare.html">States</a>
+        </nav>
+        <div class="topbar-meta">
+          <button class="btn btn--ghost btn--sm" type="button" data-open-modal="cheatsheet" style="padding: 4px 10px;">
+            <span class="mono" style="font-size: 11px; letter-spacing: 0.04em;">?</span>
+            <span class="caps" style="color: inherit;">Keys</span>
+          </button>
+          <span class="host-pill"><span class="dot"></span>localhost:8765</span>
+          <span>v0.4.0</span>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <div class="page">
+
+        <!-- ─── PAGE HEADER ─── -->
+        <div class="page-header">
+          <div>
+            <div class="eyebrow">Local · Single user</div>
+            <h1 style="margin-top:8px; font-size: var(--text-3xl);">Drop an episode. Let it process.</h1>
+            <p class="lede">Transcription · Metadata · Render · Upload — four phases, one queue. The vault keeps the run state.</p>
+          </div>
+          <div class="row-end">
+            <a class="btn btn--ghost" href="runs.html">View past runs →</a>
+          </div>
+        </div>
+
+        <!-- ─── 1. AUDIO INPUT (idle by default) ─── -->
+        <div class="section-title">
+          <span class="caps">01 · Source</span>
+          <span class="rule"></span>
+        </div>
+
+        <div class="dropzone" data-state="idle" id="dropzone-primary">
+          <div>
+            <div class="dropzone-icon">↓ Drop file</div>
+            <h3 class="dropzone-title">Drop a podcast file here</h3>
+            <p class="dropzone-sub">Accepts <code>.m4a</code> · <code>.mp3</code> · <code>.wav</code> — or paste the absolute path below.</p>
+
+            <div class="dropzone-divider">— or —</div>
+
+            <div class="field" style="max-width:640px">
+              <label class="field-label" for="audio-path">
+                Audio path <span class="field-hint">(absolute, no shell aliases)</span>
+              </label>
+              <input class="input mono" id="audio-path" type="text" placeholder="/Users/k/podcasts/raw/folge-XYZ.m4a">
+            </div>
+          </div>
+
+          <div class="dropzone-stem" style="opacity: 0.5;">
+            <span class="caps">Awaiting file</span>
+            <span class="mono dim" style="font-size: var(--text-xs);">stem · size · duration</span>
+          </div>
+        </div>
+
+        <!-- ─── 2. RESUME BANNERS (showcase: all three variants) ─── -->
+        <div class="section-title">
+          <span class="caps">02 · Resume — three variants for this stem</span>
+          <span class="rule"></span>
+        </div>
+
+        <div class="stack-3">
+          <div class="banner" data-variant="aborted">
+            <div class="banner-icon">⚠</div>
+            <div class="banner-body">
+              <div class="banner-title">Last run aborted during <span class="mono">Render</span></div>
+              <div class="banner-sub">2026-05-18 · 22:14 · Skip-boxes for finished phases are pre-checked below.</div>
+            </div>
+            <div class="banner-glyphs">
+              <span class="g-done">✓ Transcribe</span>
+              <span class="g-done">✓ Metadata</span>
+              <span class="g-aborted">✗ Render</span>
+              <span class="g-pending">○ Upload</span>
+            </div>
+          </div>
+
+          <div class="banner" data-variant="complete">
+            <div class="banner-icon">✓</div>
+            <div class="banner-body">
+              <div class="banner-title">Last run complete — loop closed</div>
+              <div class="banner-sub">Uploaded as private to YouTube. For a re-render: uncheck <span class="mono">Skip render</span>.</div>
+            </div>
+            <div class="banner-glyphs">
+              <span class="g-done">✓ Transcribe</span>
+              <span class="g-done">✓ Metadata</span>
+              <span class="g-done">✓ Render</span>
+              <span class="g-done">✓ Upload</span>
+            </div>
+          </div>
+
+          <div class="banner" data-variant="inprogress">
+            <div class="banner-icon">⟳</div>
+            <div class="banner-body">
+              <div class="banner-title">Existing run state found</div>
+              <div class="banner-sub">Run-state file present. No active process. Pick up where the chamber went quiet.</div>
+            </div>
+            <div class="banner-glyphs">
+              <span class="g-done">✓ Transcribe</span>
+              <span class="g-pending">⟳ Metadata</span>
+              <span class="g-pending">○ Render</span>
+              <span class="g-pending">○ Upload</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ─── 3. CONFIGURATION ─── -->
+        <div class="section-title">
+          <span class="caps">03 · Configuration</span>
+          <span class="rule"></span>
+        </div>
+
+        <div class="card card--padded">
+          <div class="form-grid">
+
+            <div class="field">
+              <label class="field-label" for="cfg-visualizer">Visualizer <span class="field-hint">— Remotion preset</span></label>
+              <select class="select" id="cfg-visualizer">
+                <option>Dialogue · two-column waveform</option>
+                <option>Monologue · single waveform</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="cfg-language">Language <span class="field-hint">— Whisper detect</span></label>
+              <select class="select" id="cfg-language">
+                <option>Auto-detect</option>
+                <option>de — German</option>
+                <option>en — English</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="cfg-model">Whisper model</label>
+              <select class="select" id="cfg-model">
+                <option>large-v3-turbo &nbsp;·&nbsp; recommended</option>
+                <option>large-v3</option>
+                <option>large-v2</option>
+                <option>medium</option>
+                <option>small</option>
+                <option>base</option>
+                <option>tiny</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label class="field-label">Speakers <span class="field-hint">— diarization</span></label>
+              <div class="segmented" role="radiogroup" aria-label="Speakers">
+                <label><input type="radio" name="spk" checked><span>Auto</span></label>
+                <label><input type="radio" name="spk"><span>2</span></label>
+                <label><input type="radio" name="spk"><span>3</span></label>
+                <label><input type="radio" name="spk"><span>4</span></label>
+                <label><input type="radio" name="spk"><span>5</span></label>
+                <label><input type="radio" name="spk"><span>Off</span></label>
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="cfg-episode">Episode <span class="field-hint">— used in title</span></label>
+              <input class="input" id="cfg-episode" type="text" placeholder="Folge 82 — Die Stille zwischen den Zeilen">
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="cfg-channel">Channel · series</label>
+              <input class="input" id="cfg-channel" type="text" placeholder="Notizen aus der Kammer">
+            </div>
+
+            <div class="field field--full">
+              <label class="field-label">Skip phases <span class="field-hint">— pre-checked for finished phases</span></label>
+              <div class="row" style="gap: var(--space-5); flex-wrap: wrap; padding-top:4px;">
+                <label class="check">
+                  <input type="checkbox">
+                  <span class="box"></span>
+                  <span>Skip transcribe</span>
+                </label>
+                <label class="check">
+                  <input type="checkbox">
+                  <span class="box"></span>
+                  <span>Skip metadata</span>
+                </label>
+                <label class="check">
+                  <input type="checkbox">
+                  <span class="box"></span>
+                  <span>Skip render</span>
+                </label>
+                <label class="check">
+                  <input type="checkbox">
+                  <span class="box"></span>
+                  <span>Skip upload</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ─── 4. RUN TRIGGER ─── -->
+        <div class="section-title">
+          <span class="caps">04 · Run</span>
+          <span class="rule"></span>
+        </div>
+
+        <div class="card card--padded">
+          <div class="spread">
+            <div class="stack-2">
+              <div class="caps">Pre-flight check</div>
+              <div class="eta-block">
+                <span class="eta-item"><span>Est. time</span><span class="v">~ 19 min</span></span>
+                <span class="sep">·</span>
+                <span class="eta-item"><span>Output</span><span class="v">~ 220 MB</span></span>
+                <span class="sep">·</span>
+                <span class="eta-item warn"><span>Existing</span><span class="v">output/folge-082-… (1.4 MB)</span></span>
+                <span class="sep">·</span>
+                <span class="eta-item"><span>Disk free</span><span class="v">412 GB</span></span>
+              </div>
+              <div class="mono dim" style="font-size: var(--text-xs); letter-spacing: 0.04em; margin-top: 4px;">
+                Existing transcript will be reused per the resume hint — uncheck Skip-flags above to force re-process.
+              </div>
+            </div>
+            <div class="row">
+              <a class="btn" href="runs.html">Past runs</a>
+              <button class="btn btn--primary btn--lg" type="button" data-open-modal="confirm-run">
+                <span style="font-family: var(--font-mono); font-size: 1.1em;">▶</span>
+                <span>Start pipeline</span>
+                <kbd class="kbd-hint">Ctrl + R</kbd>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ─── 5. SHOWCASE: alternate input + dropzone states ─── -->
+        <div class="section-title">
+          <span class="caps">05 · Alternate states — review only</span>
+          <span class="rule"></span>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4);">
+
+          <!-- Dropzone · hover -->
+          <div>
+            <div class="caps" style="margin-bottom: var(--space-2);">Dropzone · hover (file dragged over)</div>
+            <div class="dropzone" data-state="hover">
+              <div>
+                <div class="dropzone-icon" style="color: var(--accent);">↓ Release to drop</div>
+                <h3 class="dropzone-title">Drop it.</h3>
+                <p class="dropzone-sub">The chamber is ready.</p>
+              </div>
+              <div class="dropzone-stem">
+                <span class="caps" style="color: var(--accent);">Detecting…</span>
+                <span class="mono dim" style="font-size: var(--text-xs);">folge-XYZ.m4a</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dropzone · filled -->
+          <div>
+            <div class="caps" style="margin-bottom: var(--space-2);">Dropzone · filled (file accepted)</div>
+            <div class="dropzone" data-state="filled">
+              <div>
+                <div class="dropzone-icon">✓ Locked in</div>
+                <h3 class="dropzone-title">folge-082-die-stille-zwischen-den-zeilen.m4a</h3>
+                <p class="dropzone-sub mono">47.2 MB · 01:12:38 · 48 kHz · stereo</p>
+                <div class="row" style="margin-top: var(--space-3); gap: var(--space-2);">
+                  <div data-waveform="filled" data-bars="48" data-seed="2"></div>
+                </div>
+              </div>
+              <div class="dropzone-stem">
+                <span class="caps" style="color: var(--role-success);">✓ Stem</span>
+                <span class="stem">folge-082-die-stille-zwischen-den-zeilen</span>
+                <span class="size">m4a / aac · 48 kHz</span>
+                <button class="btn btn--ghost btn--sm" type="button" style="margin-top:8px;">Change</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Input · error -->
+          <div>
+            <div class="caps" style="margin-bottom: var(--space-2);">Audio path · error (file not found)</div>
+            <div class="card card--padded" style="border-top: 2px solid var(--role-error);">
+              <div class="field">
+                <label class="field-label" for="audio-path-err">
+                  Audio path <span class="field-hint">(absolute, no shell aliases)</span>
+                </label>
+                <input class="input mono" id="audio-path-err" type="text"
+                       value="/Users/k/podcasts/raw/folge-083.m4a"
+                       data-state="error">
+                <span class="field-error">✗ File not found at this path. Check the spelling — or drop the file directly.</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Input · format unsupported -->
+          <div>
+            <div class="caps" style="margin-bottom: var(--space-2);">Audio path · error (format)</div>
+            <div class="card card--padded" style="border-top: 2px solid var(--role-error);">
+              <div class="field">
+                <label class="field-label" for="audio-path-fmt">
+                  Audio path <span class="field-hint">(absolute, no shell aliases)</span>
+                </label>
+                <input class="input mono" id="audio-path-fmt" type="text"
+                       value="/Users/k/podcasts/raw/folge-083.flac"
+                       data-state="error">
+                <span class="field-error">✗ Format not supported. Whisper-Pipeline accepts .m4a, .mp3, .wav — re-encode with ffmpeg first.</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- ─── CONFIRM RUN MODAL ─── -->
+  <div class="modal-backdrop" id="modal-confirm-run" hidden>
+    <div class="modal" role="dialog" aria-labelledby="confirm-title" aria-modal="true">
+      <header class="modal-head">
+        <span class="caps">Pre-flight</span>
+        <button class="close" type="button" data-close-modal aria-label="Close">✕</button>
+      </header>
+      <div class="modal-body">
+        <h2 class="modal-title" id="confirm-title">Start pipeline · folge-082</h2>
+        <p class="mono" style="font-size: var(--text-sm); color: var(--fg-secondary); margin: 0;">
+          Four phases will run in sequence. You can abort at any phase boundary. Upload phase requires a second confirmation.
+        </p>
+
+        <div class="will-list">
+          <div class="row">
+            <span class="mark">▶</span>
+            <span class="label">Transcribe · WhisperX · large-v3-turbo</span>
+            <span class="est">~ 3:14</span>
+          </div>
+          <div class="row">
+            <span class="mark">▶</span>
+            <span class="label">Generate YouTube metadata · MLX</span>
+            <span class="est">~ 0:42</span>
+          </div>
+          <div class="row">
+            <span class="mark">▶</span>
+            <span class="label">Render video · Remotion · Dialogue visualizer</span>
+            <span class="est">~ 12:00</span>
+          </div>
+          <div class="row" data-state="skip">
+            <span class="mark">·</span>
+            <span class="label">Upload to YouTube · awaiting your confirmation after render</span>
+            <span class="est">~ 3:30</span>
+          </div>
+        </div>
+
+        <div class="eta-block">
+          <span class="eta-item"><span>Total est.</span><span class="v">~ 19 min</span></span>
+          <span class="sep">·</span>
+          <span class="eta-item"><span>Writes to</span><span class="v">output/folge-082-…/</span></span>
+        </div>
+      </div>
+      <footer class="modal-foot">
+        <button class="btn btn--ghost" type="button" data-close-modal>Cancel</button>
+        <a class="btn btn--primary" href="run_detail--running.html">
+          <span style="font-family: var(--font-mono); font-size: 1.1em;">▶</span>
+          <span>Start pipeline</span>
+          <kbd class="kbd-hint">↵</kbd>
+        </a>
+      </footer>
+    </div>
+  </div>
+
+  <!-- ─── KEYBOARD CHEATSHEET MODAL is auto-injected by tweaks.js ─── -->
+
+  <script src="tweaks.js"></script>
+  <script>
+    // Mockup-only: trigger Ctrl+R as if it was the Start button.
+    document.addEventListener('keydown', e => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'r') {
+        // Allow browser refresh on dev — only intercept if our modal isn't open.
+        const open = [...document.querySelectorAll('.modal-backdrop')].some(m => !m.hidden);
+        if (open) return;
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="en" data-aspect="gunshi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=1200">
+  <title>Run · folge-082 · running</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body data-screen-label="02 Run · running">
+  <div class="app">
+
+    <!-- ─── TOPBAR ─── -->
+    <header class="topbar">
+      <div class="topbar-inner">
+        <a class="brand" href="index.html">
+          <span class="brand-mark"></span>
+          <span class="brand-name">Whisper<span class="dim">·Pipeline</span></span>
+        </a>
+        <nav class="topnav">
+          <a href="index.html">Start</a>
+          <a href="runs.html">Runs</a>
+          <a href="compare.html">States</a>
+        </nav>
+        <div class="topbar-meta">
+          <button class="btn btn--ghost btn--sm" type="button" data-open-modal="cheatsheet" style="padding: 4px 10px;">
+            <span class="mono" style="font-size: 11px; letter-spacing: 0.04em;">?</span>
+            <span class="caps" style="color: inherit;">Keys</span>
+          </button>
+          <span class="pill" data-tone="accent"><span class="dot"></span>Running</span>
+          <span class="host-pill"><span class="dot"></span>localhost:8765</span>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <div class="page">
+
+        <!-- ─── RUN HEADER ─── -->
+        <header class="run-header">
+          <div class="left">
+            <div class="crumbs">
+              <a href="runs.html">Runs</a>
+              <span>·</span>
+              <span>folge-082-die-stille-zwischen-den-zeilen</span>
+            </div>
+            <h1><span class="accent-mark">⟩</span>folge-082-die-stille-zwischen-den-zeilen</h1>
+            <p class="muted mono" style="margin-top:8px; font-size: var(--text-sm);">
+              /Users/k/podcasts/raw/folge-082-die-stille-zwischen-den-zeilen.m4a · started 2026-05-20 · 14:02:11
+            </p>
+          </div>
+          <div class="timer">
+            <small>Elapsed</small>
+            <span id="elapsed">00:07:42</span>
+          </div>
+        </header>
+
+        <!-- ─── PHASE INDICATOR (three variants — Tweaks switches) ─── -->
+        <div data-phases-wrapper class="phases">
+
+          <!-- 1. STEPPER -->
+          <div data-phases-variant="stepper" class="phases--stepper">
+            <div class="phase" data-status="done">
+              <div class="glyph">✓</div>
+              <div class="phase-meta">
+                <span class="phase-name">Transcribe</span>
+                <span class="phase-status">Done · 03:14</span>
+              </div>
+            </div>
+            <div class="phase" data-status="done">
+              <div class="glyph">✓</div>
+              <div class="phase-meta">
+                <span class="phase-name">Metadata</span>
+                <span class="phase-status">Done · 00:42</span>
+              </div>
+            </div>
+            <div class="phase" data-status="running">
+              <div class="glyph"><span class="ico-running">⟳</span></div>
+              <div class="phase-meta">
+                <span class="phase-name">Render</span>
+                <span class="phase-status">Running · 03:46</span>
+              </div>
+            </div>
+            <div class="phase" data-status="pending">
+              <div class="glyph">○</div>
+              <div class="phase-meta">
+                <span class="phase-name">Upload</span>
+                <span class="phase-status">Pending</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. SUBWAY -->
+          <div data-phases-variant="subway" class="phases--subway" hidden>
+            <div class="rail">
+              <div class="rail-fill" style="--progress: 62%"></div>
+              <div class="stops">
+                <div class="stop" data-status="done"><div class="dot"></div></div>
+                <div class="stop" data-status="done"><div class="dot"></div></div>
+                <div class="stop" data-status="running"><div class="dot"></div></div>
+                <div class="stop" data-status="pending"><div class="dot"></div></div>
+              </div>
+            </div>
+            <div class="labels">
+              <div class="label"><span class="name">Transcribe</span><span class="meta">Done · 03:14</span></div>
+              <div class="label"><span class="name">Metadata</span><span class="meta">Done · 00:42</span></div>
+              <div class="label"><span class="name">Render</span><span class="meta">Running · 03:46</span></div>
+              <div class="label"><span class="name">Upload</span><span class="meta">Pending</span></div>
+            </div>
+          </div>
+
+          <!-- 3. CARDS -->
+          <div data-phases-variant="cards" class="phases--cards" hidden>
+            <div class="phase-card" data-status="done">
+              <div class="top"><span class="idx">01</span><span class="glyph">✓</span></div>
+              <span class="pname">Transcribe</span>
+              <span class="pmeta">Done · 03:14</span>
+            </div>
+            <div class="phase-card" data-status="done">
+              <div class="top"><span class="idx">02</span><span class="glyph">✓</span></div>
+              <span class="pname">Metadata</span>
+              <span class="pmeta">Done · 00:42</span>
+            </div>
+            <div class="phase-card" data-status="running">
+              <div class="top"><span class="idx">03</span><span class="glyph"><span class="ico-running">⟳</span></span></div>
+              <span class="pname">Render</span>
+              <span class="pmeta">Running · 03:46</span>
+            </div>
+            <div class="phase-card" data-status="pending">
+              <div class="top"><span class="idx">04</span><span class="glyph">○</span></div>
+              <span class="pname">Upload</span>
+              <span class="pmeta">Pending</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Overall progress -->
+        <div class="progress" style="margin-top: var(--space-4);">
+          <div class="progress-track"><div class="progress-fill" style="--progress: 62%"></div></div>
+          <div class="progress-meta">
+            <span>Render frame 4 580 / 7 386</span>
+            <span>62 % · ETA 02:21</span>
+          </div>
+        </div>
+
+        <!-- ─── BODY GRID ─── -->
+        <div class="run-grid" style="margin-top: var(--space-6);">
+
+          <!-- LEFT COLUMN -->
+          <div class="stack">
+
+            <!-- LIVE LOG -->
+            <section class="logpanel">
+              <header class="logpanel-head">
+                <span class="dots"><span></span><span></span><span></span></span>
+                <span class="title">stdout · pipeline</span>
+                <span class="meta">
+                  <span>726 lines</span>
+                  <button class="tail" type="button" aria-pressed="true" title="Auto-scroll to newest line">Tail</button>
+                  <span class="live">live · sse</span>
+                </span>
+              </header>
+              <div class="logpanel-body" id="log">
+<div class="row phase">       <span class="ts">14:02:11</span><span class="mark">▶</span><span class="msg">phase · transcribe</span></div>
+<div class="row info">        <span class="ts">14:02:11</span><span class="mark">·</span><span class="msg">whisperx · loading model large-v3-turbo (mlx, fp16)</span></div>
+<div class="row">             <span class="ts">14:02:14</span><span class="mark">·</span><span class="msg">model loaded in 2.7s · 1.6 GB resident</span></div>
+<div class="row">             <span class="ts">14:02:14</span><span class="mark">·</span><span class="msg">vad · pyannote/segmentation-3.0 · 1.2 GB</span></div>
+<div class="row success">     <span class="ts">14:02:21</span><span class="mark">✓</span><span class="msg">vad complete · 412 segments · 71.4 min total speech</span></div>
+<div class="row">             <span class="ts">14:02:21</span><span class="mark">·</span><span class="msg">transcribing · batch 1/14 · seg 0–30</span></div>
+<div class="row">             <span class="ts">14:02:51</span><span class="mark">·</span><span class="msg">transcribing · batch 2/14 · seg 30–60</span></div>
+<div class="row">             <span class="ts">14:04:13</span><span class="mark">·</span><span class="msg">align · wav2vec2-large-xlsr-53-german</span></div>
+<div class="row success">     <span class="ts">14:05:25</span><span class="mark">✓</span><span class="msg">transcribe · 14 638 words · 412 segments · 03:14 elapsed</span></div>
+<div class="row">             <span class="ts">14:05:25</span><span class="mark">·</span><span class="msg">diarize · 2 speakers detected · A: 58.3% · B: 41.7%</span></div>
+<div class="row">             <span class="ts">14:05:26</span><span class="mark">·</span><span class="msg">wrote output/folge-082-…/transcript.json (1.4 MB)</span></div>
+<div class="row">             <span class="ts">14:05:26</span><span class="mark">·</span><span class="msg">wrote output/folge-082-…/transcript.srt (74 KB)</span></div>
+<div class="row phase">       <span class="ts">14:05:26</span><span class="mark">▶</span><span class="msg">phase · metadata</span></div>
+<div class="row info">        <span class="ts">14:05:27</span><span class="mark">·</span><span class="msg">mlx · loading qwen2.5-7b-instruct-4bit</span></div>
+<div class="row">             <span class="ts">14:05:42</span><span class="mark">·</span><span class="msg">prompt · youtube_metadata_v3 (1820 tokens)</span></div>
+<div class="row">             <span class="ts">14:06:01</span><span class="mark">·</span><span class="msg">generated 12 chapters · 18 tags · title + description</span></div>
+<div class="row success">     <span class="ts">14:06:08</span><span class="mark">✓</span><span class="msg">metadata · 00:42 elapsed · wrote youtube.json</span></div>
+<div class="row phase">       <span class="ts">14:06:08</span><span class="mark">▶</span><span class="msg">phase · render</span></div>
+<div class="row info">        <span class="ts">14:06:09</span><span class="mark">·</span><span class="msg">remotion · bundle visualizer/Dialogue (49 deps)</span></div>
+<div class="row">             <span class="ts">14:06:24</span><span class="mark">·</span><span class="msg">bundle ready · 12.4 MB · 7386 frames @ 30 fps</span></div>
+<div class="row">             <span class="ts">14:08:11</span><span class="mark">·</span><span class="msg">render · frame 2412 / 7386 · 33 fps</span></div>
+<div class="row warn">        <span class="ts">14:09:02</span><span class="mark">!</span><span class="msg">slow frame 3010 · 1.4s · waveform overlap re-cache</span></div>
+<div class="row">             <span class="ts">14:09:53</span><span class="mark">·</span><span class="msg">render · frame 4580 / 7386 · 31 fps<span class="cursor"></span></span></div>
+              </div>
+            </section>
+
+            <!-- TRANSCRIPT PREVIEW -->
+            <section class="card">
+              <header class="card-header">
+                <span class="caps">Transcript preview</span>
+                <span class="pill" data-tone="success"><span class="dot"></span>Phase 1 complete</span>
+                <span class="muted mono" style="margin-left:auto; font-size: var(--text-xs);">2 speakers · 14 638 words</span>
+              </header>
+              <div class="card-body">
+                <div class="transcript">
+                  <div class="line" data-spk="a">
+                    <span class="ts">00:00:12</span>
+                    <span class="spk">Alice</span>
+                    <span class="text">Bevor wir richtig anfangen — die Stille zwischen den Zeilen, das ist genau die Frage, die mich seit Wochen beschäftigt.</span>
+                  </div>
+                  <div class="line" data-spk="b">
+                    <span class="ts">00:00:24</span>
+                    <span class="spk">Bob</span>
+                    <span class="text">Ja, und das Interessante ist: die meisten Hörer:innen merken die Stille gar nicht. Sie merken nur, dass etwas fehlt.</span>
+                  </div>
+                  <div class="line" data-spk="a">
+                    <span class="ts">00:00:41</span>
+                    <span class="spk">Alice</span>
+                    <span class="text">Weil Aufmerksamkeit nicht auf Abwesenheit zielt. Stille wird erst hörbar, wenn etwas vorher da war.</span>
+                  </div>
+                  <div class="line" data-spk="b">
+                    <span class="ts">00:00:58</span>
+                    <span class="spk">Bob</span>
+                    <span class="text">Und genau das macht den Schnitt so heikel — du kürzt nicht die Worte, du kürzt den Raum dazwischen.</span>
+                  </div>
+                </div>
+                <div class="row-end" style="margin-top: var(--space-4);">
+                  <a href="#" class="btn btn--ghost btn--sm">Open full transcript ↗</a>
+                </div>
+              </div>
+            </section>
+
+          </div>
+
+          <!-- RIGHT COLUMN -->
+          <aside class="stack">
+
+            <!-- RUN META -->
+            <section class="card card--padded">
+              <div class="caps" style="margin-bottom: var(--space-3);">Run details</div>
+              <dl class="kv">
+                <dt>Stem</dt><dd>folge-082-…</dd>
+                <dt>Visualizer</dt><dd>Dialogue</dd>
+                <dt>Model</dt><dd>large-v3-turbo</dd>
+                <dt>Language</dt><dd>de · auto</dd>
+                <dt>Speakers</dt><dd>2 (detected)</dd>
+                <dt>Output</dt><dd>output/folge-082-…</dd>
+                <dt>Run id</dt><dd>run_20260520_140211</dd>
+              </dl>
+              <div class="divider-soft"></div>
+              <div class="row-end" style="gap: var(--space-2);">
+                <button class="btn btn--ghost btn--sm" type="button">Open output ↗</button>
+                <button class="btn btn--danger btn--sm" type="button">Abort run</button>
+              </div>
+            </section>
+
+            <!-- METADATA PREVIEW (after phase 2) -->
+            <section class="card" data-tone="accent">
+              <header class="card-header">
+                <span class="caps">YouTube metadata</span>
+                <span class="pill" data-tone="success"><span class="dot"></span>Generated</span>
+              </header>
+              <div class="card-body">
+                <div class="meta-title">Die Stille zwischen den Zeilen — was wir nicht sagen, wenn wir reden</div>
+                <p class="meta-desc" style="margin-top: var(--space-3);">In Folge 82 reden Alice und Bob über das, was im Podcast-Schnitt verloren geht: die Pausen, die Atmer, die Sekunde Zögern vor dem nächsten Gedanken. Ein Gespräch über den Raum zwischen Worten — und warum die KI ihn nicht hört.</p>
+
+                <div class="caps" style="margin-top: var(--space-4); margin-bottom: var(--space-2);">Tags · 18</div>
+                <div class="tags">
+                  <span class="tag">podcast</span>
+                  <span class="tag">audio</span>
+                  <span class="tag">schnitt</span>
+                  <span class="tag">stille</span>
+                  <span class="tag">gespräch</span>
+                  <span class="tag">aufmerksamkeit</span>
+                  <span class="tag">deutsch</span>
+                  <span class="tag">notizen-kammer</span>
+                  <span class="tag">folge-082</span>
+                  <span class="tag">whisperx</span>
+                </div>
+
+                <div class="caps" style="margin-top: var(--space-4); margin-bottom: var(--space-2);">Chapters · 12</div>
+                <div class="chapters">
+                  <div class="chapter"><span class="ts">00:00</span><span>Was wir nicht sagen, wenn wir reden</span></div>
+                  <div class="chapter"><span class="ts">04:12</span><span>Stille als Form</span></div>
+                  <div class="chapter"><span class="ts">11:48</span><span>Der Schnitt ist eine Entscheidung</span></div>
+                  <div class="chapter"><span class="ts">22:31</span><span>Was die KI hört — und was nicht</span></div>
+                  <div class="chapter"><span class="ts">35:09</span><span>Drei Sekunden Atmer</span></div>
+                  <div class="chapter"><span class="ts">48:55</span><span>Die Pause als Argument</span></div>
+                </div>
+              </div>
+            </section>
+
+          </aside>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="tweaks.js"></script>
+  <script>
+    // Mock elapsed timer ticking up.
+    (function () {
+      const el = document.getElementById('elapsed');
+      if (!el) return;
+      let [h, m, s] = el.textContent.split(':').map(Number);
+      setInterval(() => {
+        s++;
+        if (s >= 60) { s = 0; m++; }
+        if (m >= 60) { m = 0; h++; }
+        el.textContent = [h, m, s].map(n => String(n).padStart(2, '0')).join(':');
+      }, 1000);
+    })();
+  </script>
+</body>
+</html>

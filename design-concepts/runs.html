@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="en" data-aspect="gunshi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=1200">
+  <title>Whisper-Pipeline · Past runs</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body data-screen-label="06 Past runs">
+  <div class="app">
+
+    <header class="topbar">
+      <div class="topbar-inner">
+        <a class="brand" href="index.html">
+          <span class="brand-mark"></span>
+          <span class="brand-name">Whisper<span class="dim">·Pipeline</span></span>
+        </a>
+        <nav class="topnav">
+          <a href="index.html">Start</a>
+          <a href="runs.html" class="is-active">Runs</a>
+          <a href="compare.html">States</a>
+        </nav>
+        <div class="topbar-meta">
+          <button class="btn btn--ghost btn--sm" type="button" data-open-modal="cheatsheet" style="padding: 4px 10px;">
+            <span class="mono" style="font-size: 11px; letter-spacing: 0.04em;">?</span>
+            <span class="caps" style="color: inherit;">Keys</span>
+          </button>
+          <span class="host-pill"><span class="dot"></span>localhost:8765</span>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <div class="page">
+
+        <!-- ─── PAGE HEADER ─── -->
+        <div class="page-header">
+          <div>
+            <div class="eyebrow">Output · 24 runs · 18.4 GB on disk</div>
+            <h1 style="margin-top: 8px;">Past runs</h1>
+            <p class="lede">Everything the chamber has seen. Newest first. Hover for hint; click to open.</p>
+          </div>
+          <div class="row-end">
+            <a class="btn btn--primary" href="index.html">
+              <span style="font-family: var(--font-mono); font-size: 1.1em;">+</span>
+              <span>New run</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- ─── TOOLBAR ─── -->
+        <div class="runs-toolbar">
+          <span class="mono dim" style="padding: 0 var(--space-2); font-size: var(--text-xs); letter-spacing: var(--tracking-caps); text-transform: uppercase;">⌕</span>
+          <input class="search" type="search" placeholder="Filter by stem, episode, channel, YouTube URL…">
+          <span class="filter-chip" aria-selected="true">All</span>
+          <span class="filter-chip">Done</span>
+          <span class="filter-chip">Aborted</span>
+          <span class="filter-chip">Unfinished</span>
+          <span class="filter-chip">Not uploaded</span>
+        </div>
+
+        <!-- ─── TABLE ─── -->
+        <div class="runs-table">
+
+          <!-- Header row -->
+          <div class="runs-row is-header">
+            <span>Date</span>
+            <span>Stem · Episode</span>
+            <span>Phases</span>
+            <span>YouTube</span>
+            <span style="text-align:right;">Time</span>
+            <span></span>
+          </div>
+
+          <!-- Row · running -->
+          <a class="runs-row" href="run_detail--running.html">
+            <span class="date">2026-05-20 · 14:02</span>
+            <span style="min-width:0;">
+              <div class="row" style="gap: var(--space-3);">
+                <span class="thumb empty" style="display:flex; align-items:center; justify-content:center;"><div data-waveform="muted" data-bars="22" data-seed="82"></div></span>
+                <span style="min-width:0;">
+                  <span class="stem">folge-082-die-stille-zwischen-den-zeilen</span>
+                  <div class="stem-meta">Notizen aus der Kammer · Folge 82</div>
+                </span>
+              </div>
+            </span>
+            <span>
+              <span class="phases--compact">
+                <span class="phase-pill" data-status="done">✓</span>
+                <span class="phase-pill" data-status="done">✓</span>
+                <span class="phase-pill" data-status="running"><span class="ico-running">⟳</span></span>
+                <span class="phase-pill" data-status="pending">○</span>
+              </span>
+            </span>
+            <span class="mono" style="font-size: var(--text-xs); color: var(--accent); letter-spacing: var(--tracking-caps); text-transform: uppercase;">Running…</span>
+            <span class="duration">07:42</span>
+            <span class="chev">→</span>
+          </a>
+
+          <!-- Row · done -->
+          <a class="runs-row" href="run_detail--done.html">
+            <span class="date">2026-05-18 · 09:14</span>
+            <span style="min-width:0;">
+              <div class="row" style="gap: var(--space-3);">
+                <span class="thumb wave"><div data-waveform="default" data-bars="24" data-seed="81"></div></span>
+                <span style="min-width:0;">
+                  <span class="stem">folge-081-warum-aufmerksamkeit-keine-ressource-ist</span>
+                  <div class="stem-meta">Notizen aus der Kammer · Folge 81 · uploaded</div>
+                </span>
+              </div>
+            </span>
+            <span>
+              <span class="phases--compact">
+                <span class="phase-pill" data-status="done">✓</span>
+                <span class="phase-pill" data-status="done">✓</span>
+                <span class="phase-pill" data-status="done">✓</span>
+                <span class="phase-pill" data-status="done">✓</span>
+              </span>
+            </span>
+            <span class="mono" style="font-size: var(--text-xs); color: var(--role-link); letter-spacing: 0.02em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">youtu.be/qC7w-2hL</span>
+            <span class="duration">22:18</span>
+            <span class="chev">→</span>
+          </a>
+
+          <!-- Row · aborted -->
+          <a class="runs-row" href="run_detail--aborted.html">
+            <span class="date">2026-05-16 · 21:08</span>
+            <span style="min-width:0;">
+              <div class="row" style="gap: var(--space-3);">
+                <span class="thumb empty" style="display:flex; align-items:center; justify-content:center;"><div data-waveform="muted" data-bars="22" data-seed="77"></div></span>
+                <span style="min-width:0;">
+                  <span class="stem">probefolge-was-bleibt-vom-langen-gespraech</span>
+                  <div class="stem-meta">Notizen aus der Kammer · Pilot · render aborted</div>
+                </span>
+              </div>
+            </span>
+            <span>
+              <span class="phases--compact">
+                <span class="phase-pill" data-status="done">✓</span>
+                <span class="phase-pill" data-status="done">✓</span>
+                <span class="phase-pill" data-status="aborted">✗</span>
+                <span class="phase-pill" data-status="skipped">·</span>
+              </span>
+            </span>
+            <span class="mono" style="font-size: var(--text-xs); color: var(--role-error); letter-spacing: var(--tracking-caps); text-transform: uppercase;">Aborted</span>
+            <span class="duration">11:44</span>
+            <span class="chev">→</span>
+          </a>
+
+          <!-- Row · done -->
+          <a class="runs-row" href="run_detail--done.html">
+            <span class="date">2026-05-14 · 16:42</span>
+            <span style="min-width:0;">
+              <div class="row" style="gap: var(--space-3);">
+                <span class="thumb wave"><div data-waveform="default" data-bars="24" data-seed="80"></div></span>
+                <span style="min-width:0;">
+                  <span class="stem">folge-080-jubilaeumsfolge-achtzig-und-noch-am-leben</span>
+                  <div class="stem-meta">Notizen aus der Kammer · Folge 80 · 2h 14m · uploaded</div>
+                </span>
+              </div>
+            </span>
+            <span>
+              <span class="phases--compact">
+                <span class="phase-pill" data-status="done">✓</span>
+                <span class="phase-pill" data-status="done">✓</span>
+                <span class="phase-pill" data-status="done">✓</span>
+                <span class="phase-pill" data-status="done">✓</span>
+              </span>
+            </span>
+            <span class="mono" style="font-size: var(--text-xs); color: var(--role-link); letter-spacing: 0.02em;">youtu.be/8m4v-Lp2</span>
+            <span class="duration">38:51</span>
+            <span class="chev">→</span>
+          </a>
+
+          <!-- Row · done, not uploaded -->
+          <a class="runs-row" href="run_detail--done.html">
+            <span class="date">2026-05-12 · 22:01</span>
+            <span style="min-width:0;">
+              <div class="row" style="gap: var(--space-3);">
+                <span class="thumb wave"><div data-waveform="default" data-bars="24" data-seed="301"></div></span>
+                <span style="min-width:0;">
+                  <span class="stem">interview-mit-kira-ueber-zettelkasten-und-vergessen</span>
+                  <div class="stem-meta">Notizen aus der Kammer · Spezial · upload skipped</div>
+                </span>
+              </div>
+            </span>
+            <span>
+              <span class="phases--compact">
+                <span class="phase-pill" data-status="done">✓</span>
+                <span class="phase-pill" data-status="done">✓</span>
+                <span class="phase-pill" data-status="done">✓</span>
+                <span class="phase-pill" data-status="skipped">·</span>
+              </span>
+            </span>
+            <span class="mono dim" style="font-size: var(--text-xs); letter-spacing: var(--tracking-caps); text-transform: uppercase;">Local only</span>
+            <span class="duration">25:09</span>
+            <span class="chev">→</span>
+          </a>
+
+          <!-- Row · unfinished (in-progress run state but no process) -->
+          <a class="runs-row" href="run_detail--aborted.html">
+            <span class="date">2026-05-09 · 11:24</span>
+            <span style="min-width:0;">
+              <div class="row" style="gap: var(--space-3);">
+                <span class="thumb empty" style="display:flex; align-items:center; justify-content:center;"><div data-waveform="muted" data-bars="22" data-seed="79"></div></span>
+                <span style="min-width:0;">
+                  <span class="stem">folge-079-was-passiert-wenn-man-aufhoert-zu-suchen</span>
+                  <div class="stem-meta">Notizen aus der Kammer · Folge 79 · state file present, no process</div>
+                </span>
+              </div>
+            </span>
+            <span>
+              <span class="phases--compact">
+                <span class="phase-pill" data-status="done">✓</span>
+                <span class="phase-pill" data-status="pending">⟳</span>
+                <span class="phase-pill" data-status="pending">○</span>
+                <span class="phase-pill" data-status="pending">○</span>
+              </span>
+            </span>
+            <span class="mono dim" style="font-size: var(--text-xs); letter-spacing: var(--tracking-caps); text-transform: uppercase;">Resume?</span>
+            <span class="duration">—</span>
+            <span class="chev">→</span>
+          </a>
+
+          <!-- Row · done -->
+          <a class="runs-row" href="run_detail--done.html">
+            <span class="date">2026-05-04 · 19:33</span>
+            <span style="min-width:0;">
+              <div class="row" style="gap: var(--space-3);">
+                <span class="thumb wave"><div data-waveform="default" data-bars="24" data-seed="78"></div></span>
+                <span style="min-width:0;">
+                  <span class="stem">folge-078-die-laenge-des-gedankens</span>
+                  <div class="stem-meta">Notizen aus der Kammer · Folge 78 · uploaded · unlisted</div>
+                </span>
+              </div>
+            </span>
+            <span>
+              <span class="phases--compact">
+                <span class="phase-pill" data-status="done">✓</span>
+                <span class="phase-pill" data-status="done">✓</span>
+                <span class="phase-pill" data-status="done">✓</span>
+                <span class="phase-pill" data-status="done">✓</span>
+              </span>
+            </span>
+            <span class="mono" style="font-size: var(--text-xs); color: var(--role-link); letter-spacing: 0.02em;">youtu.be/Xf2m-9aP</span>
+            <span class="duration">19:48</span>
+            <span class="chev">→</span>
+          </a>
+
+          <!-- Row · done -->
+          <a class="runs-row" href="run_detail--done.html">
+            <span class="date">2026-04-29 · 14:11</span>
+            <span style="min-width:0;">
+              <div class="row" style="gap: var(--space-3);">
+                <span class="thumb wave"><div data-waveform="default" data-bars="24" data-seed="77"></div></span>
+                <span style="min-width:0;">
+                  <span class="stem">folge-077-warum-wir-immer-noch-radio-machen</span>
+                  <div class="stem-meta">Notizen aus der Kammer · Folge 77 · uploaded</div>
+                </span>
+              </div>
+            </span>
+            <span>
+              <span class="phases--compact">
+                <span class="phase-pill" data-status="done">✓</span>
+                <span class="phase-pill" data-status="done">✓</span>
+                <span class="phase-pill" data-status="done">✓</span>
+                <span class="phase-pill" data-status="done">✓</span>
+              </span>
+            </span>
+            <span class="mono" style="font-size: var(--text-xs); color: var(--role-link); letter-spacing: 0.02em;">youtu.be/p9k-W41x</span>
+            <span class="duration">21:02</span>
+            <span class="chev">→</span>
+          </a>
+
+          <!-- Row · aborted -->
+          <a class="runs-row" href="run_detail--aborted.html">
+            <span class="date">2026-04-22 · 08:55</span>
+            <span style="min-width:0;">
+              <div class="row" style="gap: var(--space-3);">
+                <span class="thumb empty" style="display:flex; align-items:center; justify-content:center;"><div data-waveform="muted" data-bars="22" data-seed="42"></div></span>
+                <span style="min-width:0;">
+                  <span class="stem">test-monologue-visualizer-tweak</span>
+                  <div class="stem-meta">Pilot · test render · transcribe aborted (file moved)</div>
+                </span>
+              </div>
+            </span>
+            <span>
+              <span class="phases--compact">
+                <span class="phase-pill" data-status="aborted">✗</span>
+                <span class="phase-pill" data-status="skipped">·</span>
+                <span class="phase-pill" data-status="skipped">·</span>
+                <span class="phase-pill" data-status="skipped">·</span>
+              </span>
+            </span>
+            <span class="mono" style="font-size: var(--text-xs); color: var(--role-error); letter-spacing: var(--tracking-caps); text-transform: uppercase;">Aborted</span>
+            <span class="duration">00:14</span>
+            <span class="chev">→</span>
+          </a>
+
+        </div>
+
+        <p class="mono dim" style="font-size: var(--text-xs); margin-top: var(--space-3); text-align:center; letter-spacing: 0.04em;">
+          Showing 9 of 24 · <a href="#" style="color: var(--fg-secondary);">load more</a>
+        </p>
+
+        <!-- ─── EMPTY STATE (alternate — shown for documentation) ─── -->
+        <div class="section-title">
+          <span class="caps">Alternate state · Empty</span>
+          <span class="rule"></span>
+        </div>
+
+        <div class="empty">
+          <h3>No signal. The chamber is quiet.</h3>
+          <p>No runs yet. Drop a podcast file on the start screen and the pipeline will leave a trail here.</p>
+          <a class="btn btn--primary" href="index.html">
+            <span style="font-family: var(--font-mono); font-size: 1.1em;">+</span>
+            <span>Start your first run</span>
+          </a>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="tweaks.js"></script>
+</body>
+</html>
