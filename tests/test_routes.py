@@ -29,3 +29,18 @@ def test_static_css_served(client):
     r = client.get("/static/style.css")
     assert r.status_code == 200
     assert "text/css" in r.headers["content-type"]
+
+
+def test_api_audio_probe_with_valid_file(client, fixtures_dir):
+    r = client.post("/api/audio/probe", json={"path": str(fixtures_dir / "sample.m4a")})
+    assert r.status_code == 200
+    body = r.json()
+    assert body["valid"] is True
+    assert body["stem"] == "sample"
+
+
+def test_api_audio_probe_with_missing_file(client, tmp_path):
+    r = client.post("/api/audio/probe", json={"path": str(tmp_path / "nope.m4a")})
+    assert r.status_code == 200
+    assert r.json()["valid"] is False
+    assert r.json()["error"] == "file_not_found"

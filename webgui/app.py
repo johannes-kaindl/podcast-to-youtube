@@ -6,6 +6,9 @@ from pathlib import Path
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from pydantic import BaseModel
+
+from .probe import audio_probe
 
 REPO_ROOT = Path(__file__).parent.parent
 TEMPLATES_DIR = Path(__file__).parent / "templates"
@@ -17,6 +20,22 @@ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 templates = Jinja2Templates(directory=TEMPLATES_DIR)
 
 
+class AudioProbeRequest(BaseModel):
+    path: str
+
+
+@app.get("/healthz")
+async def healthz():
+    return {"status": "ok"}
+
+
+@app.post("/api/audio/probe")
+async def api_audio_probe(req: AudioProbeRequest):
+    from pipeline_core import resolve_audio_path
+    audio_path = resolve_audio_path(req.path, REPO_ROOT)
+    return audio_probe(audio_path, OUTPUT_ROOT)
+
+
 @app.get("/")
 async def index(request: Request):
     return templates.TemplateResponse(
@@ -24,8 +43,3 @@ async def index(request: Request):
         "index.html",
         {"page_mood": "neutral"},
     )
-
-
-@app.get("/healthz")
-async def healthz():
-    return {"status": "ok"}
