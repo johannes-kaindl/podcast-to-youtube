@@ -6,7 +6,7 @@ import json
 from datetime import datetime
 from pathlib import Path
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
@@ -25,6 +25,20 @@ OUTPUT_ROOT = REPO_ROOT / "output"
 app = FastAPI(title="Whisper-Pipeline WebGUI")
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 templates = Jinja2Templates(directory=TEMPLATES_DIR)
+
+
+def _load_state(stem: str) -> dict:
+    state_file = OUTPUT_ROOT / stem / "run-state.json"
+    default = {
+        "phases": {p: {"status": "pending"}
+                   for p in ("transcribe", "meta", "render", "upload")}
+    }
+    if not state_file.exists():
+        return default
+    try:
+        return json.loads(state_file.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return default
 
 
 class AudioProbeRequest(BaseModel):
@@ -161,6 +175,26 @@ async def runs_stream(stem: str, request: Request):
                 break
 
     return EventSourceResponse(live_then_drain())
+
+
+@app.get("/runs/{stem}/phases", response_class=HTMLResponse)
+async def runs_phases_fragment(stem: str, request: Request):
+    state = _load_state(stem)
+    return templates.TemplateResponse(
+        request,
+        "_partials/phase_indicator.html",
+        {"phases": state.get("phases", {})},
+    )
+
+
+@app.get("/runs/{stem}/progress", response_class=HTMLResponse)
+async def runs_progress_fragment(stem: str, request: Request,
+                                  value: float = 0, label: str = ""):
+    return templates.TemplateResponse(
+        request,
+        "_partials/progress_bar.html",
+        {"progress": {"value": value, "label": label}},
+    )
 
 
 @app.get("/")

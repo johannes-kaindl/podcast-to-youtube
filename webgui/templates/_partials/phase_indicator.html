@@ -1,0 +1,20 @@
+<div data-phases-wrapper class="phases">
+  <div class="phases--stepper">
+    {% for phase_name in ["transcribe", "meta", "render", "upload"] %}
+      {% set status = phases.get(phase_name, {}).get("status", "pending") %}
+      {% set label_map = {"transcribe":"Transcribe","meta":"Metadata","render":"Render","upload":"Upload"} %}
+      {% set status_meta = {
+          "done":"Done", "running":"Running",
+          "aborted":"Aborted", "skipped":"Skipped", "pending":"Pending"
+      } %}
+      {% set glyph = {"done":"✓","running":"⟳","aborted":"✗","skipped":"·","pending":"○"} %}
+      <div class="phase" data-status="{{ status }}">
+        <div class="glyph">{% if status == 'running' %}<span class="ico-running">⟳</span>{% else %}{{ glyph[status] }}{% endif %}</div>
+        <div class="phase-meta">
+          <span class="phase-name">{{ label_map[phase_name] }}</span>
+          <span class="phase-status">{{ status_meta[status] }}</span>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</div>

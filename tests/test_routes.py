@@ -189,3 +189,18 @@ def test_stream_with_last_event_id_skips_already_seen_lines(client, tmp_path, mo
         body = "".join(r.iter_text())
     assert "line 7" in body
     assert "line 4" not in body
+
+
+def test_phases_fragment_renders(client, populated_output):
+    """GET /runs/{stem}/phases renders the phase-indicator partial with status."""
+    r = client.get("/runs/done/phases")
+    assert r.status_code == 200
+    # "done" fixture has all four phases done
+    assert 'data-status="done"' in r.text
+    assert 'Transcribe' in r.text
+
+
+def test_progress_fragment_renders(client):
+    r = client.get("/runs/anything/progress?value=42&label=Rendering+45%25")
+    assert r.status_code == 200
+    assert "42" in r.text

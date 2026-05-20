@@ -1,0 +1,7 @@
+<div class="progress" id="progress" hx-swap-oob="true">
+  <div class="progress-track"><div class="progress-fill" style="--progress: {{ progress.value | default(0) }}%"></div></div>
+  <div class="progress-meta">
+    <span>{{ progress.label | default("Bereit") }}</span>
+    <span>{{ progress.value | default(0) | round(0) }} %</span>
+  </div>
+</div>

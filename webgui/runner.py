@@ -126,6 +126,8 @@ def spawn_pipeline(
             pass
 
     def _reader():
+        from pipeline_core import match_line
+        current_step = 0
         try:
             with log_file.open("w", encoding="utf-8", buffering=1) as f:
                 f.write(f"# Pipeline-Run started {job.started_at.isoformat()}\n")
@@ -134,12 +136,28 @@ def spawn_pipeline(
                 for line in proc.stdout:
                     line = line.rstrip("\n")
                     f.write(line + "\n")
-                    if line:
+                    if not line:
+                        continue
+                    job.seq += 1
+                    _put(StreamEvent(
+                        type="log",
+                        seq=job.seq,
+                        data={"msg": line, "level": _classify_level(line)},
+                    ))
+                    evt = match_line(line, current_step)
+                    if evt is not None:
+                        current_step = evt.step
                         job.seq += 1
                         _put(StreamEvent(
-                            type="log",
+                            type="phase",
                             seq=job.seq,
-                            data={"msg": line, "level": _classify_level(line)},
+                            data={"step": evt.step, "label": evt.label},
+                        ))
+                        job.seq += 1
+                        _put(StreamEvent(
+                            type="progress",
+                            seq=job.seq,
+                            data={"value": evt.progress, "label": evt.label},
                         ))
             if proc.stdout is not None:
                 proc.stdout.close()
