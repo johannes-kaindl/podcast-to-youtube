@@ -1,5 +1,6 @@
 """Tests for webgui.runner — JobRegistry + subprocess spawning."""
 import asyncio
+import sys
 from pathlib import Path
 import pytest
 
@@ -57,3 +58,57 @@ def test_registry_release_ignores_wrong_job():
     reg.try_claim(real)
     reg.release(other)
     assert reg.current is real
+
+
+def test_spawn_pipeline_writes_to_logfile_and_releases_slot(tmp_path):
+    """End-to-end: spawn mock pipeline, verify log file populated + slot freed after exit."""
+    from webgui.runner import spawn_pipeline, JobRegistry
+    import time
+
+    reg = JobRegistry()
+    output_dir = tmp_path / "stem-x"
+    output_dir.mkdir()
+    log_file = output_dir / "run-test.log"
+
+    mock_cmd = [sys.executable, str(Path("tests/fixtures/mock_pipeline.py"))]
+    job = spawn_pipeline(
+        cmd=mock_cmd,
+        stem="stem-x",
+        audio_path=Path("/tmp/a.m4a"),
+        output_dir=output_dir,
+        log_file=log_file,
+        registry=reg,
+    )
+
+    job.process.wait(timeout=10)
+
+    # Wait briefly for reader thread to finish + release
+    for _ in range(30):
+        if reg.current is None:
+            break
+        time.sleep(0.1)
+
+    log_contents = log_file.read_text()
+    assert "SCHRITT 1" in log_contents
+    assert "Rendering 100.0%" in log_contents
+    assert reg.current is None
+
+
+def test_spawn_pipeline_fails_when_slot_busy(tmp_path):
+    from webgui.runner import spawn_pipeline, JobRegistry, ActiveJob
+
+    reg = JobRegistry()
+    existing = ActiveJob(
+        stem="busy", audio_path=Path("/a"), output_dir=Path("/b"),
+        process=None, log_file=Path("/c"), kind="pipeline",
+    )
+    reg.try_claim(existing)
+
+    with pytest.raises(RuntimeError) as exc:
+        spawn_pipeline(
+            cmd=[sys.executable, "-c", "pass"],
+            stem="new", audio_path=Path("/tmp/a.m4a"),
+            output_dir=tmp_path, log_file=tmp_path / "x.log",
+            registry=reg,
+        )
+    assert "busy" in str(exc.value).lower() or "slot" in str(exc.value).lower()

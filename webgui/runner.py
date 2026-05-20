@@ -59,5 +59,70 @@ class JobRegistry:
                 self._slot = None
 
 
+def spawn_pipeline(
+    cmd: list[str],
+    stem: str,
+    audio_path: Path,
+    output_dir: Path,
+    log_file: Path,
+    registry: JobRegistry,
+    kind: JobKind = "pipeline",
+) -> ActiveJob:
+    """Spawn a pipeline subprocess. Returns the ActiveJob.
+
+    Raises RuntimeError if the registry slot is already taken.
+    A background daemon thread reads stdout and writes each line to log_file.
+    Once the subprocess exits, the registry is released.
+    """
+    job = ActiveJob(
+        stem=stem, audio_path=audio_path, output_dir=output_dir,
+        process=None, log_file=log_file, kind=kind,
+    )
+    if not registry.try_claim(job):
+        raise RuntimeError(f"Slot is busy with {registry.current.stem!r}")
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+    log_file.parent.mkdir(parents=True, exist_ok=True)
+
+    proc = subprocess.Popen(
+        cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        bufsize=1,
+    )
+    job.process = proc
+
+    def _reader():
+        try:
+            with log_file.open("w", encoding="utf-8", buffering=1) as f:
+                f.write(f"# Pipeline-Run started {datetime.now().isoformat()}\n")
+                f.write(f"# Command: {' '.join(cmd)}\n")
+                f.write("# " + ("─" * 60) + "\n\n")
+                for line in proc.stdout:
+                    line = line.rstrip("\n")
+                    f.write(line + "\n")
+            proc.wait()
+        finally:
+            registry.release(job)
+
+    threading.Thread(target=_reader, daemon=True, name=f"run-{stem}").start()
+    return job
+
+
+def _classify_level(line: str) -> str:
+    """Trivial log-level inference for styling (used by T8+ SSE events)."""
+    low = line.lower()
+    if "✓" in line or "fertig" in low or "complete" in low:
+        return "success"
+    if "✗" in line or "fehler" in low or "error" in low or "traceback" in low:
+        return "error"
+    if "warn" in low or "slow" in low:
+        return "warn"
+    if line.startswith("─") or line.startswith("SCHRITT") or low.startswith("phase"):
+        return "phase"
+    return "info"
+
+
 # Module-level singleton (FastAPI app gets it via import)
 registry = JobRegistry()
