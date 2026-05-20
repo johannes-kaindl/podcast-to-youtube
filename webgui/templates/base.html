@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en" data-aspect="gunshi" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=1200">
+  <title>{% block title %}Whisper-Pipeline{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
+  <script>
+    // Set theme before first paint to avoid flash
+    (function() {
+      const saved = localStorage.getItem('theme');
+      const prefers = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+      document.documentElement.dataset.theme = saved || prefers;
+    })();
+  </script>
+</head>
+<body data-page-mood="{{ page_mood | default('neutral') }}">
+  <div class="app">
+    <header class="topbar">
+      <div class="topbar-inner">
+        <a class="brand" href="/">
+          <span class="brand-mark"></span>
+          <span class="brand-name">Whisper<span class="dim">·Pipeline</span></span>
+        </a>
+        <nav class="topnav">
+          <a href="/" {% if request.url.path == '/' %}class="is-active"{% endif %}>Start</a>
+          <a href="/runs" {% if request.url.path.startswith('/runs') %}class="is-active"{% endif %}>Runs</a>
+        </nav>
+        <div class="topbar-meta">
+          <span class="host-pill"><span class="dot"></span>localhost</span>
+        </div>
+      </div>
+    </header>
+    <main>
+      <div class="page">
+        {% block content %}{% endblock %}
+      </div>
+    </main>
+  </div>
+  <script src="{{ url_for('static', path='htmx.min.js') }}"></script>
+  <script src="{{ url_for('static', path='app.js') }}"></script>
+</body>
+</html>
