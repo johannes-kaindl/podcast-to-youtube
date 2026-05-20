@@ -315,3 +315,60 @@ def test_skip_upload_marks_state(client, tmp_path, monkeypatch):
     assert r.status_code == 204
     fresh = _json.loads((output / "run-state.json").read_text())
     assert fresh["phases"]["upload"]["status"] == "skipped"
+
+
+def test_abort_run_sigterms_subprocess(client, tmp_path, monkeypatch):
+    import sys, time
+    from webgui import app as app_mod, runner
+
+    runner.registry = runner.JobRegistry()
+    monkeypatch.setattr(app_mod, "registry", runner.registry)
+    monkeypatch.setattr(app_mod, "OUTPUT_ROOT", tmp_path / "output")
+
+    output = tmp_path / "output" / "abort-stem"
+    output.mkdir(parents=True)
+    long_cmd = [sys.executable, "-c", "import time; print('hi', flush=True); time.sleep(30)"]
+    runner.spawn_pipeline(
+        cmd=long_cmd, stem="abort-stem",
+        audio_path=Path("/x"), output_dir=output, log_file=output / "x.log",
+        registry=runner.registry,
+    )
+    time.sleep(0.5)
+    r = client.post("/runs/abort-stem/abort")
+    assert r.status_code == 204
+    time.sleep(0.5)
+    assert runner.registry.current is None
+
+
+def test_abort_unknown_run_returns_404(client, tmp_path, monkeypatch):
+    from webgui import app as app_mod, runner
+    runner.registry = runner.JobRegistry()
+    monkeypatch.setattr(app_mod, "registry", runner.registry)
+    r = client.post("/runs/no-such-stem/abort")
+    assert r.status_code == 404
+
+
+def test_open_finder_path_must_be_inside_repo(client, tmp_path, monkeypatch):
+    from webgui import app as app_mod
+    monkeypatch.setattr(app_mod, "OUTPUT_ROOT", tmp_path / "output")
+    r = client.post("/open/finder", json={"path": "/etc/passwd"})
+    assert r.status_code == 400
+
+
+def test_open_finder_calls_open_minus_R(client, tmp_path, monkeypatch):
+    import subprocess
+    from webgui import app as app_mod
+    calls = []
+    monkeypatch.setattr(app_mod, "OUTPUT_ROOT", tmp_path / "output")
+    (tmp_path / "output" / "stem-a").mkdir(parents=True)
+    target = tmp_path / "output" / "stem-a" / "video.mp4"
+    target.write_bytes(b"x")
+
+    def fake_run(args, **kwargs):
+        calls.append(args)
+        return subprocess.CompletedProcess(args, 0)
+    monkeypatch.setattr(app_mod.subprocess, "run", fake_run)
+
+    r = client.post("/open/finder", json={"path": str(target)})
+    assert r.status_code == 204
+    assert calls and calls[0][:2] == ["open", "-R"]

@@ -3,6 +3,8 @@
 Single-User, localhost only. No auth, no CSRF.
 """
 import json
+import signal
+import subprocess
 from datetime import datetime
 from pathlib import Path
 from fastapi import FastAPI, HTTPException, Request
@@ -369,6 +371,53 @@ async def runs_skip_upload(stem: str):
     state.setdefault("phases", {})["upload"] = {"status": "skipped"}
     state["updated_at"] = datetime.now().isoformat() + "Z"
     state_file.write_text(json.dumps(state, indent=2))
+    return Response(status_code=204)
+
+
+class OpenRequest(BaseModel):
+    path: str
+
+
+def _path_is_safe(path: Path) -> bool:
+    try:
+        resolved = path.resolve()
+        return (resolved.is_relative_to(REPO_ROOT.resolve())
+                or resolved.is_relative_to(OUTPUT_ROOT.resolve()))
+    except (OSError, ValueError):
+        return False
+
+
+@app.post("/runs/{stem}/abort", status_code=204)
+async def runs_abort(stem: str):
+    from fastapi import Response
+    job = registry.current
+    if job is None or job.stem != stem:
+        raise HTTPException(status_code=404, detail="No active run for this stem")
+    if job.process and job.process.poll() is None:
+        try:
+            job.process.send_signal(signal.SIGTERM)
+        except ProcessLookupError:
+            pass
+    return Response(status_code=204)
+
+
+@app.post("/open/finder", status_code=204)
+async def open_finder(req: OpenRequest):
+    from fastapi import Response
+    path = Path(req.path)
+    if not _path_is_safe(path):
+        raise HTTPException(status_code=400, detail="Path outside repo")
+    subprocess.run(["open", "-R", str(path)], check=False)
+    return Response(status_code=204)
+
+
+@app.post("/open/quicktime", status_code=204)
+async def open_quicktime(req: OpenRequest):
+    from fastapi import Response
+    path = Path(req.path)
+    if not _path_is_safe(path):
+        raise HTTPException(status_code=400, detail="Path outside repo")
+    subprocess.run(["open", "-a", "QuickTime Player", str(path)], check=False)
     return Response(status_code=204)
 
 
