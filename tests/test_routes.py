@@ -14,6 +14,9 @@ def test_index_returns_html(client):
     assert r.status_code == 200
     assert "text/html" in r.headers["content-type"]
     assert "Whisper" in r.text
+    # implicit `request` from Starlette 1.0 TemplateResponse must reach the
+    # template — Start nav-link should carry .is-active on /
+    assert 'href="/" class="is-active"' in r.text
 
 
 def test_healthz_returns_ok(client):
