@@ -231,3 +231,15 @@ def test_runs_detail_aborted_variant(client, populated_output):
 def test_runs_detail_404_unknown_stem(client, populated_output):
     r = client.get("/runs/does-not-exist")
     assert r.status_code == 404
+
+
+def test_resume_banner_aborted_variant(client, populated_output):
+    r = client.get("/runs/aborted/resume-banner")
+    assert r.status_code == 200
+    assert "aborted" in r.text.lower()
+
+
+def test_resume_banner_complete_variant(client, populated_output):
+    r = client.get("/runs/done/resume-banner")
+    assert r.status_code == 200
+    assert "complete" in r.text.lower() or "loop closed" in r.text.lower()

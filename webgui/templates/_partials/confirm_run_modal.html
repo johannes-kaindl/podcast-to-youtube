@@ -1,0 +1,21 @@
+<div class="modal-backdrop" id="modal-confirm-run" hidden>
+  <div class="modal" role="dialog" aria-modal="true">
+    <header class="modal-head">
+      <span class="caps">Pre-flight</span>
+      <button class="close" type="button" data-close-modal>✕</button>
+    </header>
+    <div class="modal-body">
+      <h2 class="modal-title" id="confirm-modal-title">Start pipeline</h2>
+      <p class="mono dim">Four phases will run in sequence. Upload requires a second confirmation after render.</p>
+      <div class="will-list" id="confirm-will-list"></div>
+      <div class="eta-block" id="confirm-eta-block"></div>
+    </div>
+    <footer class="modal-foot">
+      <button class="btn btn--ghost" type="button" data-close-modal>Cancel</button>
+      <button class="btn btn--primary" id="confirm-start" type="button">
+        <span style="font-family: monospace;">▶</span>
+        <span>Start pipeline</span>
+      </button>
+    </footer>
+  </div>
+</div>

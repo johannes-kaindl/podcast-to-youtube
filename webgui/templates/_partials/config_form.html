@@ -1,0 +1,57 @@
+<form id="config-form" class="form-grid">
+  <div class="field">
+    <label class="field-label" for="cfg-visualizer">Visualizer</label>
+    <select class="select" id="cfg-visualizer" name="viz">
+      <option value="dialogue">Dialogue · two-column waveform</option>
+      <option value="monologue">Monologue · single waveform</option>
+    </select>
+  </div>
+  <div class="field">
+    <label class="field-label" for="cfg-language">Language</label>
+    <select class="select" id="cfg-language" name="language">
+      <option value="auto">Auto-detect</option>
+      <option value="de">de — German</option>
+      <option value="en">en — English</option>
+    </select>
+  </div>
+  <div class="field">
+    <label class="field-label" for="cfg-model">Whisper model</label>
+    <select class="select" id="cfg-model" name="model">
+      <option value="large-v3-turbo">large-v3-turbo · recommended</option>
+      <option value="large-v3">large-v3</option>
+      <option value="large-v2">large-v2</option>
+      <option value="medium">medium</option>
+      <option value="small">small</option>
+      <option value="base">base</option>
+      <option value="tiny">tiny</option>
+    </select>
+  </div>
+  <div class="field">
+    <label class="field-label">Speakers</label>
+    <div class="segmented" role="radiogroup">
+      <label><input type="radio" name="diarize" value="auto" checked><span>Auto</span></label>
+      <label><input type="radio" name="diarize" value="2"><span>2</span></label>
+      <label><input type="radio" name="diarize" value="3"><span>3</span></label>
+      <label><input type="radio" name="diarize" value="4"><span>4</span></label>
+      <label><input type="radio" name="diarize" value="5"><span>5</span></label>
+      <label><input type="radio" name="diarize" value="off"><span>Off</span></label>
+    </div>
+  </div>
+  <div class="field">
+    <label class="field-label" for="cfg-episode">Episode</label>
+    <input class="input" id="cfg-episode" name="episode" type="text" placeholder="EP 01">
+  </div>
+  <div class="field">
+    <label class="field-label" for="cfg-channel">Channel · series</label>
+    <input class="input" id="cfg-channel" name="show_name" type="text" placeholder="Signal">
+  </div>
+  <div class="field field--full">
+    <label class="field-label">Skip phases</label>
+    <div class="row" style="gap:24px; flex-wrap:wrap;">
+      <label class="check"><input type="checkbox" name="skip_transcribe"><span class="box"></span><span>Skip transcribe</span></label>
+      <label class="check"><input type="checkbox" name="skip_meta"><span class="box"></span><span>Skip metadata</span></label>
+      <label class="check"><input type="checkbox" name="skip_render"><span class="box"></span><span>Skip render</span></label>
+      <label class="check"><input type="checkbox" name="skip_upload" checked><span class="box"></span><span>Skip upload</span></label>
+    </div>
+  </div>
+</form>

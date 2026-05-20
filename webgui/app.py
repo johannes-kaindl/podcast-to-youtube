@@ -231,6 +231,29 @@ async def runs_phases_fragment(stem: str, request: Request):
     )
 
 
+@app.get("/runs/{stem}/resume-banner", response_class=HTMLResponse)
+async def runs_resume_banner(stem: str, request: Request):
+    state = _load_state(stem)
+    phases = state.get("phases", {})
+    aborted_phase = next(
+        (p for p in ("transcribe", "meta", "render", "upload")
+         if phases.get(p, {}).get("status") == "aborted"),
+        None,
+    )
+    if aborted_phase:
+        variant = "aborted"
+    elif all(phases.get(p, {}).get("status") in ("done", "skipped")
+             for p in ("transcribe", "meta", "render", "upload")):
+        variant = "complete"
+    else:
+        variant = "inprogress"
+    return templates.TemplateResponse(
+        request,
+        "_partials/resume_banner.html",
+        {"phases": phases, "variant": variant, "aborted_phase": aborted_phase},
+    )
+
+
 @app.get("/runs/{stem}/progress", response_class=HTMLResponse)
 async def runs_progress_fragment(stem: str, request: Request,
                                   value: float = 0, label: str = ""):

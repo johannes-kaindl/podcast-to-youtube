@@ -1,0 +1,23 @@
+<div class="banner" data-variant="{{ variant }}">
+  <div class="banner-icon">
+    {% if variant == "aborted" %}⚠{% elif variant == "complete" %}✓{% else %}⟳{% endif %}
+  </div>
+  <div class="banner-body">
+    <div class="banner-title">
+      {% if variant == "aborted" %}Last run aborted during <span class="mono">{{ aborted_phase }}</span>
+      {% elif variant == "complete" %}Last run complete — loop closed
+      {% else %}Existing run state found
+      {% endif %}
+    </div>
+    <div class="banner-sub">Skip-boxes for finished phases pre-checked.</div>
+  </div>
+  <div class="banner-glyphs">
+    {% for phase_name in ["transcribe", "meta", "render", "upload"] %}
+      {% set status = phases.get(phase_name, {}).get("status", "pending") %}
+      <span class="g-{{ status }}">
+        {% if status == "done" %}✓{% elif status == "running" %}⟳{% elif status == "aborted" %}✗{% else %}○{% endif %}
+        {{ {"transcribe":"Transcribe","meta":"Metadata","render":"Render","upload":"Upload"}[phase_name] }}
+      </span>
+    {% endfor %}
+  </div>
+</div>
