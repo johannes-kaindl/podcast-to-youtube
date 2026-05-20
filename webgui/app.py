@@ -14,7 +14,7 @@ from sse_starlette.sse import EventSourceResponse
 
 from pipeline_core import PipelineConfig, build_command, resolve_audio_path
 from .probe import audio_probe
-from .runner import registry, spawn_pipeline, StreamEvent
+from .runner import registry, spawn_pipeline, StreamEvent, latest_logfile, replay_logfile
 from .runs import list_runs, filter_runs
 
 REPO_ROOT = Path(__file__).parent.parent
@@ -106,22 +106,52 @@ async def api_create_run(req: RunRequest):
 
 
 @app.get("/runs/{stem}/stream")
-async def runs_stream(stem: str):
-    """SSE stream of log events for the active run (if any).
+async def runs_stream(stem: str, request: Request):
+    """SSE stream — live from active job, or replay from persisted logfile."""
+    last_id_str = request.headers.get("Last-Event-ID", "0")
+    try:
+        last_seq = int(last_id_str)
+    except ValueError:
+        last_seq = 0
 
-    Returns a done event immediately if no active job for this stem — so clients
-    can safely subscribe to historical stems without hanging.
-    """
     job = registry.current
-    if job is None or job.stem != stem:
-        async def _empty():
-            yield {"event": "done", "data": json.dumps({"exit_code": 0, "kind": "static"})}
-        return EventSourceResponse(_empty())
 
-    async def event_gen():
+    async def replay_then_done():
+        output_dir = OUTPUT_ROOT / stem
+        log_file = latest_logfile(output_dir)
+        if log_file is not None:
+            for event in replay_logfile(log_file, start_seq=last_seq):
+                yield {
+                    "id": str(event.seq),
+                    "event": event.type,
+                    "data": json.dumps(event.data),
+                }
+        yield {
+            "event": "done",
+            "data": json.dumps({"exit_code": 0, "kind": "replay"}),
+        }
+
+    if job is None or job.stem != stem:
+        return EventSourceResponse(replay_then_done())
+
+    async def live_then_drain():
+        # 1) Replay from the logfile up to current job.seq (catch up after reconnect)
+        log_file = job.log_file
+        if log_file.exists():
+            for event in replay_logfile(log_file, start_seq=last_seq):
+                if event.seq > job.seq:
+                    break
+                yield {
+                    "id": str(event.seq),
+                    "event": event.type,
+                    "data": json.dumps(event.data),
+                }
+        # 2) Drain the live queue
         while True:
             assert job.queue is not None
             event: StreamEvent = await job.queue.get()
+            if event.seq <= last_seq:
+                continue
             yield {
                 "id": str(event.seq),
                 "event": event.type,
@@ -130,7 +160,7 @@ async def runs_stream(stem: str):
             if event.type == "done":
                 break
 
-    return EventSourceResponse(event_gen())
+    return EventSourceResponse(live_then_drain())
 
 
 @app.get("/")

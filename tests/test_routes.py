@@ -142,3 +142,50 @@ def test_api_runs_returns_409_when_busy(client, tmp_path, monkeypatch):
     r = client.post("/api/runs", json=body)
     assert r.status_code == 409
     assert "busy-stem" in r.text
+
+
+def test_stream_replays_logfile_when_no_active_job(client, tmp_path, monkeypatch):
+    """If a run has finished, /stream replays the logfile then closes."""
+    from webgui import app as app_mod, runner
+
+    runner.registry = runner.JobRegistry()
+    monkeypatch.setattr(app_mod, "registry", runner.registry)
+
+    stem = "finished-run"
+    output_dir = tmp_path / "output" / stem
+    output_dir.mkdir(parents=True)
+    log_file = output_dir / "run-test.log"
+    log_file.write_text(
+        "# Pipeline-Run started …\n"
+        "# Command: …\n"
+        "# ────────\n"
+        "\n"
+        "SCHRITT 1: Transkription\n"
+        "✓ Transkription fertig\n"
+    )
+    monkeypatch.setattr(app_mod, "OUTPUT_ROOT", tmp_path / "output")
+
+    with client.stream("GET", f"/runs/{stem}/stream") as r:
+        assert r.status_code == 200
+        body = "".join(r.iter_text())
+    assert "SCHRITT 1" in body
+    assert "event: done" in body
+
+
+def test_stream_with_last_event_id_skips_already_seen_lines(client, tmp_path, monkeypatch):
+    from webgui import app as app_mod, runner
+
+    runner.registry = runner.JobRegistry()
+    monkeypatch.setattr(app_mod, "registry", runner.registry)
+
+    stem = "midrun"
+    output_dir = tmp_path / "output" / stem
+    output_dir.mkdir(parents=True)
+    log_file = output_dir / "run-test.log"
+    log_file.write_text("\n".join(f"line {i}" for i in range(1, 11)) + "\n")
+    monkeypatch.setattr(app_mod, "OUTPUT_ROOT", tmp_path / "output")
+
+    with client.stream("GET", f"/runs/{stem}/stream", headers={"Last-Event-ID": "5"}) as r:
+        body = "".join(r.iter_text())
+    assert "line 7" in body
+    assert "line 4" not in body

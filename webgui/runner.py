@@ -171,5 +171,36 @@ def _classify_level(line: str) -> str:
     return "info"
 
 
+def latest_logfile(output_dir: Path) -> Path | None:
+    """Return the newest run-*.log in output_dir, or None if none exists."""
+    if not output_dir.exists():
+        return None
+    logs = sorted(output_dir.glob("run-*.log"), key=lambda p: p.stat().st_mtime)
+    return logs[-1] if logs else None
+
+
+def replay_logfile(log_file: Path, start_seq: int = 0):
+    """Yield StreamEvent log lines from a logfile, starting AFTER start_seq.
+
+    Lines starting with '#' or blank lines are header/separator — skipped
+    (not counted toward seq). Each real line gets a monotonically-increasing
+    seq starting at 1.
+    """
+    if not log_file.exists():
+        return
+    seq = 0
+    for raw_line in log_file.read_text(encoding="utf-8").splitlines():
+        if not raw_line or raw_line.startswith("#"):
+            continue
+        seq += 1
+        if seq <= start_seq:
+            continue
+        yield StreamEvent(
+            type="log",
+            seq=seq,
+            data={"msg": raw_line, "level": _classify_level(raw_line)},
+        )
+
+
 # Module-level singleton (FastAPI app gets it via import)
 registry = JobRegistry()
