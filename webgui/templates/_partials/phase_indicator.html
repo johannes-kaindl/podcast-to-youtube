@@ -7,14 +7,29 @@
           "done":"Done", "running":"Running",
           "aborted":"Aborted", "skipped":"Skipped", "pending":"Pending"
       } %}
-      {% set glyph = {"done":"✓","running":"⟳","aborted":"✗","skipped":"·","pending":"○"} %}
-      <div class="phase" data-status="{{ status }}">
-        <div class="glyph">{% if status == 'running' %}<span class="ico-running">⟳</span>{% else %}{{ glyph[status] }}{% endif %}</div>
-        <div class="phase-meta">
-          <span class="phase-name">{{ label_map[phase_name] }}</span>
-          <span class="phase-status">{{ status_meta[status] }}</span>
+      {% set glyph = {"done":"✓","running":"","aborted":"✗","skipped":"·","pending":"○"} %}
+      {% set is_clickable = status in ("aborted", "pending", "skipped") and stem is defined %}
+      {% if is_clickable %}
+        <form class="phase phase--clickable" data-status="{{ status }}"
+              action="/runs/{{ stem }}/phase/{{ phase_name }}/start" method="post"
+              title="Start {{ label_map[phase_name] }} phase">
+          <button type="submit" class="phase-inner">
+            <div class="glyph">{{ glyph[status] }}</div>
+            <div class="phase-meta">
+              <span class="phase-name">{{ label_map[phase_name] }}</span>
+              <span class="phase-status">{{ status_meta[status] }}</span>
+            </div>
+          </button>
+        </form>
+      {% else %}
+        <div class="phase" data-status="{{ status }}">
+          <div class="glyph">{{ glyph[status] }}</div>
+          <div class="phase-meta">
+            <span class="phase-name">{{ label_map[phase_name] }}</span>
+            <span class="phase-status">{{ status_meta[status] }}</span>
+          </div>
         </div>
-      </div>
+      {% endif %}
     {% endfor %}
   </div>
 </div>

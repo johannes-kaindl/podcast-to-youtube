@@ -203,7 +203,9 @@ async function submitRun() {
   }
 }
 
-// Drag-and-Drop — read file.name as starting hint
+// Drag-and-Drop — on macOS Finder, dataTransfer carries the file:// URL
+// in text/uri-list. Decode it to get the absolute OS path. Fall back to
+// file.name (hint only) for environments that don't expose the URI.
 const dropzone = document.getElementById('dropzone');
 if (dropzone) {
   ['dragenter','dragover'].forEach(ev => dropzone.addEventListener(ev, (e) => {
@@ -215,16 +217,59 @@ if (dropzone) {
     dropzone.dataset.state = 'idle';
   }));
   dropzone.addEventListener('drop', (e) => {
-    const f = e.dataTransfer?.files?.[0];
-    if (!f) return;
     const input = document.getElementById('audio-path');
-    if (input && !input.value.trim()) {
-      // browsers don't expose OS path; file name is a hint only
+    if (!input) return;
+
+    // Debug: log all dataTransfer types so we can see what the browser exposed
+    console.log('[drop] types:', e.dataTransfer?.types ? Array.from(e.dataTransfer.types) : '<none>');
+    for (const t of (e.dataTransfer?.types || [])) {
+      try { console.log(`[drop] ${t}:`, e.dataTransfer.getData(t)); } catch {}
+    }
+
+    // 1) Try text/uri-list — macOS Finder + most file managers populate this
+    //    with file:///abs/path on drop. First non-comment line wins.
+    const uriList = e.dataTransfer?.getData('text/uri-list') || '';
+    const fileUri = uriList.split(/\r?\n/).find(
+      line => line && !line.startsWith('#') && line.startsWith('file://')
+    );
+    if (fileUri) {
+      try {
+        const path = decodeURIComponent(fileUri.replace(/^file:\/\/(localhost)?/, ''));
+        input.value = path;
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        return;
+      } catch { /* fall through */ }
+    }
+
+    // 2) Fallback: only file.name available (no OS path). Set as hint + nudge
+    //    the user toward the Browse button.
+    const f = e.dataTransfer?.files?.[0];
+    if (f && !input.value.trim()) {
       input.value = f.name;
       input.dispatchEvent(new Event('input', { bubbles: true }));
     }
   });
 }
+
+// Native macOS file-picker via /api/audio/pick (osascript-backed)
+document.addEventListener('click', async (e) => {
+  if (!e.target.closest('#pick-audio-btn')) return;
+  try {
+    const r = await fetch('/api/audio/pick', { method: 'POST' });
+    if (!r.ok) { alert(`File-Picker fehlgeschlagen: ${r.status}`); return; }
+    const data = await r.json();
+    if (data.cancelled) return;
+    if (data.path) {
+      const input = document.getElementById('audio-path');
+      if (input) {
+        input.value = data.path;
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    }
+  } catch (err) {
+    alert(`File-Picker Fehler: ${err}`);
+  }
+});
 
 // Keyboard shortcut Ctrl+R / Cmd+R → open confirm modal
 document.addEventListener('keydown', (e) => {

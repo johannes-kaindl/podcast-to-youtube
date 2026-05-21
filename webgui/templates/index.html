@@ -18,11 +18,17 @@
   <div>
     <div class="dropzone-icon">↓ Drop file</div>
     <h3 class="dropzone-title">Drop a podcast file here</h3>
-    <p class="dropzone-sub">Accepts <code>.m4a</code> · <code>.mp3</code> · <code>.wav</code> — or paste the absolute path below.</p>
+    <p class="dropzone-sub">Accepts <code>.m4a</code> · <code>.mp3</code> · <code>.wav</code> — or use the picker below.</p>
     <div class="dropzone-divider">— or —</div>
     <div class="field" style="max-width:640px">
       <label class="field-label" for="audio-path">Audio path <span class="field-hint">(absolute)</span></label>
-      <input class="input mono" id="audio-path" type="text" placeholder="/Users/.../folge-XYZ.m4a">
+      <div class="row" style="gap: 8px; align-items: stretch;">
+        <input class="input mono" id="audio-path" type="text" placeholder="/Users/.../folge-XYZ.m4a" style="flex: 1;">
+        <button class="btn btn--ghost" id="pick-audio-btn" type="button" title="Open native file picker">
+          <span style="font-family: monospace;">📁</span>
+          <span>Browse</span>
+        </button>
+      </div>
       <span class="field-error" id="audio-error" hidden></span>
     </div>
   </div>

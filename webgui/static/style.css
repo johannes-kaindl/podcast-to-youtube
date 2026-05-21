@@ -791,6 +791,40 @@ main { flex: 1; }
   position: relative;
   padding: 0 var(--space-4);
 }
+/* Clickable phase variant: wrapped in a <form><button> to fire a POST */
+.phases--stepper form.phase--clickable {
+  display: contents;
+  margin: 0;
+}
+.phases--stepper .phase-inner {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-3);
+  align-items: center;
+  background: transparent;
+  border: 0;
+  padding: var(--space-2) var(--space-3);
+  margin: calc(-1 * var(--space-2)) calc(-1 * var(--space-3));
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  transition: background var(--dur-fast) var(--ease-signal),
+              box-shadow var(--dur-fast) var(--ease-signal);
+}
+.phases--stepper .phase-inner:hover {
+  background: color-mix(in oklab, var(--accent) 8%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--accent) 35%, transparent);
+}
+.phases--stepper .phase-inner:focus-visible {
+  outline: none;
+  box-shadow: var(--glow-focus);
+}
+.phases--stepper .phase-inner:hover .glyph {
+  border-color: var(--accent);
+  color: var(--accent);
+}
 .phases--stepper .phase + .phase::before {
   content: '';
   position: absolute;
@@ -835,7 +869,7 @@ main { flex: 1; }
 .phase[data-status="done"]    .phase-status { color: var(--ph-done); }
 .phase[data-status="running"] .glyph { color: var(--ph-running); border-color: var(--ph-running); background: color-mix(in oklab, var(--ph-running) 14%, var(--surface-inset)); box-shadow: 0 0 0 4px color-mix(in oklab, var(--ph-running) 12%, transparent); animation: phaseRunning 1.6s var(--ease-pulse) infinite; }
 .phase[data-status="running"] .phase-status { color: var(--ph-running); }
-.phase[data-status="running"] .glyph .ico-running { animation: spin 1.4s linear infinite; transform-origin: 50% 50%; display: inline-block; }
+.phase[data-status="running"] .glyph .ico-running { display: inline-block; }
 .phase[data-status="aborted"] .glyph { color: var(--ph-aborted); border-color: color-mix(in oklab, var(--ph-aborted) 60%, transparent); background: color-mix(in oklab, var(--ph-aborted) 10%, var(--surface-inset)); }
 .phase[data-status="aborted"] .phase-status { color: var(--ph-aborted); }
 .phase[data-status="skipped"] .glyph { color: var(--ph-skipped); background: transparent; border-style: dashed; }
@@ -977,7 +1011,7 @@ main { flex: 1; }
 .phases--cards .phase-card[data-status="done"]    .glyph, .phases--cards .phase-card[data-status="done"]    .pmeta { color: var(--ph-done); }
 .phases--cards .phase-card[data-status="running"] { border-top: 2px solid var(--ph-running); }
 .phases--cards .phase-card[data-status="running"] .glyph, .phases--cards .phase-card[data-status="running"] .pmeta { color: var(--ph-running); }
-.phases--cards .phase-card[data-status="running"] .glyph .ico-running { animation: spin 1.4s linear infinite; display: inline-block; }
+.phases--cards .phase-card[data-status="running"] .glyph .ico-running { display: inline-block; }
 .phases--cards .phase-card[data-status="running"]::after {
   content: '';
   position: absolute; left: 0; right: 0; bottom: 0; height: 2px;
@@ -1018,7 +1052,7 @@ main { flex: 1; }
 }
 .phases--compact .phase-pill[data-status="done"]    { color: var(--ph-done);    border-color: color-mix(in oklab, var(--ph-done) 45%, transparent); }
 .phases--compact .phase-pill[data-status="running"] { color: var(--ph-running); border-color: var(--ph-running); }
-.phases--compact .phase-pill[data-status="running"] .ico-running { animation: spin 1.4s linear infinite; display: inline-block; }
+.phases--compact .phase-pill[data-status="running"] .ico-running { display: inline-block; }
 .phases--compact .phase-pill[data-status="aborted"] { color: var(--ph-aborted); border-color: color-mix(in oklab, var(--ph-aborted) 55%, transparent); }
 .phases--compact .phase-pill[data-status="skipped"] { color: var(--ph-skipped); border-style: dashed; }
 
@@ -1244,7 +1278,7 @@ main { flex: 1; }
    ========================================================================= */
 .kv {
   display: grid;
-  grid-template-columns: 130px 1fr;
+  grid-template-columns: 130px minmax(0, 1fr);
   gap: 6px var(--space-4);
   font-family: var(--font-mono);
   font-size: var(--text-sm);
@@ -1255,7 +1289,13 @@ main { flex: 1; }
   font-size: var(--text-xs);
   text-transform: uppercase;
 }
-.kv dd { margin: 0; color: var(--fg-primary); }
+.kv dd {
+  margin: 0;
+  color: var(--fg-primary);
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
 
 /* =========================================================================
    17 · RUN-DETAIL LAYOUT GRID

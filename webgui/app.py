@@ -104,6 +104,34 @@ async def api_audio_probe(req: AudioProbeRequest):
     return audio_probe(audio_path, OUTPUT_ROOT)
 
 
+@app.post("/api/audio/pick")
+async def api_audio_pick():
+    """Open a native macOS file-picker via osascript. Returns {path} or {cancelled: true}.
+
+    Workaround for browsers that strip the OS path from drag-drop events.
+    Single-user / localhost only — never expose without auth.
+    """
+    script = (
+        'try\n'
+        '  POSIX path of (choose file of type {"public.audio"} '
+        'with prompt "Choose audio for the pipeline")\n'
+        'on error number -128\n'
+        '  return ""\n'
+        'end try'
+    )
+    try:
+        result = subprocess.run(
+            ["osascript", "-e", script],
+            capture_output=True, text=True, timeout=120,
+        )
+    except (subprocess.TimeoutExpired, FileNotFoundError) as exc:
+        raise HTTPException(status_code=500, detail=f"osascript failed: {exc}")
+    path = (result.stdout or "").strip()
+    if not path:
+        return {"cancelled": True}
+    return {"path": path}
+
+
 @app.get("/runs")
 async def runs_view(request: Request, filter: str = "all"):
     all_runs = list_runs(OUTPUT_ROOT)
@@ -118,6 +146,80 @@ async def runs_view(request: Request, filter: str = "all"):
             "page_mood": "neutral",
         },
     )
+
+
+@app.post("/runs/{stem}/phase/{phase}/start")
+async def runs_phase_start(stem: str, phase: str):
+    """Start (or restart) a single phase of an existing run.
+
+    Reads the run-state.json for audio + config, then spawns either
+    pipeline.py (with all *other* phases --skip-…) or upload_youtube.py
+    (for the upload phase). Caller is responsible for prerequisite checks
+    (e.g. you can't start render without a transcript on disk).
+    """
+    if phase not in ("transcribe", "meta", "render", "upload"):
+        raise HTTPException(status_code=400, detail="Unknown phase")
+    if registry.current is not None:
+        raise HTTPException(
+            status_code=409,
+            detail={"error": "slot_busy", "stem": registry.current.stem,
+                    "kind": registry.current.kind},
+        )
+
+    state_file = OUTPUT_ROOT / stem / "run-state.json"
+    if not state_file.exists():
+        raise HTTPException(status_code=404, detail="Run-state not found")
+    state = _load_state(stem)
+    audio_str = state.get("audio")
+    if not audio_str or not Path(audio_str).exists():
+        raise HTTPException(status_code=404, detail="Original audio file is gone")
+
+    output_dir = OUTPUT_ROOT / stem
+    ts = datetime.now().strftime("%Y-%m-%dT%H-%M-%S")
+    log_file = output_dir / f"run-{ts}.log"
+
+    if phase == "upload":
+        mp4 = _find_mp4(stem)
+        if mp4 is None:
+            raise HTTPException(status_code=404, detail="No MP4 to upload — run render first")
+        privacy = state.get("config", {}).get("privacy", "private")
+        if privacy not in ("private", "unlisted"):
+            privacy = "private"
+        spawn_upload(
+            video_path=mp4, stem=stem, privacy=privacy,
+            output_dir=output_dir, log_file=log_file, registry=registry,
+        )
+    else:
+        cfg_dict = state.get("config", {})
+        diarize_raw = cfg_dict.get("diarize", True)
+        if diarize_raw is False:
+            diarize = "off"
+        elif isinstance(cfg_dict.get("num_speakers"), int):
+            diarize = str(cfg_dict["num_speakers"])
+        else:
+            diarize = "auto"
+        skip_map = {
+            "transcribe": "skip_transcribe", "meta": "skip_meta",
+            "render": "skip_render", "upload": "skip_upload",
+        }
+        skips = {key: True for key in skip_map.values()}
+        skips[skip_map[phase]] = False
+        cfg = PipelineConfig(
+            audio=audio_str,
+            viz=cfg_dict.get("viz_type", "dialogue"),
+            language=cfg_dict.get("language", "de"),
+            model=cfg_dict.get("model", "large-v3-turbo"),
+            diarize=diarize,
+            episode=cfg_dict.get("episode", "EP 01"),
+            show_name=cfg_dict.get("show_name", "Signal"),
+            **skips,
+        )
+        cmd = build_command(cfg, REPO_ROOT)
+        spawn_pipeline(
+            cmd=cmd, stem=stem, audio_path=Path(audio_str),
+            output_dir=output_dir, log_file=log_file, registry=registry,
+        )
+    return RedirectResponse(url=f"/runs/{stem}", status_code=303)
 
 
 @app.post("/api/runs")
@@ -156,9 +258,13 @@ async def api_create_run(req: RunRequest):
 @app.get("/runs/{stem}", response_class=HTMLResponse)
 async def runs_detail(stem: str, request: Request):
     state_file = OUTPUT_ROOT / stem / "run-state.json"
-    if not state_file.exists():
+    is_starting = (
+        registry.current is not None and registry.current.stem == stem
+        and not state_file.exists()
+    )
+    if not state_file.exists() and not is_starting:
         raise HTTPException(status_code=404, detail="Run not found")
-    state = _load_state(stem)
+    state = _load_state(stem)  # returns "all pending" default if file missing
     phases = state.get("phases", {})
 
     # Variant precedence: aborted > done > ready-to-upload > running
@@ -263,7 +369,7 @@ async def runs_phases_fragment(stem: str, request: Request):
     return templates.TemplateResponse(
         request,
         "_partials/phase_indicator.html",
-        {"phases": state.get("phases", {})},
+        {"phases": state.get("phases", {}), "stem": stem},
     )
 
 
