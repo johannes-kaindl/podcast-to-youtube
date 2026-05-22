@@ -101,7 +101,6 @@ def render(audio_path: str, whisperx_path: str, srt_path: str | None = None,
         "npx", "--yes", "remotion", "render",
         "src/Root.tsx", composition_id, output_path,
         f"--props={__import__('json').dumps(props)}",
-        "--log=verbose",
     ]
 
     result = subprocess.run(cmd, cwd=REMOTION_DIR, text=True)
