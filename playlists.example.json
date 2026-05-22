@@ -1,0 +1,4 @@
+{
+  "_comment": "Playlist-Mapping für das YouTube-Upload-Auto-Assignment. Diese Datei nach playlists.json kopieren und echte Playlist-IDs eintragen. Der Schlüssel 'default' greift, wenn kein show_name-spezifischer Eintrag passt. Multi-Playlist: weitere show_name-Keys ergänzen — sie übersteuern den default. Override pro Upload via CLI: --playlist-id PL... Playlist-ID aus YouTube Studio holen: Playlist öffnen, die URL enthält 'list=PL...'.",
+  "default": ""
+}

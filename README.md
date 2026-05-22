@@ -14,18 +14,18 @@ Läuft vollständig lokal (WhisperX + MLX-Server). Kein Cloud-API-Call außer de
 ## Setup
 
 ```bash
-cd /Users/Shared/20_Claude/26-001-whisper-pipeline
 uv venv .venv --python 3.12
 source .venv/bin/activate
 uv pip install -r requirements.txt
 
 # Remotion-Dependencies (einmalig)
-cd "../10_ObsidianVaults/00_ShadowVault/20-projekte/26-001 Whisper Audio-Transkription Pipeline/05-visuals/Remotion Rendering"
-npm install
-cd -
+cd visualizer && npm install && cd ..
 
 # YouTube OAuth (einmalig, braucht echtes Terminal-Fenster)
 python auth_youtube.py
+
+# Playlist-Auto-Assignment (optional)
+cp playlists.example.json playlists.json   # danach echte Playlist-IDs eintragen
 ```
 
 ## WebGUI (Empfohlen)
@@ -133,7 +133,7 @@ python download_models.py --status
 In `~/.zshrc` eintragen:
 
 ```bash
-alias podcast-video-upload='cd /Users/Shared/code/whisper-pipeline && source .venv/bin/activate && python webgui.py'
+alias podcast-video-upload='cd /pfad/zu/whisper-pipeline && source .venv/bin/activate && python webgui.py'
 ```
 
 Aktiviert automatisch die venv und startet die WebGUI im Default-Browser.
@@ -146,10 +146,8 @@ rm .youtube_token.pickle
 python auth_youtube.py
 ```
 
-Aktiver Kanal: `@v6t2b99` (ID: `UCySdF3b7avZ5UH-phJSGtbg`)
+Der aktive Kanal wird beim OAuth-Login bestimmt — beim Login den gewünschten YouTube-Kanal auswählen.
 
-## Ausführlichere Dokumentation
+## Lizenz
 
-→ ShadowVault: `20-projekte/26-001 Whisper Audio-Transkription Pipeline/01-Referenz/`
-- `Pipeline-Spezifikation.md` — Architektur, Komponenten, Tech-Stack
-- `Betrieb.md` — Runbook, Troubleshooting, häufige Kombinationen
+[GNU Affero General Public License v3.0](LICENSE) — Copyright © 2026 jkaindl

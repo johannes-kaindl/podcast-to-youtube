@@ -4,6 +4,9 @@ client_secrets.json
 .youtube_token.pickle
 *.pickle
 
+# --- Local config (machine-specific — copy from the .example template) ---
+playlists.json
+
 # --- Python build / caches ---
 __pycache__/
 *.pyc
