@@ -14,18 +14,8 @@ import subprocess
 import sys
 from pathlib import Path
 
-REMOTION_DIR = os.path.join(
-    os.path.dirname(__file__),
-    "../../10_ObsidianVaults/00_ShadowVault/20-projekte/"
-    "26-001 Whisper Audio-Transkription Pipeline/"
-    "05-visuals/Remotion Rendering"
-)
-# Absoluter Pfad
 REMOTION_DIR = os.path.realpath(os.path.join(
-    "/Users/Shared/20_Claude/26-001-whisper-pipeline",
-    "../../10_ObsidianVaults/00_ShadowVault/20-projekte/"
-    "26-001 Whisper Audio-Transkription Pipeline/"
-    "05-visuals/Remotion Rendering"
+    os.path.dirname(__file__), "visualizer"
 ))
 
 
