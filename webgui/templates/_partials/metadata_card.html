@@ -18,7 +18,7 @@
     <div class="caps" style="margin-top: 16px; margin-bottom: 8px;">Chapters · {{ youtube_meta.chapters | length }}</div>
     <div class="chapters">
       {% for chapter in youtube_meta.chapters[:8] %}
-        <div class="chapter"><span class="ts">{{ chapter.timestamp | default("00:00") }}</span><span>{{ chapter.title | default(chapter.label | default("")) }}</span></div>
+        <div class="chapter"><span class="ts">{{ chapter.time | default("00:00") }}</span><span>{{ chapter.title | default(chapter.label | default("")) }}</span></div>
       {% endfor %}
     </div>
     {% endif %}
