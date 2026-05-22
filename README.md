@@ -14,6 +14,9 @@ Läuft vollständig lokal (WhisperX + MLX-Server). Kein Cloud-API-Call außer de
 ## Setup
 
 ```bash
+git clone https://codeberg.org/jkaindl/podcast-to-youtube.git
+cd podcast-to-youtube
+
 uv venv .venv --python 3.12
 source .venv/bin/activate
 uv pip install -r requirements.txt
