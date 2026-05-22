@@ -89,10 +89,15 @@ def get_credentials():
             creds = pickle.load(f)
 
     if not creds or not creds.valid:
+        from google.auth.exceptions import RefreshError
         if creds and creds.expired and creds.refresh_token:
-            from google.auth.transport.requests import Request
-            creds.refresh(Request())
-        else:
+            try:
+                creds.refresh(Request())
+            except RefreshError:
+                # Refresh token revoked or expired — drop it and re-authorize.
+                print("OAuth-Token abgelaufen oder widerrufen — neue Anmeldung nötig.")
+                creds = None
+        if not creds or not creds.valid:
             if not os.path.exists(SECRETS_FILE):
                 print(f"\nFEHLER: {SECRETS_FILE} nicht gefunden.")
                 print("\nSetup-Anleitung:")
