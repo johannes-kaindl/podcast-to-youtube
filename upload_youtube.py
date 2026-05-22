@@ -161,11 +161,15 @@ def upload(video_path: str, title: str, description: str, tags: list[str],
     )
 
     response = None
+    last_pct = -1
     while response is None:
         status, response = request.next_chunk()
         if status:
             pct = int(status.progress() * 100)
-            print(f"  Upload: {pct}%", end="\r")
+            if pct != last_pct:
+                # flush — stdout is block-buffered when run as a subprocess
+                print(f"  Upload: {pct}%", end="\r", flush=True)
+                last_pct = pct
 
     video_id = response["id"]
     print(f"\n✓ Upload abgeschlossen: https://www.youtube.com/watch?v={video_id}")

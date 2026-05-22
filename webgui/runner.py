@@ -4,6 +4,7 @@ JobRegistry is in-memory, single-slot. Both pipeline runs and uploads
 share this slot — only one subprocess can run at a time.
 """
 import asyncio
+import re
 import shlex
 import subprocess
 import threading
@@ -231,7 +232,7 @@ def spawn_upload(
     """Spawn upload_youtube.py as a subprocess. Same plumbing as spawn_pipeline."""
     import sys
     cmd = [
-        sys.executable,
+        sys.executable, "-u",  # unbuffered — stream the upload-progress live
         str(Path(__file__).parent.parent / "upload_youtube.py"),
         str(video_path),
         "--privacy", privacy,
@@ -271,6 +272,8 @@ def spawn_upload(
         except RuntimeError:
             pass
 
+    upload_pct = re.compile(r"Upload:\s*(\d+)\s*%")
+
     def _reader():
         try:
             with log_file.open("a", encoding="utf-8", buffering=1) as f:
@@ -286,6 +289,14 @@ def spawn_upload(
                             type="log", seq=job.seq,
                             data={"msg": line, "level": _classify_level(line)},
                         ))
+                        m = upload_pct.search(line)
+                        if m:
+                            job.seq += 1
+                            _put(StreamEvent(
+                                type="progress", seq=job.seq,
+                                data={"value": int(m.group(1)),
+                                      "label": f"Uploading … {m.group(1)} %"},
+                            ))
             if proc.stdout is not None:
                 proc.stdout.close()
             proc.wait()
