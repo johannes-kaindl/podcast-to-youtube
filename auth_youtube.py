@@ -5,7 +5,6 @@ Muss direkt im Terminal laufen (nicht via Claude-Code-!-Befehl),
 damit der Browser geöffnet werden kann.
 
 Usage:
-  cd /Users/Shared/20_Claude/26-001-whisper-pipeline
   source .venv/bin/activate
   python auth_youtube.py
 """

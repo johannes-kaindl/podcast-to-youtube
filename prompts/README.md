@@ -37,7 +37,6 @@ Beim Editieren also: keine Platzhalter erfinden ohne Code-Anpassung, keine doppe
 ## Tweaks ausprobieren
 
 ```bash
-cd /Users/Shared/20_Claude/26-001-whisper-pipeline
 source .venv/bin/activate
 
 # Smoke-Test gegen existierendes Transcript (kein Render, kein Upload)
