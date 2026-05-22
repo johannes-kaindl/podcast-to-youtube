@@ -18,6 +18,7 @@ import json
 import os
 import pickle
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 SECRETS_FILE = os.path.join(os.path.dirname(__file__), "client_secrets.json")
@@ -187,6 +188,38 @@ def upload(video_path: str, title: str, description: str, tags: list[str],
     return {"video_id": video_id, "url": f"https://www.youtube.com/watch?v={video_id}"}
 
 
+def _format_chapters(chapters: list[dict]) -> str:
+    """Render chapters as a description block. YouTube turns a timestamped
+    list into clickable chapter markers when the first entry is 0:00 and
+    there are at least three."""
+    if not chapters:
+        return ""
+    lines = []
+    for ch in chapters:
+        ts = str(ch.get("time", "")).strip()
+        title = str(ch.get("title") or ch.get("label") or "").strip()
+        if ts and title:
+            lines.append(f"{ts} {title}")
+    if len(lines) < 3 or not lines[0].startswith(("0:00", "00:00")):
+        return ""
+    return "\n\nChapters:\n" + "\n".join(lines)
+
+
+def _write_upload_state(video_path: str, **upload_phase) -> None:
+    """Update phases.upload in the run-state.json next to the video.
+    No-op when there is no run-state (e.g. a bare upload of a loose file)."""
+    state_file = Path(video_path).parent / "run-state.json"
+    if not state_file.exists():
+        return
+    try:
+        state = json.loads(state_file.read_text(encoding="utf-8"))
+        state.setdefault("phases", {})["upload"] = upload_phase
+        state["updated_at"] = datetime.now(timezone.utc).isoformat()
+        state_file.write_text(json.dumps(state, indent=2), encoding="utf-8")
+    except (OSError, json.JSONDecodeError):
+        pass
+
+
 def main():
     parser = argparse.ArgumentParser(description="YouTube-Upload")
     parser.add_argument("video", help="MP4-Videodatei")
@@ -202,30 +235,47 @@ def main():
     args = parser.parse_args()
 
     meta = {}
-    if args.meta and os.path.exists(args.meta):
-        with open(args.meta, encoding="utf-8") as f:
+    meta_path = args.meta
+    if not meta_path:
+        # Auto-discover: the run's *.youtube-meta.json sits next to the video.
+        found = sorted(Path(args.video).parent.glob("*.youtube-meta.json"))
+        if found:
+            meta_path = str(found[0])
+    if meta_path and os.path.exists(meta_path):
+        with open(meta_path, encoding="utf-8") as f:
             meta = json.load(f)
 
     title = args.title or meta.get("title", Path(args.video).stem)
     description = args.description or meta.get("description", "")
+    description += _format_chapters(meta.get("chapters", []))
     tags = args.tags or meta.get("tags", [])
     category_id = meta.get("category_id", "27")
     language = meta.get("language", "de")
     show_name = meta.get("show_name")
 
-    result = upload(
-        video_path=args.video,
-        title=title,
-        description=description,
-        tags=tags,
-        category_id=category_id,
-        language=language,
-        privacy=args.privacy,
-        publish_at=args.publish_at,
-        thumbnail_path=args.thumbnail,
-        show_name=show_name,
-        playlist_id=args.playlist_id,
-    )
+    _write_upload_state(args.video, status="running",
+                        started_at=datetime.now(timezone.utc).isoformat())
+    try:
+        result = upload(
+            video_path=args.video,
+            title=title,
+            description=description,
+            tags=tags,
+            category_id=category_id,
+            language=language,
+            privacy=args.privacy,
+            publish_at=args.publish_at,
+            thumbnail_path=args.thumbnail,
+            show_name=show_name,
+            playlist_id=args.playlist_id,
+        )
+    except Exception as exc:
+        _write_upload_state(args.video, status="aborted", error=str(exc),
+                            finished_at=datetime.now(timezone.utc).isoformat())
+        raise
+    _write_upload_state(args.video, status="done", url=result["url"],
+                        privacy=args.privacy,
+                        finished_at=datetime.now(timezone.utc).isoformat())
     print(f"\nVideo-ID: {result['video_id']}")
     print(f"URL:      {result['url']}")
 
