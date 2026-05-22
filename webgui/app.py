@@ -410,9 +410,17 @@ def _find_mp4(stem: str) -> Path | None:
     output_dir = OUTPUT_ROOT / stem
     if not output_dir.exists():
         return None
-    mp4s = sorted(output_dir.glob(f"{stem}-*.mp4"))
+    # Authoritative: the file the last render actually wrote.
+    rendered = _load_state(stem).get("phases", {}).get("render", {}).get("output")
+    if rendered:
+        candidate = output_dir / rendered
+        if candidate.exists():
+            return candidate
+    # Fallback: newest by mtime — alphabetic sort would pick the wrong viz
+    # variant when an output dir holds several .mp4 files.
+    mp4s = sorted(output_dir.glob(f"{stem}-*.mp4"), key=lambda p: p.stat().st_mtime)
     if not mp4s:
-        mp4s = sorted(output_dir.glob("*.mp4"))
+        mp4s = sorted(output_dir.glob("*.mp4"), key=lambda p: p.stat().st_mtime)
     return mp4s[-1] if mp4s else None
 
 
