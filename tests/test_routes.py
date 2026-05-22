@@ -279,6 +279,39 @@ def test_preview_mp4_range_request(client, tmp_path, monkeypatch):
     assert r.content == content[100:200]
 
 
+def test_find_mp4_prefers_run_state_output(tmp_path, monkeypatch):
+    """With several .mp4 variants present, the one named in run-state wins."""
+    import json
+    from webgui import app as app_mod
+    output = tmp_path / "output" / "stem-m"
+    output.mkdir(parents=True)
+    # Alphabetically `waveform` sorts last — the old sorted()[-1] picked it.
+    (output / "stem-m-monologue.mp4").write_bytes(b"mono")
+    (output / "stem-m-waveform.mp4").write_bytes(b"wave")
+    (output / "run-state.json").write_text(json.dumps(
+        {"phases": {"render": {"status": "done", "output": "stem-m-monologue.mp4"}}}
+    ))
+    monkeypatch.setattr(app_mod, "OUTPUT_ROOT", tmp_path / "output")
+    assert app_mod._find_mp4("stem-m").name == "stem-m-monologue.mp4"
+
+
+def test_find_mp4_falls_back_to_newest(tmp_path, monkeypatch):
+    """Without a run-state render output, the newest .mp4 by mtime wins."""
+    import os
+    import time
+    from webgui import app as app_mod
+    output = tmp_path / "output" / "stem-n"
+    output.mkdir(parents=True)
+    older = output / "stem-n-waveform.mp4"
+    older.write_bytes(b"old")
+    newer = output / "stem-n-dialogue.mp4"  # sorts before waveform alphabetically
+    newer.write_bytes(b"new")
+    past = time.time() - 100
+    os.utime(older, (past, past))
+    monkeypatch.setattr(app_mod, "OUTPUT_ROOT", tmp_path / "output")
+    assert app_mod._find_mp4("stem-n").name == "stem-n-dialogue.mp4"
+
+
 def test_upload_returns_404_if_no_mp4(client, tmp_path, monkeypatch):
     from webgui import app as app_mod, runner
     runner.registry = runner.JobRegistry()
