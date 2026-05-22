@@ -51,6 +51,23 @@ function startEventSource(stem) {
 
 window.startEventSource = startEventSource;
 
+// Elapsed-timer for an active run — ticks from the run's started_at.
+function startElapsedTimer(startedAtIso) {
+  const el = document.getElementById('elapsed');
+  if (!el || !startedAtIso) return;
+  const start = new Date(startedAtIso).getTime();
+  if (Number.isNaN(start)) return;
+  const pad = (n) => String(n).padStart(2, '0');
+  const tick = () => {
+    const s = Math.max(0, Math.floor((Date.now() - start) / 1000));
+    el.textContent = `${pad(Math.floor(s / 3600))}:${pad(Math.floor((s % 3600) / 60))}:${pad(s % 60)}`;
+  };
+  tick();
+  setInterval(tick, 1000);
+}
+
+window.startElapsedTimer = startElapsedTimer;
+
 // Tail-toggle wiring
 document.addEventListener('click', (e) => {
   if (e.target.id !== 'tail-toggle') return;

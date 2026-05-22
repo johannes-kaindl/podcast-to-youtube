@@ -86,7 +86,11 @@
 
 {% if active %}
 <script>
-  window.startEventSource("{{ stem }}");
+  // app.js loads after this block — defer the calls until it has run.
+  window.addEventListener('DOMContentLoaded', () => {
+    window.startEventSource("{{ stem }}");
+    window.startElapsedTimer("{{ state.started_at | default('') }}");
+  });
 </script>
 {% endif %}
 {% endblock %}

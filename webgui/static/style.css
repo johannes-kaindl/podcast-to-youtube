@@ -1161,10 +1161,10 @@ main { flex: 1; }
   white-space: pre;
   color: var(--fg-secondary);
 }
-.logpanel-body .row { display: grid; grid-template-columns: 88px 14px 1fr; gap: var(--space-3); padding: 1px 0; }
+.logpanel-body .row { display: grid; grid-template-columns: 14px 1fr; gap: var(--space-3); padding: 1px 0; }
 .logpanel-body .ts  { color: var(--fg-tertiary); }
 .logpanel-body .mark { color: var(--fg-tertiary); }
-.logpanel-body .msg { color: var(--fg-secondary); white-space: pre-wrap; }
+.logpanel-body .msg { color: var(--fg-secondary); white-space: pre-wrap; overflow-wrap: anywhere; }
 .logpanel-body .row.success .mark { color: var(--role-success); }
 .logpanel-body .row.success .msg  { color: var(--fg-primary); }
 .logpanel-body .row.warn    .mark { color: var(--role-warning); }
