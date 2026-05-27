@@ -7,6 +7,7 @@ DEFAULTS = {
     "tail_default": True,
     "preferred_visualizer": "dialogue",
     "preferred_model": "large-v3-turbo",
+    "pause_after_transcribe": False,
 }
 
 
