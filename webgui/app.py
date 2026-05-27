@@ -422,6 +422,27 @@ async def run_edit_speaker(stem: str, request: Request):
     )
 
 
+@app.post("/runs/{stem}/edit/bulk-rename")
+async def run_edit_bulk_rename(stem: str, request: Request):
+    json_path = OUTPUT_ROOT / stem / f"{stem}.whisperx.json"
+    if not json_path.exists():
+        raise HTTPException(status_code=404, detail="Transcript not found")
+    form = await request.form()
+    old_name = (form.get("old_name") or "").strip()
+    new_name = (form.get("new_name") or "").strip()
+    if not old_name or not new_name:
+        raise HTTPException(status_code=400, detail="old_name and new_name required")
+    snapshot(str(json_path), action="bulk_rename",
+             metric=f"{old_name} → {new_name}")
+    try:
+        count = bulk_rename_speaker(str(json_path), old_name, new_name)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    invalidate_downstream(str(OUTPUT_ROOT / stem / "run-state.json"))
+    cleanup_snapshots(str(json_path))
+    return RedirectResponse(url=f"/runs/{stem}/edit", status_code=303)
+
+
 @app.get("/runs/{stem}/stream")
 async def runs_stream(stem: str, request: Request):
     """SSE stream — live from active job, or replay from persisted logfile."""
