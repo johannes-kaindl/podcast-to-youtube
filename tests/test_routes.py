@@ -388,6 +388,13 @@ def test_open_finder_path_must_be_inside_repo(client, tmp_path, monkeypatch):
     assert r.status_code == 400
 
 
+def test_config_form_renders_pause_checkbox(client):
+    r = client.get("/")
+    assert r.status_code == 200
+    assert 'name="pause_after_transcribe"' in r.text
+    assert "Pause after transcribe" in r.text
+
+
 def test_open_finder_calls_open_minus_R(client, tmp_path, monkeypatch):
     import subprocess
     from webgui import app as app_mod
