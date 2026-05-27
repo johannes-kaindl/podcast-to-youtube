@@ -844,6 +844,21 @@ async def run_edit_words_save(stem: str, request: Request):
     return RedirectResponse(url=f"/runs/{stem}/edit", status_code=303)
 
 
+@app.get("/runs/{stem}/diff", response_class=HTMLResponse)
+async def run_diff_view(stem: str, request: Request):
+    json_path = OUTPUT_ROOT / stem / f"{stem}.whisperx.json"
+    if not json_path.exists():
+        raise HTTPException(status_code=404, detail="Transcript not found")
+    diffs = compute_segment_diff(str(json_path))
+    changed = [d for d in diffs if d["text_changed"] or d["speaker_changed"] or d["merge_or_split"]]
+    return templates.TemplateResponse(
+        request, "run_diff.html",
+        {"stem": stem, "diffs": diffs, "changed_count": len(changed),
+         "has_original": (json_path.with_name(json_path.stem + ".original.json").exists()),
+         "page_mood": "neutral"},
+    )
+
+
 @app.get("/")
 async def index(request: Request):
     return templates.TemplateResponse(
