@@ -39,3 +39,27 @@ def change_speaker(json_path: str, segment_index: int, new_speaker: str) -> None
     seg["_speaker_edited"] = True
     _save(json_path, data)
     regenerate_srt_txt(json_path)
+
+
+def bulk_rename_speaker(json_path: str, old_name: str, new_name: str) -> int:
+    """Rename every segment whose speaker == old_name to new_name.
+
+    Does NOT set _speaker_edited (this is a display rename, not a diarization fix).
+    Returns the count of renamed segments.
+    """
+    if not old_name or not new_name:
+        raise ValueError("both names must be non-empty")
+    if old_name == new_name:
+        raise ValueError("old and new names must differ")
+    if len(new_name) > 64:
+        raise ValueError("new name too long (max 64 chars)")
+    data = _load(json_path)
+    count = 0
+    for seg in data.get("segments", []):
+        if seg.get("speaker") == old_name:
+            seg["speaker"] = new_name
+            count += 1
+    if count > 0:
+        _save(json_path, data)
+        regenerate_srt_txt(json_path)
+    return count
