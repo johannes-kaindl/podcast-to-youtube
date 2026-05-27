@@ -496,6 +496,21 @@ async def run_edit_split(stem: str, request: Request):
     return _render_segments_partial(request, stem)
 
 
+@app.post("/runs/{stem}/edit/undo")
+async def run_edit_undo(stem: str):
+    json_path = OUTPUT_ROOT / stem / f"{stem}.whisperx.json"
+    if not json_path.exists():
+        raise HTTPException(status_code=404, detail="Transcript not found")
+    undo_last(str(json_path))  # no-op if history empty
+    # Note: undo restores the pre-snapshot state which already had SRT/TXT
+    # in sync at that point. Re-generate to be safe.
+    from transcript_editor import regenerate_srt_txt as _regen
+    if json_path.exists():
+        _regen(str(json_path))
+    # Downstream is invalidated anyway on next save; no need to invalidate here.
+    return RedirectResponse(url=f"/runs/{stem}/edit", status_code=303)
+
+
 @app.get("/runs/{stem}/stream")
 async def runs_stream(stem: str, request: Request):
     """SSE stream — live from active job, or replay from persisted logfile."""

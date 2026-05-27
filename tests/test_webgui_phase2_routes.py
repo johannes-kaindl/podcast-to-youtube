@@ -100,3 +100,25 @@ def test_post_split_400_on_invalid_position(client, populated_run):
     r = client.post("/runs/ep01/edit/split",
                     data={"segment_index": "1", "char_position": "0"})
     assert r.status_code == 400
+
+
+def test_post_undo_restores_previous_state(client, populated_run):
+    json_path = populated_run / "ep01" / "ep01.whisperx.json"
+    pre = json.loads(json_path.read_text(encoding="utf-8"))
+    pre_speaker_0 = pre["segments"][0]["speaker"]
+    # Make a change first
+    client.post("/runs/ep01/edit/speaker", data={"segment_index": "0", "speaker": "Anna"})
+    mid = json.loads(json_path.read_text(encoding="utf-8"))
+    assert mid["segments"][0]["speaker"] == "Anna"
+    # Now undo
+    r = client.post("/runs/ep01/edit/undo", follow_redirects=False)
+    assert r.status_code == 303
+    post_state = json.loads(json_path.read_text(encoding="utf-8"))
+    assert post_state["segments"][0]["speaker"] == pre_speaker_0
+
+
+def test_post_undo_303_when_history_empty(client, populated_run):
+    # No prior edits → no history
+    r = client.post("/runs/ep01/edit/undo", follow_redirects=False)
+    # Endpoint should still redirect (no-op rather than error)
+    assert r.status_code == 303
