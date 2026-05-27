@@ -70,3 +70,33 @@ def test_post_bulk_rename_400_on_same_names(client, populated_run):
     r = client.post("/runs/ep01/edit/bulk-rename",
                     data={"old_name": "SPEAKER_00", "new_name": "SPEAKER_00"})
     assert r.status_code == 400
+
+
+def test_post_merge_combines_segments(client, populated_run):
+    r = client.post("/runs/ep01/edit/merge", data={"segment_index": "0"})
+    assert r.status_code == 200
+    json_path = populated_run / "ep01" / "ep01.whisperx.json"
+    data = json.loads(json_path.read_text(encoding="utf-8"))
+    assert len(data["segments"]) == 2  # was 3
+
+
+def test_post_merge_returns_all_segments_partial(client, populated_run):
+    r = client.post("/runs/ep01/edit/merge", data={"segment_index": "0"})
+    # Returns the full segments-list partial so HTMX can swap the whole list
+    assert "segment_text_0" in r.text
+    assert "segment_text_1" in r.text
+
+
+def test_post_split_creates_two_segments(client, populated_run):
+    r = client.post("/runs/ep01/edit/split",
+                    data={"segment_index": "1", "char_position": "16"})
+    assert r.status_code == 200
+    json_path = populated_run / "ep01" / "ep01.whisperx.json"
+    data = json.loads(json_path.read_text(encoding="utf-8"))
+    assert len(data["segments"]) == 4  # was 3
+
+
+def test_post_split_400_on_invalid_position(client, populated_run):
+    r = client.post("/runs/ep01/edit/split",
+                    data={"segment_index": "1", "char_position": "0"})
+    assert r.status_code == 400
