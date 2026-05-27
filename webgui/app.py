@@ -91,6 +91,7 @@ class RunRequest(BaseModel):
     skip_meta: bool
     skip_render: bool
     skip_upload: bool
+    pause_after_transcribe: bool = False
 
 
 @app.get("/healthz")
@@ -240,11 +241,16 @@ async def api_create_run(req: RunRequest):
     ts = datetime.now().strftime("%Y-%m-%dT%H-%M-%S")
     log_file = output_dir / f"run-{ts}.log"
 
+    # Pause-after-transcribe is shorthand for skipping everything after.
+    skip_meta = req.skip_meta or req.pause_after_transcribe
+    skip_render = req.skip_render or req.pause_after_transcribe
+    skip_upload = req.skip_upload or req.pause_after_transcribe
+
     cfg = PipelineConfig(
         audio=str(audio_path), viz=req.viz, language=req.language, model=req.model,
         diarize=req.diarize, episode=req.episode, show_name=req.show_name,
-        skip_transcribe=req.skip_transcribe, skip_meta=req.skip_meta,
-        skip_render=req.skip_render, skip_upload=req.skip_upload,
+        skip_transcribe=req.skip_transcribe, skip_meta=skip_meta,
+        skip_render=skip_render, skip_upload=skip_upload,
     )
     cmd = build_command(cfg, REPO_ROOT)
 
