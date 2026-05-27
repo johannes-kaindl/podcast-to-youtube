@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Diff · {{ stem }}{% endblock %}
+{% block content %}
+<header class="run-header">
+  <div class="left">
+    <div class="crumbs"><a href="/runs/{{ stem }}/edit">← Back to editor</a> · <a href="/runs/{{ stem }}">Run</a></div>
+    <h1><span class="accent-mark">≡</span>Diff: {{ stem }}</h1>
+    {% if has_original %}
+      <p class="muted" style="margin-top:8px;">{{ changed_count }} of {{ diffs|length }} segments changed.</p>
+    {% endif %}
+  </div>
+</header>
+
+{% if not has_original %}
+  <section class="card" style="margin-top: 24px;">
+    <div class="card-body">
+      <p class="muted">No edits yet. The diff view becomes available after the first save in the editor.</p>
+    </div>
+  </section>
+{% else %}
+  <div class="diff-list" style="margin-top: 24px;">
+    {% for d in diffs %}
+      <div class="diff-segment {% if d.text_changed or d.speaker_changed or d.merge_or_split %}is-changed{% endif %}">
+        <header class="diff-segment-header">
+          Segment {{ d.current_index }}
+          {% if d.merge_or_split == "merged" %}
+            ⇄ merged from {{ d.original_indices | join(' + ') }}
+          {% elif d.merge_or_split == "split" %}
+            ⇋ split from {{ d.original_indices[0] }}
+          {% endif %}
+          {% if d.speaker_changed %}
+            ★ speaker {{ d.original_speaker }} → {{ d.current_speaker }}
+          {% endif %}
+        </header>
+        <div class="diff-pair">
+          <div class="diff-col diff-col-original">
+            <div class="diff-col-label mono">Original</div>
+            <div class="diff-text">
+              {% for tag, orig, cur in d.text_diff %}
+                {% if tag == 'equal' %}{{ orig }} {% endif %}
+                {% if tag == 'delete' %}<del>{{ orig }}</del> {% endif %}
+                {% if tag == 'replace' %}<del>{{ orig }}</del> {% endif %}
+              {% endfor %}
+            </div>
+          </div>
+          <div class="diff-col diff-col-current">
+            <div class="diff-col-label mono">Current</div>
+            <div class="diff-text">
+              {% for tag, orig, cur in d.text_diff %}
+                {% if tag == 'equal' %}{{ cur }} {% endif %}
+                {% if tag == 'insert' %}<ins>{{ cur }}</ins> {% endif %}
+                {% if tag == 'replace' %}<ins>{{ cur }}</ins> {% endif %}
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
+{% endblock %}

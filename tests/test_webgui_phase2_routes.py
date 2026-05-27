@@ -154,3 +154,31 @@ def test_post_words_saves_edits(client, populated_run):
     assert words[0]["word"] == "Alle"
     assert words[1]["word"] == "richtig."
     assert data["segments"][0]["text"] == "Alle richtig."
+
+
+def test_get_diff_empty_state_when_no_original(client, populated_run):
+    r = client.get("/runs/ep01/diff")
+    assert r.status_code == 200
+    # No original.json yet → empty state
+    assert "No edits yet" in r.text or "no diff" in r.text.lower()
+
+
+def test_get_diff_shows_changed_segments(client, populated_run):
+    # Make an edit so .original.json is created
+    client.post("/runs/ep01/edit/speaker",
+                data={"segment_index": "0", "speaker": "Anna"})
+    # The speaker change should have triggered save_edits' backup-on-first-save
+    # via regenerate paths. To trigger backup creation, run a text edit:
+    form = {
+        "segment_text_0": "Hello edited.",
+        "original_text_0": " All right.",
+        "segment_text_1": "Let's dive into this autopoiesis thing.",
+        "original_text_1": "Let's dive into this autopoiesis thing.",
+        "segment_text_2": "Sounds good to me.",
+        "original_text_2": "Sounds good to me.",
+        "action": "save-return",
+    }
+    client.post("/runs/ep01/edit", data=form)
+    r = client.get("/runs/ep01/diff")
+    assert r.status_code == 200
+    assert "Hello edited" in r.text or "edited" in r.text.lower()
