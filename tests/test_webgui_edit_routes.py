@@ -59,3 +59,50 @@ def test_get_edit_404_when_transcribe_missing(client, tmp_path, monkeypatch):
     monkeypatch.setattr(app_mod, "OUTPUT_ROOT", out)
     r = client.get("/runs/ghost/edit")
     assert r.status_code == 404
+
+
+def test_post_edit_save_updates_json_and_redirects(client, populated_run):
+    json_path = populated_run / "ep01" / "ep01.whisperx.json"
+    form = {
+        "segment_text_0": "All right!!",
+        "original_text_0": " All right.",
+        "segment_text_1": "Let's dive into this autopoiesis thing.",
+        "original_text_1": "Let's dive into this autopoiesis thing.",
+        "segment_text_2": "Sounds good to me.",
+        "original_text_2": "Sounds good to me.",
+        "action": "save-return",
+    }
+    r = client.post(f"/runs/ep01/edit", data=form, follow_redirects=False)
+    assert r.status_code == 303
+    assert r.headers["location"] == "/runs/ep01"
+    data = json.loads(json_path.read_text(encoding="utf-8"))
+    assert data["segments"][0]["text"] == "All right!!"
+    assert data["segments"][0].get("_edited") is True
+
+
+def test_post_edit_save_invalidates_downstream(client, populated_run):
+    state_path = populated_run / "ep01" / "run-state.json"
+    form = {
+        "segment_text_0": "Changed.",
+        "original_text_0": " All right.",
+        "segment_text_1": "Let's dive into this autopoiesis thing.",
+        "original_text_1": "Let's dive into this autopoiesis thing.",
+        "segment_text_2": "Sounds good to me.",
+        "original_text_2": "Sounds good to me.",
+        "action": "save-return",
+    }
+    client.post(f"/runs/ep01/edit", data=form, follow_redirects=False)
+    state = json.loads(state_path.read_text(encoding="utf-8"))
+    assert state["phases"]["meta"]["status"] == "pending"
+    assert state["phases"]["render"]["status"] == "pending"
+    assert state["phases"]["transcribe"]["status"] == "done"
+
+
+def test_post_edit_404_when_transcribe_missing(client, tmp_path, monkeypatch):
+    out = tmp_path / "output"
+    (out / "ghost").mkdir(parents=True)
+    from webgui import app as app_mod
+    monkeypatch.setattr(app_mod, "OUTPUT_ROOT", out)
+    r = client.post("/runs/ghost/edit", data={"action": "save-return"},
+                    follow_redirects=False)
+    assert r.status_code == 404
