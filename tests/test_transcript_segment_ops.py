@@ -113,3 +113,67 @@ def test_merge_segment_raises_when_no_next(sample_run):
     # last segment (index 2) has no successor
     with pytest.raises(ValueError, match="no next"):
         merge_segment(str(sample_run["json_path"]), 2)
+
+
+def test_split_segment_creates_two_segments(sample_run):
+    from transcript_segment_ops import split_segment
+    # Segment 1 text: "Let's dive into this autopoiesis thing."
+    # Split at position 16 (after "Let's dive into ")
+    split_segment(str(sample_run["json_path"]), 1, 16)
+    data = json.loads(sample_run["json_path"].read_text(encoding="utf-8"))
+    assert len(data["segments"]) == 4  # was 3
+    assert data["segments"][1]["text"].strip() == "Let's dive into"
+    assert data["segments"][2]["text"].strip() == "this autopoiesis thing."
+
+
+def test_split_segment_interpolates_times(sample_run):
+    from transcript_segment_ops import split_segment
+    original = json.loads(sample_run["json_path"].read_text(encoding="utf-8"))
+    seg_1 = original["segments"][1]
+    original_start = seg_1["start"]
+    original_end = seg_1["end"]
+    # Split at char position equal to half the text length (no words to refine to)
+    text_len = len(seg_1["text"])
+    split_segment(str(sample_run["json_path"]), 1, text_len // 2)
+    data = json.loads(sample_run["json_path"].read_text(encoding="utf-8"))
+    # The two new segments' boundary should be somewhere between original start and end
+    assert data["segments"][1]["start"] == original_start
+    assert data["segments"][2]["end"] == original_end
+    assert data["segments"][1]["end"] == data["segments"][2]["start"]
+    assert original_start < data["segments"][1]["end"] < original_end
+
+
+def test_split_segment_sets_split_from_flag(sample_run):
+    from transcript_segment_ops import split_segment
+    split_segment(str(sample_run["json_path"]), 1, 16)
+    data = json.loads(sample_run["json_path"].read_text(encoding="utf-8"))
+    assert data["segments"][1]["_split_from"] == 1
+    assert data["segments"][2]["_split_from"] == 1
+
+
+def test_split_segment_raises_at_text_boundary_zero(sample_run):
+    from transcript_segment_ops import split_segment
+    with pytest.raises(ValueError, match="position"):
+        split_segment(str(sample_run["json_path"]), 1, 0)
+
+
+def test_split_segment_raises_at_text_boundary_end(sample_run):
+    from transcript_segment_ops import split_segment
+    data = json.loads(sample_run["json_path"].read_text(encoding="utf-8"))
+    text_len = len(data["segments"][1]["text"])
+    with pytest.raises(ValueError, match="position"):
+        split_segment(str(sample_run["json_path"]), 1, text_len)
+
+
+def test_split_segment_splits_words_by_time(sample_run):
+    from transcript_segment_ops import split_segment
+    # Segment 0 has words [All(0.04-0.1), right.(0.12-0.24)]
+    # Split at position 4 (after "All ")
+    split_segment(str(sample_run["json_path"]), 0, 4)
+    data = json.loads(sample_run["json_path"].read_text(encoding="utf-8"))
+    # First new segment should have only the first word
+    assert len(data["segments"][0]["words"]) == 1
+    assert data["segments"][0]["words"][0]["word"] == "All"
+    # Second new segment should have the second word
+    assert len(data["segments"][1]["words"]) == 1
+    assert data["segments"][1]["words"][0]["word"] == "right."
