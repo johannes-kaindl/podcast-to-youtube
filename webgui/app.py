@@ -422,6 +422,16 @@ async def run_edit_speaker(stem: str, request: Request):
     )
 
 
+def _render_segments_partial(request: Request, stem: str) -> HTMLResponse:
+    json_path = OUTPUT_ROOT / stem / f"{stem}.whisperx.json"
+    segments = load_segments(str(json_path))
+    speakers = _distinct_speakers(json_path)
+    return templates.TemplateResponse(
+        request, "_partials/segments_list.html",
+        {"stem": stem, "segments": segments, "speakers": speakers},
+    )
+
+
 @app.post("/runs/{stem}/edit/bulk-rename")
 async def run_edit_bulk_rename(stem: str, request: Request):
     json_path = OUTPUT_ROOT / stem / f"{stem}.whisperx.json"
@@ -441,6 +451,49 @@ async def run_edit_bulk_rename(stem: str, request: Request):
     invalidate_downstream(str(OUTPUT_ROOT / stem / "run-state.json"))
     cleanup_snapshots(str(json_path))
     return RedirectResponse(url=f"/runs/{stem}/edit", status_code=303)
+
+
+@app.post("/runs/{stem}/edit/merge", response_class=HTMLResponse)
+async def run_edit_merge(stem: str, request: Request):
+    json_path = OUTPUT_ROOT / stem / f"{stem}.whisperx.json"
+    if not json_path.exists():
+        raise HTTPException(status_code=404, detail="Transcript not found")
+    form = await request.form()
+    try:
+        segment_index = int(form.get("segment_index", "-1"))
+    except ValueError:
+        raise HTTPException(status_code=400, detail="segment_index must be int")
+    snapshot(str(json_path), action="merge",
+             metric=f"segments {segment_index}+{segment_index + 1}")
+    try:
+        merge_segment(str(json_path), segment_index)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    invalidate_downstream(str(OUTPUT_ROOT / stem / "run-state.json"))
+    cleanup_snapshots(str(json_path))
+    return _render_segments_partial(request, stem)
+
+
+@app.post("/runs/{stem}/edit/split", response_class=HTMLResponse)
+async def run_edit_split(stem: str, request: Request):
+    json_path = OUTPUT_ROOT / stem / f"{stem}.whisperx.json"
+    if not json_path.exists():
+        raise HTTPException(status_code=404, detail="Transcript not found")
+    form = await request.form()
+    try:
+        segment_index = int(form.get("segment_index", "-1"))
+        char_position = int(form.get("char_position", "0"))
+    except ValueError:
+        raise HTTPException(status_code=400, detail="indices must be int")
+    snapshot(str(json_path), action="split",
+             metric=f"segment {segment_index} at char {char_position}")
+    try:
+        split_segment(str(json_path), segment_index, char_position)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    invalidate_downstream(str(OUTPUT_ROOT / stem / "run-state.json"))
+    cleanup_snapshots(str(json_path))
+    return _render_segments_partial(request, stem)
 
 
 @app.get("/runs/{stem}/stream")
