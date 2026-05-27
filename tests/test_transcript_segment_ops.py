@@ -72,3 +72,44 @@ def test_bulk_rename_speaker_returns_zero_when_no_match(sample_run):
     from transcript_segment_ops import bulk_rename_speaker
     count = bulk_rename_speaker(str(sample_run["json_path"]), "SPEAKER_99", "Whoever")
     assert count == 0
+
+
+def test_merge_segment_combines_text_and_words(sample_run):
+    from transcript_segment_ops import merge_segment
+    original = json.loads(sample_run["json_path"].read_text(encoding="utf-8"))
+    original_text_0 = original["segments"][0]["text"]
+    original_text_1 = original["segments"][1]["text"]
+    words_0_len = len(original["segments"][0]["words"])
+    words_1_len = len(original["segments"][1]["words"])
+
+    merge_segment(str(sample_run["json_path"]), 0)
+    data = json.loads(sample_run["json_path"].read_text(encoding="utf-8"))
+    assert len(data["segments"]) == 2  # was 3
+    assert data["segments"][0]["text"] == original_text_0 + " " + original_text_1
+    assert len(data["segments"][0]["words"]) == words_0_len + words_1_len
+
+
+def test_merge_segment_extends_end_time(sample_run):
+    from transcript_segment_ops import merge_segment
+    original = json.loads(sample_run["json_path"].read_text(encoding="utf-8"))
+    original_start_0 = original["segments"][0]["start"]
+    original_end_1 = original["segments"][1]["end"]
+
+    merge_segment(str(sample_run["json_path"]), 0)
+    data = json.loads(sample_run["json_path"].read_text(encoding="utf-8"))
+    assert data["segments"][0]["start"] == original_start_0
+    assert data["segments"][0]["end"] == original_end_1
+
+
+def test_merge_segment_sets_merged_from_flag(sample_run):
+    from transcript_segment_ops import merge_segment
+    merge_segment(str(sample_run["json_path"]), 0)
+    data = json.loads(sample_run["json_path"].read_text(encoding="utf-8"))
+    assert data["segments"][0]["_merged_from"] == [0, 1]
+
+
+def test_merge_segment_raises_when_no_next(sample_run):
+    from transcript_segment_ops import merge_segment
+    # last segment (index 2) has no successor
+    with pytest.raises(ValueError, match="no next"):
+        merge_segment(str(sample_run["json_path"]), 2)
