@@ -93,3 +93,34 @@ def test_has_been_edited_returns_true_when_any_segment_edited(sample_run):
     assert has_been_edited(str(sample_run["json_path"])) is False
     save_edits(str(sample_run["json_path"]), ["CHANGED.", "Let's dive into this autopoiesis thing.", "Sounds good to me."])
     assert has_been_edited(str(sample_run["json_path"])) is True
+
+
+def test_save_edits_creates_backup_on_first_call(sample_run):
+    from transcript_editor import save_edits
+    json_path = sample_run["json_path"]
+    backup_path = json_path.with_name(json_path.stem.replace(".whisperx", "") + ".whisperx.original.json")
+    assert not backup_path.exists()
+    new_texts = ["Hello.", "Let's dive into this autopoiesis thing.", "Sounds good to me."]
+    result = save_edits(str(json_path), new_texts)
+    assert backup_path.exists()
+    assert result["backup_created"] is True
+
+
+def test_save_edits_backup_is_pristine_copy(sample_run):
+    from transcript_editor import save_edits
+    json_path = sample_run["json_path"]
+    backup_path = json_path.with_name(json_path.stem.replace(".whisperx", "") + ".whisperx.original.json")
+    original_content = json_path.read_text(encoding="utf-8")
+    save_edits(str(json_path), ["CHANGED.", "Let's dive into this autopoiesis thing.", "Sounds good to me."])
+    assert backup_path.read_text(encoding="utf-8") == original_content
+
+
+def test_save_edits_does_not_overwrite_backup_on_second_call(sample_run):
+    from transcript_editor import save_edits
+    json_path = sample_run["json_path"]
+    backup_path = json_path.with_name(json_path.stem.replace(".whisperx", "") + ".whisperx.original.json")
+    save_edits(str(json_path), ["First.", "Let's dive into this autopoiesis thing.", "Sounds good to me."])
+    first_backup_content = backup_path.read_text(encoding="utf-8")
+    result = save_edits(str(json_path), ["Second.", "Let's dive into this autopoiesis thing.", "Sounds good to me."])
+    assert backup_path.read_text(encoding="utf-8") == first_backup_content
+    assert result["backup_created"] is False
