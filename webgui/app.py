@@ -16,6 +16,7 @@ from pydantic import BaseModel
 from sse_starlette.sse import EventSourceResponse
 
 from pipeline_core import PipelineConfig, build_command, resolve_audio_path
+from transcript_editor import load_segments, save_edits, invalidate_downstream, has_been_edited
 from .probe import audio_probe
 from .runner import registry, spawn_pipeline, spawn_upload, StreamEvent, latest_logfile, replay_logfile
 from .runs import list_runs, filter_runs
@@ -91,6 +92,7 @@ class RunRequest(BaseModel):
     skip_meta: bool
     skip_render: bool
     skip_upload: bool
+    pause_after_transcribe: bool = False
 
 
 @app.get("/healthz")
@@ -240,11 +242,16 @@ async def api_create_run(req: RunRequest):
     ts = datetime.now().strftime("%Y-%m-%dT%H-%M-%S")
     log_file = output_dir / f"run-{ts}.log"
 
+    # Pause-after-transcribe is shorthand for skipping everything after.
+    skip_meta = req.skip_meta or req.pause_after_transcribe
+    skip_render = req.skip_render or req.pause_after_transcribe
+    skip_upload = req.skip_upload or req.pause_after_transcribe
+
     cfg = PipelineConfig(
         audio=str(audio_path), viz=req.viz, language=req.language, model=req.model,
         diarize=req.diarize, episode=req.episode, show_name=req.show_name,
-        skip_transcribe=req.skip_transcribe, skip_meta=req.skip_meta,
-        skip_render=req.skip_render, skip_upload=req.skip_upload,
+        skip_transcribe=req.skip_transcribe, skip_meta=skip_meta,
+        skip_render=skip_render, skip_upload=skip_upload,
     )
     cmd = build_command(cfg, REPO_ROOT)
 
@@ -289,6 +296,17 @@ async def runs_detail(stem: str, request: Request):
 
     active = registry.current is not None and registry.current.stem == stem
 
+    transcript_json = OUTPUT_ROOT / stem / f"{stem}.whisperx.json"
+    transcript_exists = transcript_json.exists()
+    edited_any = has_been_edited(str(transcript_json)) if transcript_exists else False
+    is_paused = (
+        transcript_exists
+        and phases.get("transcribe", {}).get("status") == "done"
+        and phases.get("meta", {}).get("status") in ("pending", "skipped")
+        and state.get("config", {}).get("skip_meta") is True
+        and registry.current is None
+    )
+
     return templates.TemplateResponse(
         request,
         "run_detail.html",
@@ -301,8 +319,66 @@ async def runs_detail(stem: str, request: Request):
             "active": active,
             "transcript_lines": _load_transcript_snippet(stem),
             "youtube_meta": _load_metadata(stem),
+            "transcript_exists": transcript_exists,
+            "edited_any": edited_any,
+            "is_paused": is_paused,
         },
     )
+
+
+@app.get("/runs/{stem}/edit", response_class=HTMLResponse)
+async def run_edit(stem: str, request: Request):
+    json_path = OUTPUT_ROOT / stem / f"{stem}.whisperx.json"
+    if not json_path.exists():
+        raise HTTPException(status_code=404, detail="Transcript not found")
+    segments = load_segments(str(json_path))
+    backup_exists = json_path.with_name(json_path.stem + ".original.json").exists()
+    edited_any = has_been_edited(str(json_path))
+    return templates.TemplateResponse(
+        request,
+        "run_edit.html",
+        {
+            "stem": stem,
+            "segments": segments,
+            "backup_exists": backup_exists,
+            "edited_any": edited_any,
+            "page_mood": "neutral",
+        },
+    )
+
+
+@app.post("/runs/{stem}/edit")
+async def run_edit_save(stem: str, request: Request):
+    json_path = OUTPUT_ROOT / stem / f"{stem}.whisperx.json"
+    if not json_path.exists():
+        raise HTTPException(status_code=404, detail="Transcript not found")
+    if registry.current is not None:
+        raise HTTPException(
+            status_code=409,
+            detail={"error": "slot_busy", "stem": registry.current.stem,
+                    "kind": registry.current.kind},
+        )
+    form = await request.form()
+    # Form fields come back as segment_text_0, segment_text_1, … — collect in order
+    segments = load_segments(str(json_path))
+    new_texts: list[str] = []
+    for i in range(len(segments)):
+        new_text = form.get(f"segment_text_{i}")
+        if new_text is None:
+            raise HTTPException(status_code=400, detail=f"Missing segment_text_{i}")
+        new_texts.append(new_text)
+    save_edits(str(json_path), new_texts)
+
+    state_path = OUTPUT_ROOT / stem / "run-state.json"
+    invalidate_downstream(str(state_path))
+
+    action = form.get("action", "save-return")
+    if action == "save-continue":
+        return RedirectResponse(
+            url=f"/runs/{stem}/phase/meta/start",
+            status_code=307,  # preserve POST method
+        )
+    return RedirectResponse(url=f"/runs/{stem}", status_code=303)
 
 
 @app.get("/runs/{stem}/stream")

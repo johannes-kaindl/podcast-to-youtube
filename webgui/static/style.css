@@ -1957,3 +1957,77 @@ body[data-page-mood="warning"] {
 body[data-page-mood="error"]   .topbar { background: color-mix(in oklab, var(--role-error) 5%, var(--surface-primary)); }
 body[data-page-mood="success"] .topbar { background: color-mix(in oklab, var(--role-success) 5%, var(--surface-primary)); }
 body[data-page-mood="warning"] .topbar { background: color-mix(in oklab, var(--role-warning) 5%, var(--surface-primary)); }
+
+/* === Transcript Editor ============================================== */
+
+.edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 24px;
+}
+
+.edit-segment {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 14px;
+  border-radius: var(--radius-md, 8px);
+  background: color-mix(in oklab, var(--surface, #1a1a1a) 96%, var(--accent, #6ea8fe) 4%);
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.06));
+}
+
+.edit-segment.is-edited {
+  border-color: color-mix(in oklab, var(--accent, #6ea8fe) 50%, transparent);
+  background: color-mix(in oklab, var(--surface, #1a1a1a) 92%, var(--accent, #6ea8fe) 8%);
+}
+
+.edit-segment-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 11px;
+  color: var(--muted, rgba(255, 255, 255, 0.55));
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.edit-segment-header .time {
+  font-variant-numeric: tabular-nums;
+}
+
+.edit-segment-header .speaker {
+  color: var(--accent, #6ea8fe);
+  font-weight: 500;
+}
+
+.edit-textarea {
+  width: 100%;
+  min-height: 2.4em;
+  resize: vertical;
+  background: var(--input-bg, #0e0e0e);
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
+  color: var(--text, #e8e8e8);
+  border-radius: var(--radius-sm, 6px);
+  padding: 8px 10px;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+  field-sizing: content;
+}
+
+.edit-textarea:focus-visible {
+  outline: 2px solid var(--accent, #6ea8fe);
+  outline-offset: 1px;
+}
+
+.edit-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--accent, #6ea8fe) 25%, transparent);
+  color: var(--accent, #6ea8fe);
+  letter-spacing: 0.04em;
+}
