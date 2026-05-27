@@ -1,0 +1,90 @@
+# SPDX-FileCopyrightText: 2026 Johannes Kaindl
+# SPDX-License-Identifier: CC-BY-SA-4.0
+name: Bug report
+about: Something doesn't work as expected
+title: "[Bug] "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time. Please keep the report concrete — the
+        easier it is to reproduce, the faster the fix.
+
+        **Security-sensitive issues** do not belong here — see
+        [`SECURITY.md`](https://codeberg.org/jkaindl/podcast-to-youtube/src/branch/main/SECURITY.md).
+        That includes anything around OAuth tokens, `client_secrets.json`,
+        or the YouTube upload path.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A short, precise description of the problem.
+      placeholder: WhisperX diarization mislabels speakers when there's overlapping speech.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Reproduction
+      description: Which command + input, ideally with the failing phase named.
+      placeholder: |
+        1. WebGUI → New episode → upload sample.m4a
+        2. Phase 1 (transcribe) finishes; phase 2 (metadata) returns wrong speaker labels.
+        3. Logs: …
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      placeholder: Speakers correctly attributed across the overlap.
+    validations:
+      required: true
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Which surface?
+      options:
+        - WebGUI (FastAPI / HTMX)
+        - CLI (pipeline.py / upload_youtube.py / auth_youtube.py)
+        - Phase 1 — transcription (WhisperX)
+        - Phase 2 — metadata (MLX LLM)
+        - Phase 3 — video render (Remotion)
+        - Phase 4 — YouTube upload
+        - Other / not sure
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      placeholder: v1.0.0
+  - type: input
+    id: hardware
+    attributes:
+      label: Hardware (Mac model + RAM)
+      placeholder: M3 Pro, 36 GB RAM
+  - type: input
+    id: input-audio
+    attributes:
+      label: Input audio (format, length, language)
+      placeholder: 45 min .m4a, German, two speakers, occasional overlap
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Relevant tail of the failing phase's log.
+      render: shell
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Pre-flight checks
+      options:
+        - label: ffmpeg, WhisperX, MLX server and Remotion are installed and reachable.
+          required: true
+        - label: I checked [existing issues](https://codeberg.org/jkaindl/podcast-to-youtube/issues) for duplicates.
+          required: true
+        - label: This is not a security issue (otherwise → SECURITY.md).
+          required: true
