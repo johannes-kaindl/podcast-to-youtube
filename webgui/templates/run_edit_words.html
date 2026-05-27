@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Word edit · {{ stem }}{% endblock %}
+{% block content %}
+<header class="run-header">
+  <div class="left">
+    <div class="crumbs"><a href="/runs/{{ stem }}/edit">← Back to editor</a></div>
+    <h1><span class="accent-mark">⫶</span>Word edits: {{ stem }} / Segment {{ segment_index }}</h1>
+    <p class="muted" style="margin-top:8px; font-size: 13px;">
+      Edit individual words. Segment text will be rebuilt from these words on save.
+      Word timings are not re-aligned (run Transcribe again for fresh timings).
+    </p>
+  </div>
+  <div>
+    <form method="get" action="/runs/{{ stem }}/edit/words" style="display:inline;">
+      <label>Segment:
+        <select name="segment_index" onchange="this.form.submit()">
+          {% for i in range(total_segments) %}
+            <option value="{{ i }}" {% if i == segment_index %}selected{% endif %}>Segment {{ i }}</option>
+          {% endfor %}
+        </select>
+      </label>
+    </form>
+  </div>
+</header>
+
+<form method="post" action="/runs/{{ stem }}/edit/words" class="words-form">
+  <input type="hidden" name="segment_index" value="{{ segment_index }}">
+  <table class="words-table">
+    <thead>
+      <tr><th>Time</th><th>Speaker</th><th>Word</th></tr>
+    </thead>
+    <tbody>
+      {% for w in words %}
+        <tr>
+          <td class="mono">{{ "%.2f"|format(w.start|default(0)) }}–{{ "%.2f"|format(w.end|default(0)) }}</td>
+          <td>{{ segment.speaker | default("SPEAKER_00") }}</td>
+          <td><input type="text" name="word_{{ loop.index0 }}" value="{{ w.word | default('') }}" class="input"></td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <div class="row" style="gap:12px; margin-top:24px;">
+    <button type="submit" class="btn btn-primary">Save words</button>
+    <a href="/runs/{{ stem }}/edit" class="btn btn-ghost">Cancel</a>
+  </div>
+</form>
+{% endblock %}

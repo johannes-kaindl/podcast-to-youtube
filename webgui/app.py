@@ -795,6 +795,55 @@ async def api_post_settings(patch: SettingsPatch):
     return Response(status_code=204)
 
 
+@app.get("/runs/{stem}/edit/words", response_class=HTMLResponse)
+async def run_edit_words(stem: str, request: Request, segment_index: int = 0):
+    json_path = OUTPUT_ROOT / stem / f"{stem}.whisperx.json"
+    if not json_path.exists():
+        raise HTTPException(status_code=404, detail="Transcript not found")
+    segments = load_segments(str(json_path))
+    if segment_index < 0 or segment_index >= len(segments):
+        raise HTTPException(status_code=400, detail="segment_index out of range")
+    seg = segments[segment_index]
+    words = seg.get("words", [])
+    return templates.TemplateResponse(
+        request, "run_edit_words.html",
+        {"stem": stem, "segment_index": segment_index,
+         "segment": seg, "words": words,
+         "total_segments": len(segments), "page_mood": "neutral"},
+    )
+
+
+@app.post("/runs/{stem}/edit/words")
+async def run_edit_words_save(stem: str, request: Request):
+    json_path = OUTPUT_ROOT / stem / f"{stem}.whisperx.json"
+    if not json_path.exists():
+        raise HTTPException(status_code=404, detail="Transcript not found")
+    form = await request.form()
+    try:
+        segment_index = int(form.get("segment_index", "-1"))
+    except ValueError:
+        raise HTTPException(status_code=400, detail="segment_index must be int")
+    segments = load_segments(str(json_path))
+    if segment_index < 0 or segment_index >= len(segments):
+        raise HTTPException(status_code=400, detail="segment_index out of range")
+    words = segments[segment_index].get("words", [])
+    new_words: list[str] = []
+    for i in range(len(words)):
+        v = form.get(f"word_{i}")
+        if v is None:
+            raise HTTPException(status_code=400, detail=f"Missing word_{i}")
+        new_words.append(v)
+    snapshot(str(json_path), action="edit_words",
+             metric=f"segment {segment_index}, {len(new_words)} words")
+    try:
+        save_word_edits(str(json_path), segment_index, new_words)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    invalidate_downstream(str(OUTPUT_ROOT / stem / "run-state.json"))
+    cleanup_snapshots(str(json_path))
+    return RedirectResponse(url=f"/runs/{stem}/edit", status_code=303)
+
+
 @app.get("/")
 async def index(request: Request):
     return templates.TemplateResponse(

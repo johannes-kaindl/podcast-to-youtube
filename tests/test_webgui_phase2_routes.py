@@ -122,3 +122,35 @@ def test_post_undo_303_when_history_empty(client, populated_run):
     r = client.post("/runs/ep01/edit/undo", follow_redirects=False)
     # Endpoint should still redirect (no-op rather than error)
     assert r.status_code == 303
+
+
+def test_get_words_renders_per_word_rows(client, populated_run):
+    r = client.get("/runs/ep01/edit/words?segment_index=0")
+    assert r.status_code == 200
+    # Sample fixture has 2 words in segment 0: "All" and "right."
+    assert 'name="word_0"' in r.text
+    assert 'name="word_1"' in r.text
+    assert "All" in r.text
+    assert "right." in r.text
+
+
+def test_get_words_404_when_transcribe_missing(client, tmp_path, monkeypatch):
+    out = tmp_path / "output"
+    (out / "ghost").mkdir(parents=True)
+    from webgui import app as app_mod
+    monkeypatch.setattr(app_mod, "OUTPUT_ROOT", out)
+    r = client.get("/runs/ghost/edit/words?segment_index=0")
+    assert r.status_code == 404
+
+
+def test_post_words_saves_edits(client, populated_run):
+    json_path = populated_run / "ep01" / "ep01.whisperx.json"
+    r = client.post("/runs/ep01/edit/words",
+                    data={"segment_index": "0", "word_0": "Alle", "word_1": "richtig."},
+                    follow_redirects=False)
+    assert r.status_code == 303
+    data = json.loads(json_path.read_text(encoding="utf-8"))
+    words = data["segments"][0]["words"]
+    assert words[0]["word"] == "Alle"
+    assert words[1]["word"] == "richtig."
+    assert data["segments"][0]["text"] == "Alle richtig."
