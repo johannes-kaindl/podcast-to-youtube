@@ -12,7 +12,9 @@
         {% for spk in speakers %}
           <option value="{{ spk }}" {% if spk == seg.speaker %}selected{% endif %}>{{ spk }}</option>
         {% endfor %}
-        <option value="{{ seg.speaker }}" {% if seg.speaker not in speakers %}selected{% endif %}>{{ seg.speaker }}</option>
+        {% if seg.speaker and seg.speaker not in speakers %}
+          <option value="{{ seg.speaker }}" selected>{{ seg.speaker }}</option>
+        {% endif %}
       </select>
     </form>
     {% if seg.get('_edited') %}<span class="edit-badge">★ edited</span>{% endif %}

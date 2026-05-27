@@ -54,6 +54,18 @@ def test_post_speaker_change_returns_segment_partial(client, populated_run):
     assert "Anna" in r.text
 
 
+def test_speaker_dropdown_does_not_duplicate_speaker(client, populated_run):
+    """Regression: the fallback <option> used to always render, duplicating
+    the current speaker when it was already in the distinct-speakers list."""
+    r = client.post("/runs/ep01/edit/speaker",
+                    data={"segment_index": "0", "speaker": "SPEAKER_00"})
+    # The HTMX partial contains exactly one segment_editor — count <option>s
+    # inside it. Both SPEAKER_00 (current) and SPEAKER_01 should appear once
+    # each, never duplicated by a fallback option.
+    assert r.text.count('<option value="SPEAKER_00"') == 1
+    assert r.text.count('<option value="SPEAKER_01"') == 1
+
+
 def test_post_bulk_rename_renames_all_matching(client, populated_run):
     r = client.post("/runs/ep01/edit/bulk-rename",
                     data={"old_name": "SPEAKER_00", "new_name": "Anna"},

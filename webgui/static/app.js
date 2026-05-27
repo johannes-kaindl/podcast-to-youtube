@@ -289,3 +289,34 @@ document.addEventListener('click', async (e) => {
     });
   }
 });
+
+// Editor keyboard shortcuts (only on /runs/<stem>/edit pages).
+// Ctrl/Cmd+Z → undo last edit (form POST /edit/undo)
+// Ctrl/Cmd+S → save & return (submit main edit form)
+// Active text inputs/textareas keep native browser behavior — we don't intercept there.
+document.addEventListener('keydown', (e) => {
+  const editFormMatch = window.location.pathname.match(/^\/runs\/([^/]+)\/edit$/);
+  if (!editFormMatch) return;
+  const stem = editFormMatch[1];
+  const mod = e.ctrlKey || e.metaKey;
+  if (!mod) return;
+  const inField = ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName);
+
+  if (e.key.toLowerCase() === 'z' && !e.shiftKey) {
+    if (inField) return; // native field-undo wins
+    e.preventDefault();
+    const f = document.createElement('form');
+    f.method = 'post';
+    f.action = `/runs/${stem}/edit/undo`;
+    document.body.appendChild(f);
+    f.submit();
+  } else if (e.key.toLowerCase() === 's') {
+    e.preventDefault();
+    const form = document.getElementById('edit-form');
+    if (form) {
+      const btn = form.querySelector('button[value="save-return"]');
+      if (btn) btn.click();
+      else form.submit();
+    }
+  }
+});
