@@ -17,6 +17,10 @@ from sse_starlette.sse import EventSourceResponse
 
 from pipeline_core import PipelineConfig, build_command, resolve_audio_path
 from transcript_editor import load_segments, save_edits, invalidate_downstream, has_been_edited
+from transcript_segment_ops import change_speaker, bulk_rename_speaker, merge_segment, split_segment
+from transcript_word_ops import load_words_flat, save_word_edits
+from transcript_history import snapshot, undo_last, list_history, cleanup_snapshots
+from transcript_diff import compute_segment_diff
 from .probe import audio_probe
 from .runner import registry, spawn_pipeline, spawn_upload, StreamEvent, latest_logfile, replay_logfile
 from .runs import list_runs, filter_runs
@@ -74,6 +78,13 @@ def _load_metadata(stem: str) -> dict | None:
         return json.loads(meta_file.read_text(encoding="utf-8"))
     except (json.JSONDecodeError, OSError):
         return None
+
+
+def _distinct_speakers(json_path: Path) -> list[str]:
+    if not json_path.exists():
+        return []
+    data = json.loads(json_path.read_text(encoding="utf-8"))
+    return sorted({seg.get("speaker", "") for seg in data.get("segments", []) if seg.get("speaker")})
 
 
 class AudioProbeRequest(BaseModel):
@@ -379,6 +390,36 @@ async def run_edit_save(stem: str, request: Request):
             status_code=307,  # preserve POST method
         )
     return RedirectResponse(url=f"/runs/{stem}", status_code=303)
+
+
+@app.post("/runs/{stem}/edit/speaker", response_class=HTMLResponse)
+async def run_edit_speaker(stem: str, request: Request):
+    json_path = OUTPUT_ROOT / stem / f"{stem}.whisperx.json"
+    if not json_path.exists():
+        raise HTTPException(status_code=404, detail="Transcript not found")
+    form = await request.form()
+    try:
+        segment_index = int(form.get("segment_index", "-1"))
+    except ValueError:
+        raise HTTPException(status_code=400, detail="segment_index must be int")
+    new_speaker = form.get("speaker", "").strip()
+    if not new_speaker:
+        raise HTTPException(status_code=400, detail="speaker required")
+    snapshot(str(json_path), action="edit_speaker", metric=f"segment {segment_index} → {new_speaker}")
+    try:
+        change_speaker(str(json_path), segment_index, new_speaker)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    invalidate_downstream(str(OUTPUT_ROOT / stem / "run-state.json"))
+    cleanup_snapshots(str(json_path))
+
+    segments = load_segments(str(json_path))
+    speakers = _distinct_speakers(json_path)
+    seg = segments[segment_index]
+    return templates.TemplateResponse(
+        request, "_partials/segment_editor.html",
+        {"stem": stem, "seg": seg, "loop_index": segment_index, "speakers": speakers},
+    )
 
 
 @app.get("/runs/{stem}/stream")

@@ -1,0 +1,43 @@
+{# Re-rendered after every HTMX edit. Receives: seg, loop_index, speakers (distinct list) #}
+<div class="edit-segment {% if seg.get('_edited') %}is-edited{% endif %}"
+     id="segment-{{ loop_index }}">
+  <div class="edit-segment-header mono">
+    <span class="time">{{ "%02d:%02d"|format((seg.start|int)//60, (seg.start|int)%60) }}</span>
+    <form hx-post="/runs/{{ stem }}/edit/speaker"
+          hx-target="#segment-{{ loop_index }}"
+          hx-swap="outerHTML"
+          style="display:inline;">
+      <input type="hidden" name="segment_index" value="{{ loop_index }}">
+      <select name="speaker" class="speaker-select" onchange="this.form.requestSubmit()">
+        {% for spk in speakers %}
+          <option value="{{ spk }}" {% if spk == seg.speaker %}selected{% endif %}>{{ spk }}</option>
+        {% endfor %}
+        <option value="{{ seg.speaker }}" {% if seg.speaker not in speakers %}selected{% endif %}>{{ seg.speaker }}</option>
+      </select>
+    </form>
+    {% if seg.get('_edited') %}<span class="edit-badge">★ edited</span>{% endif %}
+    {% if seg.get('_speaker_edited') %}<span class="edit-badge">☆ speaker</span>{% endif %}
+    {% if seg.get('_merged_from') %}<span class="edit-badge">⇄ merged</span>{% endif %}
+    {% if seg.get('_split_from') is not none %}<span class="edit-badge">⇋ split</span>{% endif %}
+  </div>
+  <textarea name="segment_text_{{ loop_index }}" class="edit-textarea" rows="2">{{ seg.text }}</textarea>
+  <input type="hidden" name="original_text_{{ loop_index }}" value="{{ seg.text }}">
+  <div class="row" style="gap:8px; margin-top:6px;">
+    <form hx-post="/runs/{{ stem }}/edit/merge"
+          hx-target="#edit-form-segments"
+          hx-swap="innerHTML"
+          style="display:inline;">
+      <input type="hidden" name="segment_index" value="{{ loop_index }}">
+      <button type="submit" class="btn btn-ghost btn-sm">⇄ Merge with next</button>
+    </form>
+    <form hx-post="/runs/{{ stem }}/edit/split"
+          hx-target="#edit-form-segments"
+          hx-swap="innerHTML"
+          style="display:inline;"
+          onsubmit="this.querySelector('[name=char_position]').value = document.querySelector('[name=segment_text_{{ loop_index }}]').selectionStart;">
+      <input type="hidden" name="segment_index" value="{{ loop_index }}">
+      <input type="hidden" name="char_position" value="0">
+      <button type="submit" class="btn btn-ghost btn-sm">⇋ Split at cursor</button>
+    </form>
+  </div>
+</div>
