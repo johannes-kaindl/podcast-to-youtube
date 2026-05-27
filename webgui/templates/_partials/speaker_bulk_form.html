@@ -1,0 +1,11 @@
+<form method="post" action="/runs/{{ stem }}/edit/bulk-rename" class="bulk-rename-form">
+  <label class="muted" style="font-size:12px;">Bulk rename speaker:</label>
+  <select name="old_name">
+    {% for spk in speakers %}
+      <option value="{{ spk }}">{{ spk }}</option>
+    {% endfor %}
+  </select>
+  →
+  <input type="text" name="new_name" placeholder="New name" class="input" style="width:150px;">
+  <button type="submit" class="btn btn-sm">Rename</button>
+</form>

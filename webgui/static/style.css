@@ -2031,3 +2031,73 @@ body[data-page-mood="warning"] .topbar { background: color-mix(in oklab, var(--r
   color: var(--accent, #6ea8fe);
   letter-spacing: 0.04em;
 }
+
+/* === Phase 2 — bulk-rename, history dropdown, diff, words table =========== */
+
+.bulk-rename-form {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: color-mix(in oklab, var(--surface, #1a1a1a) 94%, var(--accent, #6ea8fe) 6%);
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.06));
+}
+
+.history-dropdown summary { cursor: pointer; }
+.history-panel {
+  position: relative;
+  margin-top: 8px;
+  padding: 12px;
+  background: var(--surface, #1a1a1a);
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
+  border-radius: var(--radius-md, 8px);
+  min-width: 280px;
+}
+.history-list {
+  margin: 0; padding: 0; list-style: none;
+  display: flex; flex-direction: column; gap: 4px;
+  font-size: 12px;
+  max-height: 240px; overflow-y: auto;
+}
+
+.speaker-select {
+  background: transparent;
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
+  border-radius: var(--radius-sm, 6px);
+  color: var(--accent, #6ea8fe);
+  font-weight: 500;
+  padding: 1px 6px;
+  font-family: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.diff-segment {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: var(--radius-md, 8px);
+  background: var(--surface, #1a1a1a);
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.06));
+}
+.diff-segment.is-changed {
+  border-color: color-mix(in oklab, var(--accent, #6ea8fe) 30%, transparent);
+}
+.diff-segment-header {
+  font-size: 11px;
+  color: var(--muted, rgba(255, 255, 255, 0.55));
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 8px;
+}
+.diff-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.diff-col-label { font-size: 10px; color: var(--muted, rgba(255, 255, 255, 0.4)); margin-bottom: 4px; }
+.diff-text del { background: color-mix(in oklab, #d04050 30%, transparent); text-decoration: line-through; }
+.diff-text ins { background: color-mix(in oklab, #50d080 30%, transparent); text-decoration: none; }
+
+.words-table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+.words-table th, .words-table td { padding: 6px 8px; text-align: left; border-bottom: 1px solid var(--border, rgba(255, 255, 255, 0.06)); }
+.words-table thead th { font-size: 10px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted, rgba(255, 255, 255, 0.55)); }
+.words-table input { width: 100%; }
+
+.btn-sm { font-size: 11px; padding: 4px 8px; }

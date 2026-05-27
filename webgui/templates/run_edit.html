@@ -3,32 +3,36 @@
 {% block content %}
 <header class="run-header">
   <div class="left">
-    <div class="crumbs"><a href="/runs/{{ stem }}">← Back to run</a></div>
+    <div class="crumbs">
+      <a href="/runs/{{ stem }}">← Back to run</a> ·
+      <a href="/runs/{{ stem }}/diff">Diff view</a> ·
+      <a href="/runs/{{ stem }}/edit/words">Word view</a>
+    </div>
     <h1><span class="accent-mark">✎</span>Edit transcript: {{ stem }}</h1>
     <p class="muted" style="margin-top:8px; font-size: 13px;">
-      Edit text only. Speaker labels and timecodes are preserved.
+      Edit text, change speakers, merge/split segments, or undo any action.
       Saving invalidates Meta + Render — they will need to re-run.
     </p>
     {% if backup_exists %}
       <p class="muted mono" style="font-size: 11px; margin-top:4px;">Original backup: ✓ saved</p>
     {% endif %}
   </div>
+  <div class="run-header-controls" style="display:flex; gap:12px; align-items:flex-start;">
+    {% include "_partials/history_dropdown.html" %}
+  </div>
 </header>
 
+<div style="margin-top:16px;">
+  {% include "_partials/speaker_bulk_form.html" %}
+</div>
+
 <form id="edit-form" method="post" action="/runs/{{ stem }}/edit" class="edit-form">
-  {% for seg in segments %}
-    <div class="edit-segment {% if seg.get('_edited') %}is-edited{% endif %}">
-      <div class="edit-segment-header mono">
-        <span class="time">{{ "%02d:%02d"|format((seg.start|int)//60, (seg.start|int)%60) }}</span>
-        <span class="speaker">{{ seg.speaker | default("SPEAKER_00") }}</span>
-        {% if seg.get('_edited') %}<span class="edit-badge">★ edited</span>{% endif %}
-      </div>
-      <textarea name="segment_text_{{ loop.index0 }}"
-                class="edit-textarea"
-                rows="2">{{ seg.text }}</textarea>
-      <input type="hidden" name="original_text_{{ loop.index0 }}" value="{{ seg.text }}">
-    </div>
-  {% endfor %}
+  <div id="edit-form-segments">
+    {% for seg in segments %}
+      {% set loop_index = loop.index0 %}
+      {% include "_partials/segment_editor.html" %}
+    {% endfor %}
+  </div>
 
   <div class="edit-actions" style="margin-top: 24px; display:flex; gap:12px; flex-wrap:wrap;">
     <button type="submit" name="action" value="save-return" class="btn">Save & Return</button>
