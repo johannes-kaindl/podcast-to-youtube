@@ -64,3 +64,32 @@ def test_save_edits_raises_on_length_mismatch(sample_run):
     from transcript_editor import save_edits
     with pytest.raises(ValueError, match="length"):
         save_edits(str(sample_run["json_path"]), ["only one"])
+
+
+def test_save_edits_sets_edited_flag_when_text_differs(sample_run):
+    from transcript_editor import save_edits
+    new_texts = ["CHANGED.", "Let's dive into this autopoiesis thing.", "ALSO CHANGED."]
+    result = save_edits(str(sample_run["json_path"]), new_texts)
+    data = json.loads(sample_run["json_path"].read_text(encoding="utf-8"))
+    assert data["segments"][0]["_edited"] is True
+    assert data["segments"][1].get("_edited", False) is False  # unchanged → no flag
+    assert data["segments"][2]["_edited"] is True
+    assert result["edited_count"] == 2
+
+
+def test_save_edits_does_not_set_edited_flag_when_text_same(sample_run):
+    from transcript_editor import save_edits
+    original = json.loads(sample_run["json_path"].read_text(encoding="utf-8"))
+    new_texts = [s["text"] for s in original["segments"]]
+    result = save_edits(str(sample_run["json_path"]), new_texts)
+    data = json.loads(sample_run["json_path"].read_text(encoding="utf-8"))
+    for seg in data["segments"]:
+        assert seg.get("_edited", False) is False
+    assert result["edited_count"] == 0
+
+
+def test_has_been_edited_returns_true_when_any_segment_edited(sample_run):
+    from transcript_editor import save_edits, has_been_edited
+    assert has_been_edited(str(sample_run["json_path"])) is False
+    save_edits(str(sample_run["json_path"]), ["CHANGED.", "Let's dive into this autopoiesis thing.", "Sounds good to me."])
+    assert has_been_edited(str(sample_run["json_path"])) is True
