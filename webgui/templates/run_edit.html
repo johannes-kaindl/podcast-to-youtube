@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Edit · {{ stem }}{% endblock %}
+{% block content %}
+<header class="run-header">
+  <div class="left">
+    <div class="crumbs"><a href="/runs/{{ stem }}">← Back to run</a></div>
+    <h1><span class="accent-mark">✎</span>Edit transcript: {{ stem }}</h1>
+    <p class="muted" style="margin-top:8px; font-size: 13px;">
+      Edit text only. Speaker labels and timecodes are preserved.
+      Saving invalidates Meta + Render — they will need to re-run.
+    </p>
+    {% if backup_exists %}
+      <p class="muted mono" style="font-size: 11px; margin-top:4px;">Original backup: ✓ saved</p>
+    {% endif %}
+  </div>
+</header>
+
+<form id="edit-form" method="post" action="/runs/{{ stem }}/edit" class="edit-form">
+  {% for seg in segments %}
+    <div class="edit-segment {% if seg.get('_edited') %}is-edited{% endif %}">
+      <div class="edit-segment-header mono">
+        <span class="time">{{ "%02d:%02d"|format((seg.start|int)//60, (seg.start|int)%60) }}</span>
+        <span class="speaker">{{ seg.speaker | default("SPEAKER_00") }}</span>
+        {% if seg.get('_edited') %}<span class="edit-badge">★ edited</span>{% endif %}
+      </div>
+      <textarea name="segment_text_{{ loop.index0 }}"
+                class="edit-textarea"
+                rows="2">{{ seg.text }}</textarea>
+      <input type="hidden" name="original_text_{{ loop.index0 }}" value="{{ seg.text }}">
+    </div>
+  {% endfor %}
+
+  <div class="edit-actions" style="margin-top: 24px; display:flex; gap:12px; flex-wrap:wrap;">
+    <button type="submit" name="action" value="save-return" class="btn">Save & Return</button>
+    <button type="submit" name="action" value="save-continue" class="btn btn-primary">Save & Continue</button>
+    <a href="/runs/{{ stem }}" class="btn btn-ghost">Cancel</a>
+  </div>
+</form>
+{% endblock %}
