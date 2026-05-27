@@ -106,3 +106,39 @@ def test_post_edit_404_when_transcribe_missing(client, tmp_path, monkeypatch):
     r = client.post("/runs/ghost/edit", data={"action": "save-return"},
                     follow_redirects=False)
     assert r.status_code == 404
+
+
+def test_post_edit_save_continue_triggers_meta_phase(client, populated_run, monkeypatch):
+    """POST with action=save-continue should redirect (307) to
+    /runs/{stem}/phase/meta/start, which then spawns the pipeline."""
+    from webgui import app as app_mod
+    calls = []
+
+    def fake_spawn_pipeline(cmd, **kwargs):
+        calls.append({"cmd": cmd, **kwargs})
+        class FakeJob: pass
+        return FakeJob()
+
+    monkeypatch.setattr(app_mod, "spawn_pipeline", fake_spawn_pipeline)
+    monkeypatch.setattr(app_mod.registry, "_slot", None)
+
+    form = {
+        "segment_text_0": "Changed.",
+        "original_text_0": " All right.",
+        "segment_text_1": "Let's dive into this autopoiesis thing.",
+        "original_text_1": "Let's dive into this autopoiesis thing.",
+        "segment_text_2": "Sounds good to me.",
+        "original_text_2": "Sounds good to me.",
+        "action": "save-continue",
+    }
+    r = client.post(f"/runs/ep01/edit", data=form, follow_redirects=True)
+    # follow_redirects=True traverses 307 -> phase/meta/start -> 303 -> /runs/ep01
+    assert r.status_code == 200
+    # spawn_pipeline was called for the meta phase
+    assert len(calls) == 1
+    cmd_str = " ".join(calls[0]["cmd"])
+    # Meta phase runs => --skip-meta is NOT in the cmd; other skips ARE
+    assert "--skip-meta" not in cmd_str
+    assert "--skip-transcribe" in cmd_str
+    assert "--skip-render" in cmd_str
+    assert "--skip-upload" in cmd_str
