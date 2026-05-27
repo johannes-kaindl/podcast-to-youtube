@@ -167,3 +167,56 @@ def test_save_edits_regenerates_srt_and_txt(sample_run):
     assert txt_path.exists()
     assert "Hello." in srt_path.read_text(encoding="utf-8")
     assert "Autopoiesis is fascinating." in txt_path.read_text(encoding="utf-8")
+
+
+@pytest.fixture
+def sample_run_state(tmp_path):
+    """A run-state.json fixture with all phases done."""
+    state = {
+        "schema_version": 1,
+        "stem": "ep01",
+        "phases": {
+            "transcribe": {"status": "done", "finished_at": "2026-05-26T10:00:00Z"},
+            "meta": {"status": "done", "finished_at": "2026-05-26T10:01:00Z"},
+            "render": {"status": "done", "finished_at": "2026-05-26T10:05:00Z"},
+            "upload": {"status": "skipped"},
+        },
+    }
+    path = tmp_path / "run-state.json"
+    path.write_text(json.dumps(state, indent=2), encoding="utf-8")
+    return path
+
+
+def test_invalidate_downstream_resets_meta_render_to_pending(sample_run_state):
+    from transcript_editor import invalidate_downstream
+    invalidated = invalidate_downstream(str(sample_run_state))
+    state = json.loads(sample_run_state.read_text(encoding="utf-8"))
+    assert state["phases"]["meta"]["status"] == "pending"
+    assert state["phases"]["render"]["status"] == "pending"
+    assert "meta" in invalidated
+    assert "render" in invalidated
+
+
+def test_invalidate_downstream_leaves_transcribe_done(sample_run_state):
+    from transcript_editor import invalidate_downstream
+    invalidate_downstream(str(sample_run_state))
+    state = json.loads(sample_run_state.read_text(encoding="utf-8"))
+    assert state["phases"]["transcribe"]["status"] == "done"
+
+
+def test_invalidate_downstream_leaves_upload_alone(sample_run_state):
+    from transcript_editor import invalidate_downstream
+    invalidate_downstream(str(sample_run_state))
+    state = json.loads(sample_run_state.read_text(encoding="utf-8"))
+    # upload was "skipped" — stays skipped (V1 doesn't invalidate upload)
+    assert state["phases"]["upload"]["status"] == "skipped"
+
+
+def test_invalidate_downstream_returns_empty_when_already_pending(sample_run_state):
+    from transcript_editor import invalidate_downstream
+    state = json.loads(sample_run_state.read_text(encoding="utf-8"))
+    state["phases"]["meta"]["status"] = "pending"
+    state["phases"]["render"]["status"] = "pending"
+    sample_run_state.write_text(json.dumps(state, indent=2), encoding="utf-8")
+    invalidated = invalidate_downstream(str(sample_run_state))
+    assert invalidated == []

@@ -115,3 +115,25 @@ def regenerate_srt_txt(json_path: str) -> tuple[str, str]:
         f.write("\n")
 
     return str(srt_path), str(txt_path)
+
+
+def invalidate_downstream(run_state_path: str) -> list[str]:
+    """Reset meta + render phases to 'pending' if they were 'done'.
+
+    Returns list of invalidated phase names. Upload is intentionally left
+    alone — V1 treats edits as affecting transcript-derived artifacts only.
+    """
+    path = Path(run_state_path)
+    if not path.exists():
+        return []
+    state = json.loads(path.read_text(encoding="utf-8"))
+    phases = state.setdefault("phases", {})
+    invalidated: list[str] = []
+    for phase in ("meta", "render"):
+        entry = phases.get(phase, {})
+        if entry.get("status") == "done":
+            phases[phase] = {"status": "pending"}
+            invalidated.append(phase)
+    if invalidated:
+        path.write_text(json.dumps(state, indent=2, ensure_ascii=False), encoding="utf-8")
+    return invalidated
