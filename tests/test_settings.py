@@ -26,3 +26,17 @@ def test_save_settings_partial_merges(tmp_path):
     loaded = load_settings(p)
     assert loaded["theme"] == "light"
     assert loaded["tail_default"] is False
+
+
+def test_default_pause_after_transcribe_is_false(tmp_path):
+    from webgui.settings import load_settings
+    s = load_settings(tmp_path / "nope.json")
+    assert s["pause_after_transcribe"] is False
+
+
+def test_pause_after_transcribe_persists(tmp_path):
+    from webgui.settings import load_settings, save_settings
+    p = tmp_path / "settings.json"
+    save_settings(p, {"pause_after_transcribe": True})
+    loaded = load_settings(p)
+    assert loaded["pause_after_transcribe"] is True
