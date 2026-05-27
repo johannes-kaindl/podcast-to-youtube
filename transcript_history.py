@@ -77,3 +77,43 @@ def cleanup_snapshots(json_path: str) -> int:
     data["_history"] = history[excess:]
     _save(json_path, data)
     return deleted
+
+
+def undo_last(json_path: str) -> dict | None:
+    """Restore the latest snapshot and pop the matching _history entry.
+
+    Returns the popped history entry, or None if _history is empty.
+    Snapshot file is deleted after restoration.
+
+    Note on history bookkeeping: snapshot() writes the file BEFORE appending
+    to _history. So the snapshot content lacks the just-appended history
+    entry. After restoring from snapshot, no further pop is needed.
+    """
+    data = _load(json_path)
+    history = data.get("_history", [])
+    if not history:
+        return None
+    entry = history[-1]
+    parent = Path(json_path).parent
+    snap_rel = entry.get("snapshot", "")
+    if not snap_rel:
+        history.pop()
+        _save(json_path, data)
+        return entry
+    snap_path = parent / snap_rel
+    if snap_path.exists():
+        shutil.copy2(snap_path, json_path)  # restores pre-mutation state
+        snap_path.unlink()
+    else:
+        # Snapshot missing — fall back to popping history entry only
+        history.pop()
+        _save(json_path, data)
+    return entry
+
+
+def list_history(json_path: str) -> list[dict]:
+    """Return _history entries (oldest first). Empty list if absent."""
+    if not Path(json_path).exists():
+        return []
+    data = _load(json_path)
+    return list(data.get("_history", []))

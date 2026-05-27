@@ -69,3 +69,45 @@ def test_cleanup_snapshots_keeps_cap(sample_run, monkeypatch):
     # Corresponding snapshot files: also 3
     snap_dir = sample_run["dir"] / "snapshots"
     assert len(list(snap_dir.glob("*.json"))) == 3
+
+
+def test_undo_last_restores_pre_mutation_state(sample_run):
+    from transcript_history import snapshot, undo_last
+    pre_content = sample_run["json_path"].read_text(encoding="utf-8")
+    snapshot(str(sample_run["json_path"]), action="edit_text", metric="1 changed")
+    # Simulate a mutation: alter segment 0's text
+    data = json.loads(sample_run["json_path"].read_text(encoding="utf-8"))
+    data["segments"][0]["text"] = "CHANGED."
+    sample_run["json_path"].write_text(json.dumps(data, indent=2), encoding="utf-8")
+
+    entry = undo_last(str(sample_run["json_path"]))
+    assert entry is not None
+    assert entry["action"] == "edit_text"
+    # Content should match pre-snapshot state
+    restored = json.loads(sample_run["json_path"].read_text(encoding="utf-8"))
+    assert restored["segments"][0]["text"] != "CHANGED."
+
+
+def test_undo_last_deletes_snapshot_file(sample_run):
+    from transcript_history import snapshot, undo_last
+    snap_path = snapshot(str(sample_run["json_path"]), action="x", metric="y")
+    assert Path(snap_path).exists()
+    undo_last(str(sample_run["json_path"]))
+    assert not Path(snap_path).exists()
+
+
+def test_undo_last_returns_none_when_empty(sample_run):
+    from transcript_history import undo_last
+    entry = undo_last(str(sample_run["json_path"]))
+    assert entry is None
+
+
+def test_list_history_returns_entries_newest_last(sample_run):
+    from transcript_history import snapshot, list_history
+    snapshot(str(sample_run["json_path"]), action="a", metric="1")
+    time.sleep(0.01)
+    snapshot(str(sample_run["json_path"]), action="b", metric="2")
+    entries = list_history(str(sample_run["json_path"]))
+    assert len(entries) == 2
+    assert entries[0]["action"] == "a"
+    assert entries[1]["action"] == "b"
