@@ -1,0 +1,26 @@
+{# Edit-CTA: rendered in run_detail when a transcript exists.
+   Three visual modes:
+     - paused:    pipeline stopped after Transcribe (config.skip_meta + transcribe.done + meta.pending)
+     - editable:  transcribe done, post-hoc edits available
+     - hidden:    no transcript JSON yet
+#}
+{% if transcript_exists %}
+  {% if is_paused %}
+    <section class="card" data-tone="neutral" style="margin-top: 16px;">
+      <header class="card-header">
+        <span class="caps">⏸ Pipeline paused after Transcribe</span>
+      </header>
+      <div class="card-body" style="display:flex; gap:12px; flex-wrap:wrap;">
+        <a href="/runs/{{ stem }}/edit" class="btn btn-primary">📝 Edit Transcript</a>
+        <form method="post" action="/runs/{{ stem }}/phase/meta/start" style="display:inline;">
+          <button type="submit" class="btn">▶ Continue without editing</button>
+        </form>
+      </div>
+    </section>
+  {% else %}
+    <div style="margin-top: 16px; display:flex; gap:8px; align-items:center;">
+      <a href="/runs/{{ stem }}/edit" class="btn btn-ghost">✎ Edit transcript</a>
+      {% if edited_any %}<span class="edit-badge mono">★ transcript edited</span>{% endif %}
+    </div>
+  {% endif %}
+{% endif %}
