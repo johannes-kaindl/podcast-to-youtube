@@ -1,8 +1,12 @@
 # podcast-to-youtube
 
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
+[![Docs: CC BY-SA 4.0](https://img.shields.io/badge/docs-CC%20BY--SA%204.0-blue.svg)](https://creativecommons.org/licenses/by-sa/4.0/)
 [![Codeberg Release](https://img.shields.io/badge/codeberg-v1.0.0-green)](https://codeberg.org/jkaindl/podcast-to-youtube/releases)
 [![Status: Active](https://img.shields.io/badge/status-active-brightgreen)](https://codeberg.org/jkaindl/podcast-to-youtube)
+[![Python](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/)
+[![Platform: macOS](https://img.shields.io/badge/platform-macOS%2015%2B%20%C2%B7%20Apple%20Silicon-lightgrey)](https://www.apple.com/macos/)
+[![Tests](https://img.shields.io/badge/tests-64%20passing-brightgreen)](https://codeberg.org/jkaindl/podcast-to-youtube/src/branch/main/tests)
 
 Automated end-to-end pipeline: podcast audio → finished YouTube video, running locally on Apple Silicon.
 
@@ -15,6 +19,16 @@ Automated end-to-end pipeline: podcast audio → finished YouTube video, running
 ## About
 
 A single audio file (`.m4a` / `.mp3` / `.wav`) becomes a private YouTube video. Everything runs locally on Mac hardware — transcription with WhisperX, metadata generation with a local MLX-served LLM, video rendering with Remotion. The only network call is the YouTube upload itself.
+
+---
+
+## Release status
+
+For full per-release notes see [`CHANGELOG.md`](CHANGELOG.md).
+
+| Version | Date       | Headline                                                                                                                |
+| ------- | ---------- | ----------------------------------------------------------------------------------------------------------------------- |
+| v1.0.0  | 2026-05-22 | **Initial public release** — four-phase pipeline (transcribe · metadata · render · upload), WebGUI + TUI, 64 tests.     |
 
 ---
 
@@ -154,7 +168,7 @@ Environment variables:
 .venv/bin/python -m pytest tests/ -q
 ```
 
-64 unit and integration tests covering the shared pipeline core, the probe and run-history helpers, the job runner and every WebGUI route.
+64 unit and integration tests covering the shared pipeline core, the probe and run-history helpers, the job runner and every WebGUI route. Runs in ~3 s on Apple Silicon.
 
 ---
 
@@ -179,7 +193,7 @@ docs/                  Design spec and implementation plan
 
 ## Contributing
 
-Issues and pull requests are welcome at [Codeberg](https://codeberg.org/jkaindl/podcast-to-youtube). For larger changes, open an issue first. See [`CONTRIBUTING.md`](CONTRIBUTING.md).
+Issues and pull requests are welcome at [Codeberg](https://codeberg.org/jkaindl/podcast-to-youtube) — the issue templates in [`.forgejo/issue_template/`](.forgejo/issue_template/) prompt for everything that's needed. For larger changes, open an issue first. See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the development workflow and [`SECURITY.md`](SECURITY.md) for security-sensitive reports.
 
 ---
 
