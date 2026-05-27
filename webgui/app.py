@@ -296,6 +296,17 @@ async def runs_detail(stem: str, request: Request):
 
     active = registry.current is not None and registry.current.stem == stem
 
+    transcript_json = OUTPUT_ROOT / stem / f"{stem}.whisperx.json"
+    transcript_exists = transcript_json.exists()
+    edited_any = has_been_edited(str(transcript_json)) if transcript_exists else False
+    is_paused = (
+        transcript_exists
+        and phases.get("transcribe", {}).get("status") == "done"
+        and phases.get("meta", {}).get("status") in ("pending", "skipped")
+        and state.get("config", {}).get("skip_meta") is True
+        and registry.current is None
+    )
+
     return templates.TemplateResponse(
         request,
         "run_detail.html",
@@ -308,6 +319,9 @@ async def runs_detail(stem: str, request: Request):
             "active": active,
             "transcript_lines": _load_transcript_snippet(stem),
             "youtube_meta": _load_metadata(stem),
+            "transcript_exists": transcript_exists,
+            "edited_any": edited_any,
+            "is_paused": is_paused,
         },
     )
 

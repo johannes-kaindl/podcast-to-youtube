@@ -395,6 +395,42 @@ def test_config_form_renders_pause_checkbox(client):
     assert "Pause after transcribe" in r.text
 
 
+def test_run_detail_shows_edit_cta_when_transcript_exists(client, populated_output, fixtures_dir):
+    """Any run with transcribe.status=done and a .whisperx.json should expose the Edit CTA."""
+    import shutil
+    import json as _json
+    # Create a fresh stem dir with both a transcript JSON and a run-state file
+    target = populated_output / "folge-082"
+    target.mkdir(exist_ok=True)
+    shutil.copy(fixtures_dir / "sample-transcript.whisperx.json",
+                target / "folge-082.whisperx.json")
+    state = {
+        "schema_version": 1,
+        "stem": "folge-082",
+        "config": {"show_name": "Test", "episode": "EP 82", "viz_type": "dialogue"},
+        "phases": {
+            "transcribe": {"status": "done"},
+            "meta": {"status": "done"},
+            "render": {"status": "pending"},
+            "upload": {"status": "pending"},
+        },
+    }
+    (target / "run-state.json").write_text(_json.dumps(state, indent=2), encoding="utf-8")
+
+    r = client.get("/runs/folge-082")
+    assert r.status_code == 200
+    assert "Edit transcript" in r.text or "edit-transcript" in r.text.lower()
+
+
+def test_run_detail_no_edit_cta_when_transcript_missing(client, populated_output):
+    """Runs without a transcript JSON should not show the Edit CTA."""
+    # The 'aborted' fixture dir has a run-state but no .whisperx.json file
+    r = client.get("/runs/aborted")
+    assert r.status_code == 200
+    # If transcript file is missing, Edit-CTA must NOT appear
+    assert "Edit transcript" not in r.text
+
+
 def test_open_finder_calls_open_minus_R(client, tmp_path, monkeypatch):
     import subprocess
     from webgui import app as app_mod
