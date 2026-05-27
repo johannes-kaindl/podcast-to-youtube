@@ -345,6 +345,8 @@ async def run_edit(stem: str, request: Request):
     segments = load_segments(str(json_path))
     backup_exists = json_path.with_name(json_path.stem + ".original.json").exists()
     edited_any = has_been_edited(str(json_path))
+    speakers = _distinct_speakers(json_path)
+    history = list_history(str(json_path))
     return templates.TemplateResponse(
         request,
         "run_edit.html",
@@ -353,6 +355,8 @@ async def run_edit(stem: str, request: Request):
             "segments": segments,
             "backup_exists": backup_exists,
             "edited_any": edited_any,
+            "speakers": speakers,
+            "history": history,
             "page_mood": "neutral",
         },
     )

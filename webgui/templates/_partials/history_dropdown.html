@@ -1,0 +1,21 @@
+<details class="history-dropdown">
+  <summary class="btn btn-ghost btn-sm">
+    Undo {% if history|length > 0 %}({{ history|length }} entries){% endif %} ▾
+  </summary>
+  <div class="history-panel">
+    {% if not history %}
+      <p class="muted">No edit history yet.</p>
+    {% else %}
+      <form method="post" action="/runs/{{ stem }}/edit/undo" style="margin-bottom:8px;">
+        <button type="submit" class="btn btn-primary btn-sm">↶ Undo last action</button>
+      </form>
+      <ul class="history-list">
+        {% for entry in history|reverse %}
+          <li>
+            <span class="mono">{{ entry.ts }}</span> — {{ entry.action }}: <span class="muted">{{ entry.metric }}</span>
+          </li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  </div>
+</details>
