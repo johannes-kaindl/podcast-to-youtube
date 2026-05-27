@@ -1,0 +1,30 @@
+{
+  "segments": [
+    {
+      "start": 0.04,
+      "end": 0.24,
+      "text": " All right.",
+      "words": [
+        {"word": "All", "start": 0.04, "end": 0.1, "score": 0.0},
+        {"word": "right.", "start": 0.12, "end": 0.24, "score": 0.375}
+      ],
+      "speaker": "SPEAKER_00"
+    },
+    {
+      "start": 0.26,
+      "end": 2.284,
+      "text": "Let's dive into this autopoiesis thing.",
+      "words": [
+        {"word": "Let's", "start": 0.26, "end": 0.421, "score": 0.5}
+      ],
+      "speaker": "SPEAKER_01"
+    },
+    {
+      "start": 2.5,
+      "end": 4.0,
+      "text": "Sounds good to me.",
+      "words": [],
+      "speaker": "SPEAKER_00"
+    }
+  ]
+}
