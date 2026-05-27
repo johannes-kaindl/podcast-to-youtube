@@ -124,3 +124,46 @@ def test_save_edits_does_not_overwrite_backup_on_second_call(sample_run):
     result = save_edits(str(json_path), ["Second.", "Let's dive into this autopoiesis thing.", "Sounds good to me."])
     assert backup_path.read_text(encoding="utf-8") == first_backup_content
     assert result["backup_created"] is False
+
+
+def test_regenerate_srt_txt_writes_both_files(sample_run):
+    from transcript_editor import regenerate_srt_txt
+    json_path = sample_run["json_path"]
+    srt_path, txt_path = regenerate_srt_txt(str(json_path))
+    assert Path(srt_path).exists()
+    assert Path(txt_path).exists()
+    assert Path(srt_path).name == "ep01.srt"
+    assert Path(txt_path).name == "ep01.txt"
+
+
+def test_regenerate_srt_txt_srt_format(sample_run):
+    from transcript_editor import regenerate_srt_txt
+    srt_path, _ = regenerate_srt_txt(str(sample_run["json_path"]))
+    content = Path(srt_path).read_text(encoding="utf-8")
+    # First cue: index 1, [SPEAKER_00] prefix, the original text trimmed
+    assert content.startswith("1\n")
+    assert "[SPEAKER_00]" in content
+    assert "All right." in content
+    # Three cues total
+    assert "\n3\n" in content
+
+
+def test_regenerate_srt_txt_txt_groups_by_speaker(sample_run):
+    from transcript_editor import regenerate_srt_txt
+    _, txt_path = regenerate_srt_txt(str(sample_run["json_path"]))
+    content = Path(txt_path).read_text(encoding="utf-8")
+    assert "SPEAKER_00:" in content
+    assert "SPEAKER_01:" in content
+    assert "All right." in content
+
+
+def test_save_edits_regenerates_srt_and_txt(sample_run):
+    from transcript_editor import save_edits
+    srt_path = sample_run["dir"] / "ep01.srt"
+    txt_path = sample_run["dir"] / "ep01.txt"
+    new_texts = ["Hello.", "Autopoiesis is fascinating.", "Sounds good to me."]
+    save_edits(str(sample_run["json_path"]), new_texts)
+    assert srt_path.exists()
+    assert txt_path.exists()
+    assert "Hello." in srt_path.read_text(encoding="utf-8")
+    assert "Autopoiesis is fascinating." in txt_path.read_text(encoding="utf-8")
