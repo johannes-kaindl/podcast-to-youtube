@@ -51,6 +51,7 @@ def save_edits(json_path: str, new_texts: list[str]) -> dict:
             seg["_edited"] = True
             edited_count += 1
     path.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
+    regenerate_srt_txt(str(path))
     return {
         "total_segments": len(segments),
         "edited_count": edited_count,
@@ -65,3 +66,52 @@ def has_been_edited(json_path: str) -> bool:
         return False
     data = json.loads(path.read_text(encoding="utf-8"))
     return any(seg.get("_edited") for seg in data.get("segments", []))
+
+
+def _format_srt_time(seconds: float) -> str:
+    """HH:MM:SS,mmm — matches transcribe.format_srt_time byte-for-byte."""
+    h = int(seconds // 3600)
+    m = int((seconds % 3600) // 60)
+    s = int(seconds % 60)
+    ms = int((seconds % 1) * 1000)
+    return f"{h:02d}:{m:02d}:{s:02d},{ms:03d}"
+
+
+def regenerate_srt_txt(json_path: str) -> tuple[str, str]:
+    """Rewrite <stem>.srt and <stem>.txt siblings from the JSON segments.
+
+    Same format as transcribe.py — SRT carries [SPEAKER_id] prefix per cue,
+    TXT groups consecutive same-speaker segments under a speaker header.
+    Returns (srt_path, txt_path) as strings.
+    """
+    path = Path(json_path)
+    data = json.loads(path.read_text(encoding="utf-8"))
+    segments = data.get("segments", [])
+    # Strip ".whisperx" from path.stem to recover the base stem ("ep01.whisperx" → "ep01")
+    base_stem = path.stem
+    if base_stem.endswith(".whisperx"):
+        base_stem = base_stem[: -len(".whisperx")]
+    srt_path = path.parent / f"{base_stem}.srt"
+    txt_path = path.parent / f"{base_stem}.txt"
+
+    with srt_path.open("w", encoding="utf-8") as f:
+        for i, seg in enumerate(segments, 1):
+            speaker = seg.get("speaker", "SPEAKER_00")
+            text = f"[{speaker}] {seg['text'].strip()}"
+            f.write(
+                f"{i}\n"
+                f"{_format_srt_time(seg['start'])} --> {_format_srt_time(seg['end'])}\n"
+                f"{text}\n\n"
+            )
+
+    with txt_path.open("w", encoding="utf-8") as f:
+        current_speaker = None
+        for seg in segments:
+            speaker = seg.get("speaker", "SPEAKER_00")
+            if speaker != current_speaker:
+                current_speaker = speaker
+                f.write(f"\n{speaker}:\n")
+            f.write(seg["text"].strip() + " ")
+        f.write("\n")
+
+    return str(srt_path), str(txt_path)
