@@ -6,7 +6,7 @@
 [![Status: Active](https://img.shields.io/badge/status-active-brightgreen)](https://codeberg.org/jkaindl/podcast-to-youtube)
 [![Python](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/)
 [![Platform: macOS](https://img.shields.io/badge/platform-macOS%2015%2B%20%C2%B7%20Apple%20Silicon-lightgrey)](https://www.apple.com/macos/)
-[![Tests](https://img.shields.io/badge/tests-64%20passing-brightgreen)](https://codeberg.org/jkaindl/podcast-to-youtube/src/branch/main/tests)
+[![Tests](https://img.shields.io/badge/tests-151%20passing-brightgreen)](https://codeberg.org/jkaindl/podcast-to-youtube/src/branch/main/tests)
 
 Automated end-to-end pipeline: podcast audio → finished YouTube video, running locally on Apple Silicon.
 
@@ -91,6 +91,28 @@ Pick an audio file, choose the options, click **Start pipeline**. The run page s
 | Key | Action |
 |---|---|
 | `Ctrl+R` | Open the start-pipeline dialog |
+| `Ctrl/Cmd+Z` | *(on edit page)* Undo the last editor action — native field-undo wins while a text input is focused |
+| `Ctrl/Cmd+S` | *(on edit page)* Save & return to the run page |
+
+### Transcript editor
+
+Whisper occasionally mistypes names, jargon, and foreign words. Rather than re-running the whole pipeline, the editor lets the transcript be corrected between phases and reruns only what changed.
+
+Two ways in:
+
+- **Pause after transcribe** — tick the *Pause after transcribe for editing* checkbox on the start form. The pipeline stops after Whisper finishes; the run page surfaces an *Edit Transcript* button.
+- **Edit anytime** — every run with a transcript exposes an *Edit transcript* link on the run page. Saving an edit resets the `meta` + `render` phases to `pending`; click the phase indicator to re-run them with the corrected transcript.
+
+What the editor can do:
+
+- **Segment text** — fix mistyped names, jargon, foreign words.
+- **Speaker re-labelling** — change the speaker per segment, or bulk-rename `SPEAKER_00` → `Anna` across the whole transcript.
+- **Merge / split segments** — combine two consecutive segments or split one at the cursor position.
+- **Word-level edits** — `/runs/<stem>/edit/words` opens a per-word table for finer-grained corrections.
+- **Diff view** — `/runs/<stem>/diff` shows original vs. current, word-by-word.
+- **Undo** — every action snapshots the prior state. The Undo dropdown shows the recent history; `Ctrl/Cmd+Z` reverts the last action.
+
+The first save creates a one-time `<stem>.whisperx.original.json` backup. Snapshots accumulate in `output/<stem>/snapshots/`, auto-trimmed to the 20 newest.
 
 ---
 
@@ -122,10 +144,12 @@ A Textual TUI is kept as a fallback frontend: `python tui.py podcast.m4a`.
 Output lands in `output/<stem>/`:
 
 - `<stem>.whisperx.json` — word-level transcript with speaker labels
+- `<stem>.whisperx.original.json` — pristine backup, created the first time the transcript is edited (see [Transcript editor](#transcript-editor))
 - `<stem>.srt` — subtitles
 - `<stem>.txt` — plain-text transcript
 - `<stem>.youtube-meta.json` — title, description, tags, chapters
 - `<stem>-<viz>.mp4` — the finished video (1920×1080, 30 fps)
+- `snapshots/<unix-ts>.json` — per-mutation undo snapshots written by the editor; auto-trimmed to the 20 newest
 
 ### Scripts
 
@@ -168,7 +192,7 @@ Environment variables:
 .venv/bin/python -m pytest tests/ -q
 ```
 
-64 unit and integration tests covering the shared pipeline core, the probe and run-history helpers, the job runner and every WebGUI route. Runs in ~3 s on Apple Silicon.
+151 unit and integration tests covering the shared pipeline core, the probe and run-history helpers, the job runner, every WebGUI route, and the four transcript-editor modules (`transcript_editor`, `transcript_segment_ops`, `transcript_word_ops`, `transcript_history`, `transcript_diff`). Runs in ~3 s on Apple Silicon.
 
 ---
 
@@ -181,12 +205,17 @@ transcribe.py          WhisperX step
 generate_meta.py       Metadata step (local MLX LLM)
 render_video.py        Render step (Remotion)
 upload_youtube.py      Upload step (YouTube Data API v3)
+transcript_editor.py        Editor V1 — load / save / regen / invalidate
+transcript_segment_ops.py   Editor — merge, split, change_speaker, bulk_rename
+transcript_word_ops.py      Editor — load_words_flat, save_word_edits
+transcript_history.py       Editor — snapshot, undo_last, cleanup_snapshots
+transcript_diff.py          Editor — compute_segment_diff vs .original.json
 webgui/                FastAPI app — routes, job runner, SSE, templates, static
 webgui.py              WebGUI entry point
 tui*.py                Textual TUI (fallback frontend)
 visualizer/            Remotion project (Node) — the video renderer
 tests/                 pytest suite
-docs/                  Design spec and implementation plan
+docs/                  Design specs and implementation plans
 ```
 
 ---

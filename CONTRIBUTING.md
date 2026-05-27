@@ -34,7 +34,7 @@ cd visualizer && npm install && cd ..
 1. **Tests first.** TDD with a failing test, then the implementation. New features land with tests. The bar for "unit-tested" is intentionally low — match what's in `tests/`.
 2. **Run the local suite before pushing:**
    ```bash
-   .venv/bin/python -m pytest tests/ -q       # 64 unit + integration tests, ~3 s
+   .venv/bin/python -m pytest tests/ -q       # 151 unit + integration tests, ~3 s
    ```
 3. **HTTP / SSE code needs real request tests.** WebGUI route changes must be covered with `starlette.testclient.TestClient` requests, not just mocked units — past SSE-reconnect bugs slipped through mock-only coverage.
 4. **Atomic slices.** Implement in small, self-contained slices; commit per slice; bundle into a release when a set of slices is complete. The design spec lives in [`docs/superpowers/specs/`](docs/superpowers/specs/) — if your PR materially changes the surface, update the spec or call out the divergence in the PR description.
