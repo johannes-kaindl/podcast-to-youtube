@@ -54,4 +54,14 @@
       <label class="check"><input type="checkbox" name="skip_upload" checked><span class="box"></span><span>Skip upload</span></label>
     </div>
   </div>
+  <div class="field field--full">
+    <label class="field-label">Editing workflow</label>
+    <div class="row" style="gap:24px; flex-wrap:wrap;">
+      <label class="check"><input type="checkbox" name="pause_after_transcribe"><span class="box"></span><span>Pause after transcribe for editing</span></label>
+    </div>
+    <p class="muted" style="font-size: 12px; margin-top: 4px;">
+      Pipeline stops after transcription. You'll edit the transcript in the browser,
+      then click "Continue" to run Meta + Render with the corrected text.
+    </p>
+  </div>
 </form>

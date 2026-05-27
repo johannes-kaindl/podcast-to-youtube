@@ -202,6 +202,7 @@ async function submitRun() {
     skip_meta: form.skip_meta.checked,
     skip_render: form.skip_render.checked,
     skip_upload: form.skip_upload.checked,
+    pause_after_transcribe: form.pause_after_transcribe.checked,
   };
   const r = await fetch('/api/runs', {
     method: 'POST',
