@@ -20,6 +20,8 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - **`SECURITY.md`** — disclosure policy, supported versions, reporting channel.
 - **`.editorconfig`** — shared editor defaults (4-space Python, 2-space web/data, LF, UTF-8).
 - **`.forgejo/issue_template/`** — bug-report and feature-request templates for the Codeberg tracker.
+- **WebGUI screenshots** — `docs/images/` with a hero start-screen shot and a three-up gallery (live run, ready-to-upload, finished), embedded in the README.
+- **`tools/screenshots/`** — regenerates those screenshots from the real WebGUI (synthetic, schema-accurate demo runs + Playwright capture).
 
 ### Changed
 

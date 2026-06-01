@@ -242,7 +242,8 @@ webgui.py              WebGUI entry point
 tui*.py                Textual TUI (fallback frontend)
 visualizer/            Remotion project (Node) — the video renderer
 tests/                 pytest suite
-docs/                  Design specs and implementation plans
+docs/                  Design specs, implementation plans, screenshots
+tools/                 Dev tooling (e.g. screenshot regeneration)
 ```
 
 ---
