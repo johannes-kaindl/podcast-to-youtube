@@ -14,6 +14,13 @@ Automated end-to-end pipeline: podcast audio → finished YouTube video, running
 
 > **Status: v1.0.0 — first public release.** The full four-phase pipeline runs end-to-end; the WebGUI is the primary interface. Mac Silicon, AGPL-3.0.
 
+<p align="center">
+  <img src="docs/images/webgui-start.png" width="880"
+       alt="The WebGUI start screen: an audio-path field, the visualizer, language, model and speaker options, and the Start pipeline button.">
+</p>
+
+<p align="center"><sub>Drop an episode, pick the options, start the pipeline — everything runs locally.</sub></p>
+
 ---
 
 ## About
@@ -87,6 +94,26 @@ Two external prerequisites: a local **MLX server on port 8080** serving the meta
 `python webgui.py` starts a FastAPI + HTMX interface and opens the browser at `http://localhost:8765`.
 
 Pick an audio file, choose the options, click **Start pipeline**. The run page streams the live log and phase progress over Server-Sent Events. After the render phase the MP4 preview plays inline. Upload is never automatic — choose the visibility (private / unlisted) and click **Upload to YouTube**.
+
+<table>
+  <tr>
+    <td width="33%" valign="top">
+      <a href="docs/images/webgui-running.png"><img src="docs/images/webgui-running.png"
+        alt="WebGUI during a live run: the render phase in progress, the pipeline log streaming, and the transcript and YouTube-metadata previews already populated."></a>
+      <br><sub><b>Live run</b> — phase stepper, streaming log, transcript &amp; metadata as they land.</sub>
+    </td>
+    <td width="33%" valign="top">
+      <a href="docs/images/webgui-upload.png"><img src="docs/images/webgui-upload.png"
+        alt="WebGUI ready-to-upload state: the rendered video preview with the upload card, where you choose private or unlisted visibility before confirming the upload."></a>
+      <br><sub><b>Ready to upload</b> — render preview ready; you pick visibility and confirm. Never automatic.</sub>
+    </td>
+    <td width="33%" valign="top">
+      <a href="docs/images/webgui-done.png"><img src="docs/images/webgui-done.png"
+        alt="WebGUI finished state: all four phases complete, the rendered video, and a card linking to the uploaded YouTube video."></a>
+      <br><sub><b>Done</b> — all four phases complete, video rendered and uploaded.</sub>
+    </td>
+  </tr>
+</table>
 
 | Key | Action |
 |---|---|
