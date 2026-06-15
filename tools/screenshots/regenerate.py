@@ -10,7 +10,7 @@ the PNGs with pngquant, and cleans up.
     python tools/screenshots/regenerate.py --port 9000 --keep-demo
 
 Prerequisites (see tools/screenshots/README.md):
-  * a Python env that can run webgui.py, plus `pip install playwright`
+  * the project env (`uv sync` — playwright is in the dev group)
   * Google Chrome installed (Playwright uses it via channel="chrome")
   * ffmpeg (poster frame) and, optionally, pngquant (PNG optimisation)
 """

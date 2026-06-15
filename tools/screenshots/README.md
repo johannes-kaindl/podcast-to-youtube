@@ -23,15 +23,12 @@ stdout (mirroring `tests/fixtures/stdout-snippets/`) so it looks like a live run
 
 ## Prerequisites
 
-- A Python environment that can run `webgui.py` (the project's web deps:
-  `fastapi`, `uvicorn[standard]`, `jinja2`, `sse-starlette`, `python-multipart`,
-  `python-dotenv`) **plus** `playwright`:
+- The project environment synced with its dev group — `playwright` lives there,
+  alongside the web stack that runs `webgui.py`:
   ```bash
-  uv venv .venv --python 3.12 && source .venv/bin/activate
-  uv pip install fastapi "uvicorn[standard]" jinja2 sse-starlette python-multipart python-dotenv playwright
+  uv sync
   ```
-  (Installing the full `requirements.txt` works too — it just also pulls the heavy
-  ML stack, which the screenshots don't need.)
+  (No `transcribe` extra needed; the screenshots don't run the ML stack.)
 - **Google Chrome** installed — Playwright uses it via `channel="chrome"`, so no
   browser download is required.
 - **ffmpeg** (for the poster frame) and, optionally, **pngquant** (PNG optimisation;

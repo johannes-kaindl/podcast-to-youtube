@@ -65,10 +65,9 @@ flowchart TD
 git clone https://codeberg.org/jkaindl/podcast-to-youtube.git
 cd podcast-to-youtube
 
-# Python environment
-uv venv .venv --python 3.12
+# Python environment (uv reads pyproject.toml + uv.lock, creates .venv)
+uv sync                       # add --extra transcribe for the WhisperX phase
 source .venv/bin/activate
-uv pip install -r requirements.txt
 
 # system tools
 brew install ffmpeg
@@ -222,7 +221,7 @@ Environment variables:
 ## Test suite
 
 ```bash
-.venv/bin/python -m pytest tests/ -q
+uv run pytest tests/ -q        # or: make test
 ```
 
 151 unit and integration tests covering the shared pipeline core, the probe and run-history helpers, the job runner, every WebGUI route, and the four transcript-editor modules (`transcript_editor`, `transcript_segment_ops`, `transcript_word_ops`, `transcript_history`, `transcript_diff`). Runs in ~3 s on Apple Silicon.
@@ -250,6 +249,9 @@ visualizer/            Remotion project (Node) — the video renderer
 tests/                 pytest suite
 docs/                  Design specs, implementation plans, screenshots
 tools/                 Dev tooling (e.g. screenshot regeneration)
+pyproject.toml         Project metadata, deps, and ruff/mypy/pytest config (uv)
+uv.lock                Pinned dependency lockfile
+Makefile               Standard targets (install / check / serve / …)
 ```
 
 ---
