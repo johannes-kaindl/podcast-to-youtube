@@ -17,6 +17,7 @@ import sys
 import urllib.error
 import urllib.request
 from pathlib import Path
+from typing import Any
 
 MLX_BASE_URL = os.environ.get("MLX_BASE_URL", "http://localhost:8080/v1")
 MLX_MODEL = os.environ.get("MLX_MODEL", "mlx-community/Qwen3.6-35B-A3B-4bit")
@@ -85,14 +86,15 @@ def mlx_chat(system: str, user: str, temperature: float = 0.3, max_tokens: int =
     try:
         with urllib.request.urlopen(req, timeout=900) as resp:
             data = json.loads(resp.read().decode("utf-8"))
-            return data["choices"][0]["message"]["content"]
+            content: str = data["choices"][0]["message"]["content"]
+            return content
     except urllib.error.URLError as e:
         print(f"FEHLER: MLX/OpenClaw-Server nicht erreichbar ({MLX_BASE_URL}): {e}")
         print("Bei OpenClaw-Gateway: Service-Status prüfen + ggf. neu starten.")
         sys.exit(1)
 
 
-def parse_json_response(raw: str) -> dict:
+def parse_json_response(raw: str) -> dict[str, Any]:
     raw = raw.strip()
     # Markdown-Wrapper entfernen
     raw = re.sub(r"^```(?:json)?\s*", "", raw, flags=re.MULTILINE)
@@ -102,13 +104,15 @@ def parse_json_response(raw: str) -> dict:
     # LLM-Output enthält die regelmäßig (z.B. Newlines im description-Feld),
     # was strikter JSON-Parser sonst als "Invalid control character" ablehnt.
     try:
-        return json.loads(raw, strict=False)
+        parsed: dict[str, Any] = json.loads(raw, strict=False)
+        return parsed
     except json.JSONDecodeError:
         # Fallback: letzten geschweifte-Klammer-Block extrahieren
         m = re.search(r"\{[\s\S]*\}", raw)
         if m:
             try:
-                return json.loads(m.group(0), strict=False)
+                fallback: dict[str, Any] = json.loads(m.group(0), strict=False)
+                return fallback
             except json.JSONDecodeError:
                 pass
         # Letzte Rettung: Raw-Response für Debugging persistieren
@@ -118,7 +122,7 @@ def parse_json_response(raw: str) -> dict:
         raise ValueError(
             f"Kein valides JSON in Antwort. Raw-Output gespeichert: {debug_path}\n"
             f"Erste 600 Zeichen:\n{raw[:600]}"
-        )
+        ) from None
 
 
 def estimate_duration(whisperx_path: str | None, txt_path: str) -> float:
@@ -127,13 +131,14 @@ def estimate_duration(whisperx_path: str | None, txt_path: str) -> float:
             data = json.load(f)
         segs = data.get("segments", [])
         if segs:
-            return segs[-1]["end"] / 60
+            end_min: float = segs[-1]["end"] / 60
+            return end_min
     with open(txt_path, encoding="utf-8") as f:
         words = len(f.read().split())
     return words / 150
 
 
-def build_chapters_from_whisperx(whisperx_path: str) -> list[dict]:
+def build_chapters_from_whisperx(whisperx_path: str) -> list[dict[str, str]]:
     with open(whisperx_path, encoding="utf-8") as f:
         data = json.load(f)
     segs = data.get("segments", [])
@@ -188,9 +193,9 @@ CREDITS_FOOTER = {
 }
 
 
-def format_description_with_chapters(meta: dict) -> str:
+def format_description_with_chapters(meta: dict[str, Any]) -> str:
     lang = meta.get("language", "de")
-    desc = meta["description_hook"] + "\n\n"
+    desc: str = meta["description_hook"] + "\n\n"
     desc += meta["description_full"] + "\n\n"
     if meta.get("chapters"):
         header = CHAPTERS_HEADER.get(lang, "CHAPTERS")
@@ -214,7 +219,7 @@ CHECKLIST_HEADERS = {
 }
 
 
-def build_post_upload_checklist(meta: dict, show_name: str) -> str:
+def build_post_upload_checklist(meta: dict[str, Any], show_name: str) -> str:
     """Baut eine Markdown-Checkliste für manuelle YouTube-Studio-Schritte
     nach dem Upload. Infokarten-Vorschläge aus den Kapitel-Übergängen.
     """
@@ -270,7 +275,7 @@ def resolve_language(language: str, whisperx_path: str | None) -> str:
     if whisperx_path and os.path.exists(whisperx_path):
         with open(whisperx_path, encoding="utf-8") as f:
             data = json.load(f)
-        detected = data.get("language", "")
+        detected: str = data.get("language", "")
         if detected:
             return detected
     return "de"
@@ -283,7 +288,7 @@ def generate_metadata(
     episode: str = "EP 01",
     output_dir: str = "./output",
     language: str = "de",
-) -> dict:
+) -> dict[str, Any]:
     with open(txt_path, encoding="utf-8") as f:
         transcript = f.read()
 

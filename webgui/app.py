@@ -3,14 +3,17 @@
 Single-User, localhost only. No auth, no CSRF.
 """
 
+import contextlib
 import json
 import os
 import signal
 import subprocess
+from collections.abc import AsyncGenerator, Iterator
 from datetime import datetime
 from pathlib import Path
+from typing import Any
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -47,24 +50,25 @@ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 templates = Jinja2Templates(directory=TEMPLATES_DIR)
 
 
-def _load_state(stem: str) -> dict:
+def _load_state(stem: str) -> dict[str, Any]:
     state_file = OUTPUT_ROOT / stem / "run-state.json"
-    default = {
+    default: dict[str, Any] = {
         "phases": {p: {"status": "pending"} for p in ("transcribe", "meta", "render", "upload")}
     }
     if not state_file.exists():
         return default
     try:
-        return json.loads(state_file.read_text(encoding="utf-8"))
+        loaded: dict[str, Any] = json.loads(state_file.read_text(encoding="utf-8"))
+        return loaded
     except (json.JSONDecodeError, OSError):
         return default
 
 
-def _load_transcript_snippet(stem: str, max_lines: int = 8) -> list[dict]:
+def _load_transcript_snippet(stem: str, max_lines: int = 8) -> list[dict[str, str]]:
     txt = OUTPUT_ROOT / stem / f"{stem}.txt"
     if not txt.exists():
         return []
-    lines = []
+    lines: list[dict[str, str]] = []
     for raw in txt.read_text(encoding="utf-8").splitlines():
         s = raw.strip()
         if not s:
@@ -79,12 +83,13 @@ def _load_transcript_snippet(stem: str, max_lines: int = 8) -> list[dict]:
     return lines
 
 
-def _load_metadata(stem: str) -> dict | None:
+def _load_metadata(stem: str) -> dict[str, Any] | None:
     meta_file = OUTPUT_ROOT / stem / f"{stem}.youtube-meta.json"
     if not meta_file.exists():
         return None
     try:
-        return json.loads(meta_file.read_text(encoding="utf-8"))
+        loaded: dict[str, Any] = json.loads(meta_file.read_text(encoding="utf-8"))
+        return loaded
     except (json.JSONDecodeError, OSError):
         return None
 
@@ -118,18 +123,18 @@ class RunRequest(BaseModel):
 
 
 @app.get("/healthz")
-async def healthz():
+async def healthz() -> dict[str, str]:
     return {"status": "ok"}
 
 
 @app.post("/api/audio/probe")
-async def api_audio_probe(req: AudioProbeRequest):
+async def api_audio_probe(req: AudioProbeRequest) -> dict[str, Any]:
     audio_path = resolve_audio_path(req.path, REPO_ROOT)
     return audio_probe(audio_path, OUTPUT_ROOT)
 
 
 @app.post("/api/audio/pick")
-async def api_audio_pick():
+async def api_audio_pick() -> dict[str, Any]:
     """Open a native macOS file-picker via osascript. Returns {path} or {cancelled: true}.
 
     Workaround for browsers that strip the OS path from drag-drop events.
@@ -151,7 +156,7 @@ async def api_audio_pick():
             timeout=120,
         )
     except (subprocess.TimeoutExpired, FileNotFoundError) as exc:
-        raise HTTPException(status_code=500, detail=f"osascript failed: {exc}")
+        raise HTTPException(status_code=500, detail=f"osascript failed: {exc}") from exc
     path = (result.stdout or "").strip()
     if not path:
         return {"cancelled": True}
@@ -159,7 +164,7 @@ async def api_audio_pick():
 
 
 @app.get("/runs")
-async def runs_view(request: Request, filter: str = "all"):
+async def runs_view(request: Request, filter: str = "all") -> HTMLResponse:
     all_runs = list_runs(OUTPUT_ROOT)
     runs = filter_runs(all_runs, filter)
     return templates.TemplateResponse(
@@ -175,7 +180,7 @@ async def runs_view(request: Request, filter: str = "all"):
 
 
 @app.post("/runs/{stem}/phase/{phase}/start")
-async def runs_phase_start(stem: str, phase: str):
+async def runs_phase_start(stem: str, phase: str) -> RedirectResponse:
     """Start (or restart) a single phase of an existing run.
 
     Reads the run-state.json for audio + config, then spawns either
@@ -262,7 +267,7 @@ async def runs_phase_start(stem: str, phase: str):
 
 
 @app.post("/api/runs")
-async def api_create_run(req: RunRequest):
+async def api_create_run(req: RunRequest) -> RedirectResponse:
     if registry.current is not None:
         raise HTTPException(
             status_code=409,
@@ -311,7 +316,7 @@ async def api_create_run(req: RunRequest):
 
 
 @app.get("/runs/{stem}", response_class=HTMLResponse)
-async def runs_detail(stem: str, request: Request):
+async def runs_detail(stem: str, request: Request) -> HTMLResponse:
     state_file = OUTPUT_ROOT / stem / "run-state.json"
     is_starting = (
         registry.current is not None and registry.current.stem == stem and not state_file.exists()
@@ -378,7 +383,7 @@ async def runs_detail(stem: str, request: Request):
 
 
 @app.get("/runs/{stem}/edit", response_class=HTMLResponse)
-async def run_edit(stem: str, request: Request):
+async def run_edit(stem: str, request: Request) -> HTMLResponse:
     json_path = OUTPUT_ROOT / stem / f"{stem}.whisperx.json"
     if not json_path.exists():
         raise HTTPException(status_code=404, detail="Transcript not found")
@@ -403,7 +408,7 @@ async def run_edit(stem: str, request: Request):
 
 
 @app.post("/runs/{stem}/edit")
-async def run_edit_save(stem: str, request: Request):
+async def run_edit_save(stem: str, request: Request) -> RedirectResponse:
     json_path = OUTPUT_ROOT / stem / f"{stem}.whisperx.json"
     if not json_path.exists():
         raise HTTPException(status_code=404, detail="Transcript not found")
@@ -424,7 +429,7 @@ async def run_edit_save(stem: str, request: Request):
         new_text = form.get(f"segment_text_{i}")
         if new_text is None:
             raise HTTPException(status_code=400, detail=f"Missing segment_text_{i}")
-        new_texts.append(new_text)
+        new_texts.append(str(new_text))
     save_edits(str(json_path), new_texts)
 
     state_path = OUTPUT_ROOT / stem / "run-state.json"
@@ -440,16 +445,16 @@ async def run_edit_save(stem: str, request: Request):
 
 
 @app.post("/runs/{stem}/edit/speaker", response_class=HTMLResponse)
-async def run_edit_speaker(stem: str, request: Request):
+async def run_edit_speaker(stem: str, request: Request) -> HTMLResponse:
     json_path = OUTPUT_ROOT / stem / f"{stem}.whisperx.json"
     if not json_path.exists():
         raise HTTPException(status_code=404, detail="Transcript not found")
     form = await request.form()
     try:
-        segment_index = int(form.get("segment_index", "-1"))
+        segment_index = int(str(form.get("segment_index", "-1")))
     except ValueError:
-        raise HTTPException(status_code=400, detail="segment_index must be int")
-    new_speaker = form.get("speaker", "").strip()
+        raise HTTPException(status_code=400, detail="segment_index must be int") from None
+    new_speaker = str(form.get("speaker", "")).strip()
     if not new_speaker:
         raise HTTPException(status_code=400, detail="speaker required")
     snapshot(
@@ -458,7 +463,7 @@ async def run_edit_speaker(stem: str, request: Request):
     try:
         change_speaker(str(json_path), segment_index, new_speaker)
     except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc))
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
     invalidate_downstream(str(OUTPUT_ROOT / stem / "run-state.json"))
     cleanup_snapshots(str(json_path))
 
@@ -484,70 +489,70 @@ def _render_segments_partial(request: Request, stem: str) -> HTMLResponse:
 
 
 @app.post("/runs/{stem}/edit/bulk-rename")
-async def run_edit_bulk_rename(stem: str, request: Request):
+async def run_edit_bulk_rename(stem: str, request: Request) -> RedirectResponse:
     json_path = OUTPUT_ROOT / stem / f"{stem}.whisperx.json"
     if not json_path.exists():
         raise HTTPException(status_code=404, detail="Transcript not found")
     form = await request.form()
-    old_name = (form.get("old_name") or "").strip()
-    new_name = (form.get("new_name") or "").strip()
+    old_name = str(form.get("old_name") or "").strip()
+    new_name = str(form.get("new_name") or "").strip()
     if not old_name or not new_name:
         raise HTTPException(status_code=400, detail="old_name and new_name required")
     snapshot(str(json_path), action="bulk_rename", metric=f"{old_name} → {new_name}")
     try:
-        count = bulk_rename_speaker(str(json_path), old_name, new_name)
+        bulk_rename_speaker(str(json_path), old_name, new_name)
     except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc))
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
     invalidate_downstream(str(OUTPUT_ROOT / stem / "run-state.json"))
     cleanup_snapshots(str(json_path))
     return RedirectResponse(url=f"/runs/{stem}/edit", status_code=303)
 
 
 @app.post("/runs/{stem}/edit/merge", response_class=HTMLResponse)
-async def run_edit_merge(stem: str, request: Request):
+async def run_edit_merge(stem: str, request: Request) -> HTMLResponse:
     json_path = OUTPUT_ROOT / stem / f"{stem}.whisperx.json"
     if not json_path.exists():
         raise HTTPException(status_code=404, detail="Transcript not found")
     form = await request.form()
     try:
-        segment_index = int(form.get("segment_index", "-1"))
+        segment_index = int(str(form.get("segment_index", "-1")))
     except ValueError:
-        raise HTTPException(status_code=400, detail="segment_index must be int")
+        raise HTTPException(status_code=400, detail="segment_index must be int") from None
     snapshot(str(json_path), action="merge", metric=f"segments {segment_index}+{segment_index + 1}")
     try:
         merge_segment(str(json_path), segment_index)
     except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc))
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
     invalidate_downstream(str(OUTPUT_ROOT / stem / "run-state.json"))
     cleanup_snapshots(str(json_path))
     return _render_segments_partial(request, stem)
 
 
 @app.post("/runs/{stem}/edit/split", response_class=HTMLResponse)
-async def run_edit_split(stem: str, request: Request):
+async def run_edit_split(stem: str, request: Request) -> HTMLResponse:
     json_path = OUTPUT_ROOT / stem / f"{stem}.whisperx.json"
     if not json_path.exists():
         raise HTTPException(status_code=404, detail="Transcript not found")
     form = await request.form()
     try:
-        segment_index = int(form.get("segment_index", "-1"))
-        char_position = int(form.get("char_position", "0"))
+        segment_index = int(str(form.get("segment_index", "-1")))
+        char_position = int(str(form.get("char_position", "0")))
     except ValueError:
-        raise HTTPException(status_code=400, detail="indices must be int")
+        raise HTTPException(status_code=400, detail="indices must be int") from None
     snapshot(
         str(json_path), action="split", metric=f"segment {segment_index} at char {char_position}"
     )
     try:
         split_segment(str(json_path), segment_index, char_position)
     except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc))
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
     invalidate_downstream(str(OUTPUT_ROOT / stem / "run-state.json"))
     cleanup_snapshots(str(json_path))
     return _render_segments_partial(request, stem)
 
 
 @app.post("/runs/{stem}/edit/undo")
-async def run_edit_undo(stem: str):
+async def run_edit_undo(stem: str) -> RedirectResponse:
     json_path = OUTPUT_ROOT / stem / f"{stem}.whisperx.json"
     if not json_path.exists():
         raise HTTPException(status_code=404, detail="Transcript not found")
@@ -563,7 +568,7 @@ async def run_edit_undo(stem: str):
 
 
 @app.get("/runs/{stem}/stream")
-async def runs_stream(stem: str, request: Request):
+async def runs_stream(stem: str, request: Request) -> EventSourceResponse:
     """SSE stream — live from active job, or replay from persisted logfile."""
     last_id_str = request.headers.get("Last-Event-ID", "0")
     try:
@@ -573,7 +578,7 @@ async def runs_stream(stem: str, request: Request):
 
     job = registry.current
 
-    async def replay_then_done():
+    async def replay_then_done() -> AsyncGenerator[dict[str, str], None]:
         output_dir = OUTPUT_ROOT / stem
         log_file = latest_logfile(output_dir)
         if log_file is not None:
@@ -591,7 +596,7 @@ async def runs_stream(stem: str, request: Request):
     if job is None or job.stem != stem:
         return EventSourceResponse(replay_then_done())
 
-    async def live_then_drain():
+    async def live_then_drain() -> AsyncGenerator[dict[str, str], None]:
         # 1) Replay from the logfile up to current job.seq (catch up after reconnect)
         log_file = job.log_file
         if log_file.exists():
@@ -606,22 +611,22 @@ async def runs_stream(stem: str, request: Request):
         # 2) Drain the live queue
         while True:
             assert job.queue is not None
-            event: StreamEvent = await job.queue.get()
-            if event.seq <= last_seq:
+            live_event: StreamEvent = await job.queue.get()
+            if live_event.seq <= last_seq:
                 continue
             yield {
-                "id": str(event.seq),
-                "event": event.type,
-                "data": json.dumps(event.data),
+                "id": str(live_event.seq),
+                "event": live_event.type,
+                "data": json.dumps(live_event.data),
             }
-            if event.type == "done":
+            if live_event.type == "done":
                 break
 
     return EventSourceResponse(live_then_drain())
 
 
 @app.get("/runs/{stem}/phases", response_class=HTMLResponse)
-async def runs_phases_fragment(stem: str, request: Request):
+async def runs_phases_fragment(stem: str, request: Request) -> HTMLResponse:
     state = _load_state(stem)
     return templates.TemplateResponse(
         request,
@@ -631,7 +636,7 @@ async def runs_phases_fragment(stem: str, request: Request):
 
 
 @app.get("/runs/{stem}/resume-banner", response_class=HTMLResponse)
-async def runs_resume_banner(stem: str, request: Request):
+async def runs_resume_banner(stem: str, request: Request) -> HTMLResponse:
     state = _load_state(stem)
     phases = state.get("phases", {})
     aborted_phase = next(
@@ -659,7 +664,9 @@ async def runs_resume_banner(stem: str, request: Request):
 
 
 @app.get("/runs/{stem}/progress", response_class=HTMLResponse)
-async def runs_progress_fragment(stem: str, request: Request, value: float = 0, label: str = ""):
+async def runs_progress_fragment(
+    stem: str, request: Request, value: float = 0, label: str = ""
+) -> HTMLResponse:
     return templates.TemplateResponse(
         request,
         "_partials/progress_bar.html",
@@ -674,7 +681,7 @@ def _find_mp4(stem: str) -> Path | None:
     # Authoritative: the file the last render actually wrote.
     rendered = _load_state(stem).get("phases", {}).get("render", {}).get("output")
     if rendered:
-        candidate = output_dir / rendered
+        candidate = output_dir / str(rendered)
         if candidate.exists():
             return candidate
     # Fallback: newest by mtime — alphabetic sort would pick the wrong viz
@@ -703,7 +710,7 @@ def _parse_range(header: str | None, size: int) -> tuple[int, int] | None:
 
 
 @app.get("/runs/{stem}/preview.mp4")
-async def runs_preview_mp4(stem: str, request: Request):
+async def runs_preview_mp4(stem: str, request: Request) -> StreamingResponse:
     mp4 = _find_mp4(stem)
     if mp4 is None:
         raise HTTPException(status_code=404, detail="MP4 not found")
@@ -711,7 +718,7 @@ async def runs_preview_mp4(stem: str, request: Request):
     range_header = request.headers.get("Range")
     rng = _parse_range(range_header, size)
 
-    def file_iter(start: int, end: int, chunk_size: int = 65536):
+    def file_iter(start: int, end: int, chunk_size: int = 65536) -> Iterator[bytes]:
         with mp4.open("rb") as f:
             f.seek(start)
             remaining = end - start + 1
@@ -746,7 +753,7 @@ class UploadRequest(BaseModel):
 
 
 @app.post("/runs/{stem}/upload", status_code=202)
-async def runs_upload(stem: str, req: UploadRequest):
+async def runs_upload(stem: str, req: UploadRequest) -> dict[str, str]:
     if req.privacy not in ("private", "unlisted"):
         raise HTTPException(status_code=400, detail="Privacy must be 'private' or 'unlisted'")
     mp4 = _find_mp4(stem)
@@ -778,13 +785,11 @@ async def runs_upload(stem: str, req: UploadRequest):
 
 
 @app.post("/runs/{stem}/skip-upload", status_code=204)
-async def runs_skip_upload(stem: str):
-    from fastapi import Response
-
+async def runs_skip_upload(stem: str) -> Response:
     state_file = OUTPUT_ROOT / stem / "run-state.json"
     if not state_file.exists():
         raise HTTPException(status_code=404, detail="Run not found")
-    state = json.loads(state_file.read_text(encoding="utf-8"))
+    state: dict[str, Any] = json.loads(state_file.read_text(encoding="utf-8"))
     state.setdefault("phases", {})["upload"] = {"status": "skipped"}
     state["updated_at"] = datetime.now().isoformat() + "Z"
     state_file.write_text(json.dumps(state, indent=2))
@@ -806,24 +811,18 @@ def _path_is_safe(path: Path) -> bool:
 
 
 @app.post("/runs/{stem}/abort", status_code=204)
-async def runs_abort(stem: str):
-    from fastapi import Response
-
+async def runs_abort(stem: str) -> Response:
     job = registry.current
     if job is None or job.stem != stem:
         raise HTTPException(status_code=404, detail="No active run for this stem")
     if job.process and job.process.poll() is None:
-        try:
+        with contextlib.suppress(ProcessLookupError):
             job.process.send_signal(signal.SIGTERM)
-        except ProcessLookupError:
-            pass
     return Response(status_code=204)
 
 
 @app.post("/open/finder", status_code=204)
-async def open_finder(req: OpenRequest):
-    from fastapi import Response
-
+async def open_finder(req: OpenRequest) -> Response:
     path = Path(req.path)
     if not _path_is_safe(path):
         raise HTTPException(status_code=400, detail="Path outside repo")
@@ -832,9 +831,7 @@ async def open_finder(req: OpenRequest):
 
 
 @app.post("/open/quicktime", status_code=204)
-async def open_quicktime(req: OpenRequest):
-    from fastapi import Response
-
+async def open_quicktime(req: OpenRequest) -> Response:
     path = Path(req.path)
     if not _path_is_safe(path):
         raise HTTPException(status_code=400, detail="Path outside repo")
@@ -850,21 +847,19 @@ class SettingsPatch(BaseModel):
 
 
 @app.get("/api/settings")
-async def api_get_settings():
+async def api_get_settings() -> dict[str, Any]:
     return load_settings(SETTINGS_PATH)
 
 
 @app.post("/api/settings", status_code=204)
-async def api_post_settings(patch: SettingsPatch):
-    from fastapi import Response
-
+async def api_post_settings(patch: SettingsPatch) -> Response:
     payload = {k: v for k, v in patch.model_dump().items() if v is not None}
     save_settings(SETTINGS_PATH, payload)
     return Response(status_code=204)
 
 
 @app.get("/runs/{stem}/edit/words", response_class=HTMLResponse)
-async def run_edit_words(stem: str, request: Request, segment_index: int = 0):
+async def run_edit_words(stem: str, request: Request, segment_index: int = 0) -> HTMLResponse:
     json_path = OUTPUT_ROOT / stem / f"{stem}.whisperx.json"
     if not json_path.exists():
         raise HTTPException(status_code=404, detail="Transcript not found")
@@ -888,15 +883,15 @@ async def run_edit_words(stem: str, request: Request, segment_index: int = 0):
 
 
 @app.post("/runs/{stem}/edit/words")
-async def run_edit_words_save(stem: str, request: Request):
+async def run_edit_words_save(stem: str, request: Request) -> RedirectResponse:
     json_path = OUTPUT_ROOT / stem / f"{stem}.whisperx.json"
     if not json_path.exists():
         raise HTTPException(status_code=404, detail="Transcript not found")
     form = await request.form()
     try:
-        segment_index = int(form.get("segment_index", "-1"))
+        segment_index = int(str(form.get("segment_index", "-1")))
     except ValueError:
-        raise HTTPException(status_code=400, detail="segment_index must be int")
+        raise HTTPException(status_code=400, detail="segment_index must be int") from None
     segments = load_segments(str(json_path))
     if segment_index < 0 or segment_index >= len(segments):
         raise HTTPException(status_code=400, detail="segment_index out of range")
@@ -906,7 +901,7 @@ async def run_edit_words_save(stem: str, request: Request):
         v = form.get(f"word_{i}")
         if v is None:
             raise HTTPException(status_code=400, detail=f"Missing word_{i}")
-        new_words.append(v)
+        new_words.append(str(v))
     snapshot(
         str(json_path),
         action="edit_words",
@@ -915,14 +910,14 @@ async def run_edit_words_save(stem: str, request: Request):
     try:
         save_word_edits(str(json_path), segment_index, new_words)
     except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc))
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
     invalidate_downstream(str(OUTPUT_ROOT / stem / "run-state.json"))
     cleanup_snapshots(str(json_path))
     return RedirectResponse(url=f"/runs/{stem}/edit", status_code=303)
 
 
 @app.get("/runs/{stem}/diff", response_class=HTMLResponse)
-async def run_diff_view(stem: str, request: Request):
+async def run_diff_view(stem: str, request: Request) -> HTMLResponse:
     json_path = OUTPUT_ROOT / stem / f"{stem}.whisperx.json"
     if not json_path.exists():
         raise HTTPException(status_code=404, detail="Transcript not found")
@@ -942,7 +937,7 @@ async def run_diff_view(stem: str, request: Request):
 
 
 @app.get("/")
-async def index(request: Request):
+async def index(request: Request) -> HTMLResponse:
     return templates.TemplateResponse(
         request,
         "index.html",

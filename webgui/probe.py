@@ -4,6 +4,7 @@ import json
 import shutil
 import subprocess
 from pathlib import Path
+from typing import Any
 
 SUPPORTED_EXTS = {".m4a", ".mp3", ".wav"}
 
@@ -22,7 +23,7 @@ _META_FIXED_S = 45
 _UPLOAD_FACTOR = 0.03  # bandwidth-dependent — heuristic only
 
 
-def audio_probe(audio_path: Path, output_root: Path) -> dict:
+def audio_probe(audio_path: Path, output_root: Path) -> dict[str, Any]:
     """Probe audio file. Returns dict with 'valid' bool + audio/resume metadata."""
     if not audio_path.exists():
         return {"valid": False, "error": "file_not_found"}
@@ -51,7 +52,7 @@ def audio_probe(audio_path: Path, output_root: Path) -> dict:
 
     probe = json.loads(ff.stdout)
     fmt = probe.get("format", {})
-    audio_stream = next(
+    audio_stream: dict[str, Any] = next(
         (s for s in probe.get("streams", []) if s.get("codec_type") == "audio"),
         {},
     )

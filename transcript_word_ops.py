@@ -7,25 +7,27 @@ rebuilt from the (possibly updated) word list.
 
 import json
 from pathlib import Path
+from typing import Any
 
 from transcript_editor import regenerate_srt_txt
 
 
-def _load(json_path: str) -> dict:
-    return json.loads(Path(json_path).read_text(encoding="utf-8"))
+def _load(json_path: str) -> dict[str, Any]:
+    data: dict[str, Any] = json.loads(Path(json_path).read_text(encoding="utf-8"))
+    return data
 
 
-def _save(json_path: str, data: dict) -> None:
+def _save(json_path: str, data: dict[str, Any]) -> None:
     Path(json_path).write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
 
 
-def load_words_flat(json_path: str, segment_index: int | None = None) -> list[dict]:
+def load_words_flat(json_path: str, segment_index: int | None = None) -> list[dict[str, Any]]:
     """Return a flat list of {word, start, end, score, _edited, segment_index, word_index}.
 
     If segment_index is given, returns only words for that segment.
     """
     data = _load(json_path)
-    out: list[dict] = []
+    out: list[dict[str, Any]] = []
     for seg_i, seg in enumerate(data.get("segments", [])):
         if segment_index is not None and seg_i != segment_index:
             continue
@@ -40,7 +42,7 @@ def load_words_flat(json_path: str, segment_index: int | None = None) -> list[di
     return out
 
 
-def save_word_edits(json_path: str, segment_index: int, new_words: list[str]) -> dict:
+def save_word_edits(json_path: str, segment_index: int, new_words: list[str]) -> dict[str, Any]:
     """Update word strings within a single segment.
 
     Sets _edited: true on each word whose string changed. Rebuilds the
@@ -59,7 +61,7 @@ def save_word_edits(json_path: str, segment_index: int, new_words: list[str]) ->
     if len(new_words) != len(words):
         raise ValueError(f"new_words length {len(new_words)} != words length {len(words)}")
     edited_count = 0
-    for word, new_str in zip(words, new_words):
+    for word, new_str in zip(words, new_words, strict=True):
         if word.get("word") != new_str:
             word["word"] = new_str
             word["_edited"] = True

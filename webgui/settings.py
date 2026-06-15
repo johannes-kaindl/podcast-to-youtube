@@ -2,6 +2,7 @@
 
 import json
 from pathlib import Path
+from typing import Any
 
 DEFAULTS = {
     "theme": "dark",
@@ -12,7 +13,7 @@ DEFAULTS = {
 }
 
 
-def load_settings(path: Path) -> dict:
+def load_settings(path: Path) -> dict[str, Any]:
     if not path.exists():
         return dict(DEFAULTS)
     try:
@@ -24,7 +25,7 @@ def load_settings(path: Path) -> dict:
     return merged
 
 
-def save_settings(path: Path, partial: dict) -> None:
+def save_settings(path: Path, partial: dict[str, Any]) -> None:
     current = load_settings(path)
     current.update(partial)
     path.write_text(json.dumps(current, indent=2), encoding="utf-8")

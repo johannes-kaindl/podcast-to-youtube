@@ -5,7 +5,7 @@ import json
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal
 
 PhaseName = Literal["transcribe", "meta", "render", "upload"]
 PhaseStatus = Literal["pending", "running", "done", "aborted", "skipped"]
@@ -25,7 +25,7 @@ class RunSummary:
     video_path: str | None
     duration_s: int | None  # total pipeline duration, only if all phases done/skipped
     waveform_seed: int  # for procedural Run-Card thumbnail
-    raw: dict = field(repr=False)
+    raw: dict[str, Any] = field(repr=False)
 
 
 def list_runs(output_root: Path) -> list[RunSummary]:
@@ -50,7 +50,7 @@ def list_runs(output_root: Path) -> list[RunSummary]:
     return out
 
 
-def _summarize(data: dict, stem: str) -> RunSummary:
+def _summarize(data: dict[str, Any], stem: str) -> RunSummary:
     phases_raw = data["phases"]
     phases: dict[PhaseName, PhaseStatus] = {
         p: phases_raw.get(p, {}).get("status", "pending") for p in PHASES

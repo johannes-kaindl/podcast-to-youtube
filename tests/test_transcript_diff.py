@@ -50,7 +50,7 @@ def test_compute_segment_diff_marks_text_changes(edited_run):
     diffs = compute_segment_diff(str(edited_run["json_path"]))
     # Diff entries for ALL segments (or at least segment 0)
     assert len(diffs) >= 1
-    seg_0 = [d for d in diffs if d["current_index"] == 0][0]
+    seg_0 = next(d for d in diffs if d["current_index"] == 0)
     assert seg_0["text_changed"] is True
     assert "text_diff" in seg_0
 
@@ -64,7 +64,7 @@ def test_compute_segment_diff_detects_speaker_change(edited_run):
     edited_run["json_path"].write_text(json.dumps(data, indent=2), encoding="utf-8")
 
     diffs = compute_segment_diff(str(edited_run["json_path"]))
-    seg_0 = [d for d in diffs if d["current_index"] == 0][0]
+    seg_0 = next(d for d in diffs if d["current_index"] == 0)
     assert seg_0["speaker_changed"] is True
     assert seg_0["original_speaker"] == "SPEAKER_00"
     assert seg_0["current_speaker"] == "Anna"
@@ -85,11 +85,11 @@ def test_compute_segment_diff_handles_merged_segments(edited_run):
         "words": seg_0["words"] + seg_1["words"],
         "_merged_from": [0, 1],
     }
-    data["segments"] = [merged] + data["segments"][2:]
+    data["segments"] = [merged, *data["segments"][2:]]
     edited_run["json_path"].write_text(json.dumps(data, indent=2), encoding="utf-8")
 
     diffs = compute_segment_diff(str(edited_run["json_path"]))
-    merged_entry = [d for d in diffs if d["current_index"] == 0][0]
+    merged_entry = next(d for d in diffs if d["current_index"] == 0)
     assert merged_entry["original_indices"] == [0, 1]
     assert merged_entry["merge_or_split"] == "merged"
 

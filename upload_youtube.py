@@ -21,6 +21,7 @@ import pickle
 import sys
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import Any
 
 SECRETS_FILE = os.path.join(os.path.dirname(__file__), "client_secrets.json")
 TOKEN_FILE = os.path.join(os.path.dirname(__file__), ".youtube_token.pickle")
@@ -54,7 +55,7 @@ def resolve_playlist_id(show_name: str | None, explicit_id: str | None) -> str |
     return mapping.get("default")
 
 
-def add_to_playlist(youtube, video_id: str, playlist_id: str) -> bool:
+def add_to_playlist(youtube: Any, video_id: str, playlist_id: str) -> bool:
     """Hängt Video an Playlist. Return True bei Erfolg, False bei Fehler
     (loggt aber den Fehler — Upload selbst war erfolgreich, Playlist ist
     nice-to-have und soll den Workflow nicht crashen)."""
@@ -77,9 +78,9 @@ def add_to_playlist(youtube, video_id: str, playlist_id: str) -> bool:
         return False
 
 
-def get_credentials():
+def get_credentials() -> Any:
     try:
-        import google.auth
+        import google.auth  # noqa: F401  # availability probe — fail fast if google-auth missing
         from google.auth.transport.requests import Request
         from google_auth_oauthlib.flow import InstalledAppFlow
     except ImportError:
@@ -133,7 +134,7 @@ def upload(
     thumbnail_path: str | None = None,
     show_name: str | None = None,
     playlist_id: str | None = None,
-) -> dict:
+) -> dict[str, str]:
     try:
         from googleapiclient.discovery import build
         from googleapiclient.http import MediaFileUpload
@@ -195,14 +196,13 @@ def upload(
 
     # Playlist-Auto-Assignment: explizite --playlist-id > show_name-Match > default.
     effective_playlist_id = resolve_playlist_id(show_name, playlist_id)
-    if effective_playlist_id:
-        if add_to_playlist(youtube, video_id, effective_playlist_id):
-            print(f"  Playlist: {effective_playlist_id}")
+    if effective_playlist_id and add_to_playlist(youtube, video_id, effective_playlist_id):
+        print(f"  Playlist: {effective_playlist_id}")
 
     return {"video_id": video_id, "url": f"https://www.youtube.com/watch?v={video_id}"}
 
 
-def _format_chapters(chapters: list[dict]) -> str:
+def _format_chapters(chapters: list[dict[str, Any]]) -> str:
     """Render chapters as a description block. YouTube turns a timestamped
     list into clickable chapter markers when the first entry is 0:00 and
     there are at least three."""
@@ -219,7 +219,7 @@ def _format_chapters(chapters: list[dict]) -> str:
     return "\n\nChapters:\n" + "\n".join(lines)
 
 
-def _write_upload_state(video_path: str, **upload_phase) -> None:
+def _write_upload_state(video_path: str, **upload_phase: Any) -> None:
     """Update phases.upload in the run-state.json next to the video.
     No-op when there is no run-state (e.g. a bare upload of a loose file)."""
     state_file = Path(video_path).parent / "run-state.json"
@@ -234,7 +234,7 @@ def _write_upload_state(video_path: str, **upload_phase) -> None:
         pass
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(description="YouTube-Upload")
     parser.add_argument("video", help="MP4-Videodatei")
     parser.add_argument("--meta", help="JSON-Metadatendatei (aus generate_meta.py)")

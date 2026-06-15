@@ -57,7 +57,7 @@ def download_pyannote(hf_token: str) -> None:
     print("  Voraussetzung: Terms auf huggingface.co akzeptiert")
     print(f"  → {PYANNOTE_MODEL} laden ...", end=" ", flush=True)
     try:
-        from pyannote.audio import Pipeline
+        from pyannote.audio import Pipeline  # type: ignore[import-not-found]  # no stubs
 
         Pipeline.from_pretrained(PYANNOTE_MODEL, use_auth_token=hf_token)
         print("✓")

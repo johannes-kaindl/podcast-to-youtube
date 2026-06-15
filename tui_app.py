@@ -1,14 +1,17 @@
 """Pipeline TUI — App, compose, event routing. Heavy lifting in tui_cmd / tui_progress."""
 
+import contextlib
 import json
 import subprocess
 import time
 import traceback
 from datetime import datetime
 from pathlib import Path
+from typing import Any, ClassVar
 
 from textual import work
 from textual.app import App, ComposeResult
+from textual.binding import BindingType
 from textual.containers import Horizontal, Vertical, VerticalScroll
 from textual.widgets import (
     Button,
@@ -52,7 +55,7 @@ class PipelineTUI(App[None]):
     SUB_TITLE = "Transkription · Meta · Render · Upload"
     CSS_PATH = "tui.tcss"
 
-    BINDINGS = [
+    BINDINGS: ClassVar[list[BindingType]] = [
         ("ctrl+r", "run_pipeline", "Starten"),
         ("ctrl+y", "copy_log", "Log → Clipboard"),
         ("ctrl+q", "quit", "Beenden"),
@@ -201,12 +204,13 @@ class PipelineTUI(App[None]):
     def _output_dir_for(self, audio_path: str) -> Path:
         return PIPELINE_DIR / "output" / Path(audio_path).stem
 
-    def _load_run_state(self, audio_path: str) -> dict | None:
+    def _load_run_state(self, audio_path: str) -> dict[str, Any] | None:
         state_path = self._output_dir_for(audio_path) / RUN_STATE_FILE
         if not state_path.exists():
             return None
         try:
-            return json.loads(state_path.read_text(encoding="utf-8"))
+            data: dict[str, Any] = json.loads(state_path.read_text(encoding="utf-8"))
+            return data
         except Exception:
             return None
 
@@ -225,10 +229,8 @@ class PipelineTUI(App[None]):
                     ("skip-render", False),
                     ("skip-upload", True),
                 ]:
-                    try:
+                    with contextlib.suppress(Exception):
                         self.query_one(f"#{box_id}", Checkbox).value = default
-                    except Exception:
-                        pass
             return
 
         phases = state.get("phases", {})
@@ -250,22 +252,17 @@ class PipelineTUI(App[None]):
             }
             for phase, box_id in phase_to_box.items():
                 status = phases.get(phase, {}).get("status")
-                if status in ("done", "skipped"):
-                    value = True
-                else:
-                    value = defaults[box_id]
-                try:
+                value = True if status in ("done", "skipped") else defaults[box_id]
+                with contextlib.suppress(Exception):
                     self.query_one(f"#{box_id}", Checkbox).value = value
-                except Exception:
-                    pass
 
         self._render_resume_banner(state)
 
-    def _render_resume_banner(self, state: dict) -> None:
+    def _render_resume_banner(self, state: dict[str, Any]) -> None:
         phases = state.get("phases", {})
         # Welche Phase ist die zuletzt aktive (running / aborted)?
-        aborted_phase = None
-        running_phase = None
+        aborted_phase: str | None = None
+        running_phase: str | None = None
         for name in ("transcribe", "meta", "render", "upload"):
             status = phases.get(name, {}).get("status")
             if status == "running":
@@ -292,8 +289,8 @@ class PipelineTUI(App[None]):
             glyphs.append(f"{icon} {PHASE_LABELS[name]}")
         overview = "  ".join(glyphs)
 
-        if aborted_phase or running_phase:
-            phase = aborted_phase or running_phase
+        phase = aborted_phase or running_phase
+        if phase is not None:
             label = "abgebrochen" if aborted_phase else "läuft / extern beendet"
             err = phases.get(phase, {}).get("error", "")
             err_line = f"\n[dim]Fehler: {err}[/]" if err else ""
@@ -485,7 +482,7 @@ class PipelineTUI(App[None]):
         if not txt.exists():
             return
         try:
-            lines = [l for l in txt.read_text(encoding="utf-8").splitlines() if l.strip()]
+            lines = [ln for ln in txt.read_text(encoding="utf-8").splitlines() if ln.strip()]
             preview = lines[:20]
             log.write(f"\n[#22272f]{'─' * 60}[/]")
             log.write("[bold #5a6170]  Transkript-Vorschau[/]")

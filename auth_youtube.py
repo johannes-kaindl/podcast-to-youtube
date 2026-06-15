@@ -21,7 +21,7 @@ SCOPES = [
 ]
 
 
-def main():
+def main() -> None:
     try:
         from google_auth_oauthlib.flow import InstalledAppFlow
     except ImportError:

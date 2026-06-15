@@ -7,16 +7,18 @@ tests/test_transcript_editor.py.
 import json
 import shutil
 from pathlib import Path
+from typing import Any
 
 
-def load_segments(json_path: str) -> list[dict]:
+def load_segments(json_path: str) -> list[dict[str, Any]]:
     """Return the list of segments from a WhisperX JSON file.
 
     Each segment dict carries: start, end, text, speaker, words (list),
     _edited (bool, defaults False if absent).
     """
     data = json.loads(Path(json_path).read_text(encoding="utf-8"))
-    return data.get("segments", [])
+    segments: list[dict[str, Any]] = data.get("segments", [])
+    return segments
 
 
 def _backup_path_for(json_path: Path) -> Path:
@@ -25,7 +27,7 @@ def _backup_path_for(json_path: Path) -> Path:
     return json_path.with_name(json_path.stem + ".original.json")
 
 
-def save_edits(json_path: str, new_texts: list[str]) -> dict:
+def save_edits(json_path: str, new_texts: list[str]) -> dict[str, Any]:
     """Update each segment's text from new_texts (parallel list).
 
     On first save, creates a one-time backup at <stem>.whisperx.original.json.
@@ -44,7 +46,7 @@ def save_edits(json_path: str, new_texts: list[str]) -> dict:
     if len(new_texts) != len(segments):
         raise ValueError(f"new_texts length {len(new_texts)} != segments length {len(segments)}")
     edited_count = 0
-    for seg, new_text in zip(segments, new_texts):
+    for seg, new_text in zip(segments, new_texts, strict=True):
         if seg.get("text") != new_text:
             seg["text"] = new_text
             seg["_edited"] = True

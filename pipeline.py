@@ -21,6 +21,7 @@ import os
 import sys
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import Any
 
 # Lokale Module
 sys.path.insert(0, os.path.dirname(__file__))
@@ -52,18 +53,19 @@ def _state_path(output_dir: str) -> str:
     return os.path.join(output_dir, RUN_STATE_FILE)
 
 
-def _load_state(output_dir: str) -> dict | None:
+def _load_state(output_dir: str) -> dict[str, Any] | None:
     path = _state_path(output_dir)
     if not os.path.exists(path):
         return None
     try:
         with open(path, encoding="utf-8") as f:
-            return json.load(f)
+            loaded: dict[str, Any] = json.load(f)
+            return loaded
     except Exception:
         return None
 
 
-def _save_state(output_dir: str, state: dict) -> None:
+def _save_state(output_dir: str, state: dict[str, Any]) -> None:
     state["updated_at"] = _now_iso()
     path = _state_path(output_dir)
     tmp = path + ".tmp"
@@ -72,7 +74,7 @@ def _save_state(output_dir: str, state: dict) -> None:
     os.replace(tmp, path)
 
 
-def _init_state(output_dir: str, audio_path: str, config_dict: dict) -> dict:
+def _init_state(output_dir: str, audio_path: str, config_dict: dict[str, Any]) -> dict[str, Any]:
     """Lädt existierenden State oder erzeugt neuen; mergt aktuelle Config."""
     state = _load_state(output_dir) or {
         "schema_version": RUN_STATE_SCHEMA,
@@ -87,8 +89,10 @@ def _init_state(output_dir: str, audio_path: str, config_dict: dict) -> dict:
     return state
 
 
-def _set_phase(state: dict, output_dir: str, phase: str, status: str, **extra) -> None:
-    entry: dict = {"status": status, **extra}
+def _set_phase(
+    state: dict[str, Any], output_dir: str, phase: str, status: str, **extra: Any
+) -> None:
+    entry: dict[str, Any] = {"status": status, **extra}
     # historische Felder (started_at etc.) der vorigen Iteration nicht
     # versehentlich überschreiben — nur ergänzen
     prev = state["phases"].get(phase, {})
@@ -101,8 +105,9 @@ def _set_phase(state: dict, output_dir: str, phase: str, status: str, **extra) -
     _save_state(output_dir, state)
 
 
-def _phase_done(state: dict, phase: str) -> bool:
-    return state["phases"].get(phase, {}).get("status") == "done"
+def _phase_done(state: dict[str, Any], phase: str) -> bool:
+    result: bool = state["phases"].get(phase, {}).get("status") == "done"
+    return result
 
 
 def run_pipeline(
@@ -121,7 +126,7 @@ def run_pipeline(
     skip_render: bool = False,
     skip_upload: bool = False,
     privacy: str = "private",
-) -> dict:
+) -> dict[str, Any]:
 
     stem = Path(audio_path).stem
     os.makedirs(output_dir, exist_ok=True)
@@ -145,7 +150,7 @@ def run_pipeline(
         },
     )
 
-    results = {}
+    results: dict[str, Any] = {}
 
     # ── Schritt 1: Transkription ─────────────────────────────────────────────
     json_path = os.path.join(output_dir, f"{stem}.whisperx.json")
@@ -371,7 +376,7 @@ def run_pipeline(
     return results
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(
         description="Podcast-zu-YouTube Pipeline",
         formatter_class=argparse.RawDescriptionHelpFormatter,

@@ -6,15 +6,17 @@ siblings via transcript_editor.regenerate_srt_txt.
 
 import json
 from pathlib import Path
+from typing import Any
 
 from transcript_editor import regenerate_srt_txt
 
 
-def _load(json_path: str) -> dict:
-    return json.loads(Path(json_path).read_text(encoding="utf-8"))
+def _load(json_path: str) -> dict[str, Any]:
+    data: dict[str, Any] = json.loads(Path(json_path).read_text(encoding="utf-8"))
+    return data
 
 
-def _save(json_path: str, data: dict) -> None:
+def _save(json_path: str, data: dict[str, Any]) -> None:
     Path(json_path).write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
 
 

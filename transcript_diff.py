@@ -7,17 +7,19 @@ text-diff tags, speaker-change flag, and merge/split origin metadata.
 import difflib
 import json
 from pathlib import Path
+from typing import Any
 
 
 def _backup_path_for(json_path: Path) -> Path:
     return json_path.with_name(json_path.stem + ".original.json")
 
 
-def _load(json_path: str) -> dict:
-    return json.loads(Path(json_path).read_text(encoding="utf-8"))
+def _load(json_path: str) -> dict[str, Any]:
+    data: dict[str, Any] = json.loads(Path(json_path).read_text(encoding="utf-8"))
+    return data
 
 
-def compute_segment_diff(json_path: str) -> list[dict]:
+def compute_segment_diff(json_path: str) -> list[dict[str, Any]]:
     """Return per-current-segment diff entries.
 
     If .original.json doesn't exist, returns []. Otherwise each entry has:
@@ -40,7 +42,7 @@ def compute_segment_diff(json_path: str) -> list[dict]:
     cur_segs = current.get("segments", [])
     orig_segs = original.get("segments", [])
 
-    out: list[dict] = []
+    out: list[dict[str, Any]] = []
     for i, seg in enumerate(cur_segs):
         if "_merged_from" in seg:
             orig_indices = list(seg["_merged_from"])
@@ -62,7 +64,7 @@ def compute_segment_diff(json_path: str) -> list[dict]:
         orig_words = original_text.split()
         cur_words = current_text.split()
         matcher = difflib.SequenceMatcher(a=orig_words, b=cur_words)
-        text_diff: list[tuple] = []
+        text_diff: list[tuple[str, str, str]] = []
         for tag, i1, i2, j1, j2 in matcher.get_opcodes():
             text_diff.append((tag, " ".join(orig_words[i1:i2]), " ".join(cur_words[j1:j2])))
 

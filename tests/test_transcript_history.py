@@ -55,7 +55,7 @@ def test_snapshot_appends_history_entry(sample_run):
 def test_snapshot_history_path_is_relative(sample_run):
     from transcript_history import snapshot
 
-    snap_path = snapshot(str(sample_run["json_path"]), action="merge", metric="0+1")
+    snapshot(str(sample_run["json_path"]), action="merge", metric="0+1")
     data = json.loads(sample_run["json_path"].read_text(encoding="utf-8"))
     # Stored path should be relative to output dir: "snapshots/<ts>.json"
     rel = data["_history"][-1]["snapshot"]
@@ -83,7 +83,6 @@ def test_cleanup_snapshots_keeps_cap(sample_run, monkeypatch):
 def test_undo_last_restores_pre_mutation_state(sample_run):
     from transcript_history import snapshot, undo_last
 
-    pre_content = sample_run["json_path"].read_text(encoding="utf-8")
     snapshot(str(sample_run["json_path"]), action="edit_text", metric="1 changed")
     # Simulate a mutation: alter segment 0's text
     data = json.loads(sample_run["json_path"].read_text(encoding="utf-8"))

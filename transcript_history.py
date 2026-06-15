@@ -10,6 +10,7 @@ import shutil
 import time
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import Any
 
 SNAPSHOT_CAP = 20
 
@@ -18,11 +19,12 @@ def _now_iso() -> str:
     return datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
-def _load(json_path: str) -> dict:
-    return json.loads(Path(json_path).read_text(encoding="utf-8"))
+def _load(json_path: str) -> dict[str, Any]:
+    data: dict[str, Any] = json.loads(Path(json_path).read_text(encoding="utf-8"))
+    return data
 
 
-def _save(json_path: str, data: dict) -> None:
+def _save(json_path: str, data: dict[str, Any]) -> None:
     Path(json_path).write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
 
 
@@ -61,7 +63,7 @@ def snapshot(json_path: str, action: str, metric: str) -> str:
 def cleanup_snapshots(json_path: str) -> int:
     """Delete oldest snapshots beyond SNAPSHOT_CAP. Returns count deleted."""
     data = _load(json_path)
-    history = data.get("_history", [])
+    history: list[dict[str, Any]] = data.get("_history", [])
     if len(history) <= SNAPSHOT_CAP:
         return 0
     excess = len(history) - SNAPSHOT_CAP
@@ -80,7 +82,7 @@ def cleanup_snapshots(json_path: str) -> int:
     return deleted
 
 
-def undo_last(json_path: str) -> dict | None:
+def undo_last(json_path: str) -> dict[str, Any] | None:
     """Restore the latest snapshot and pop the matching _history entry.
 
     Returns the popped history entry, or None if _history is empty.
@@ -91,7 +93,7 @@ def undo_last(json_path: str) -> dict | None:
     entry. After restoring from snapshot, no further pop is needed.
     """
     data = _load(json_path)
-    history = data.get("_history", [])
+    history: list[dict[str, Any]] = data.get("_history", [])
     if not history:
         return None
     entry = history[-1]
@@ -112,9 +114,10 @@ def undo_last(json_path: str) -> dict | None:
     return entry
 
 
-def list_history(json_path: str) -> list[dict]:
+def list_history(json_path: str) -> list[dict[str, Any]]:
     """Return _history entries (oldest first). Empty list if absent."""
     if not Path(json_path).exists():
         return []
     data = _load(json_path)
-    return list(data.get("_history", []))
+    history: list[dict[str, Any]] = list(data.get("_history", []))
+    return history

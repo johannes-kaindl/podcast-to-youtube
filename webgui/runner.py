@@ -5,10 +5,12 @@ share this slot — only one subprocess can run at a time.
 """
 
 import asyncio
+import contextlib
 import re
 import shlex
 import subprocess
 import threading
+from collections.abc import Iterator
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
@@ -31,7 +33,7 @@ class ActiveJob:
     stem: str
     audio_path: Path
     output_dir: Path
-    process: subprocess.Popen | None
+    process: subprocess.Popen[str] | None
     log_file: Path
     kind: JobKind
     started_at: datetime = field(default_factory=lambda: datetime.now(UTC))
@@ -125,14 +127,12 @@ def spawn_pipeline(
     def _put(event: StreamEvent) -> None:
         if loop is None or job.queue is None:
             return
-        try:
+        # Loop already closed (e.g. test client teardown, server shutdown).
+        # Reader thread continues writing to the log file regardless.
+        with contextlib.suppress(RuntimeError):
             loop.call_soon_threadsafe(job.queue.put_nowait, event)
-        except RuntimeError:
-            # Loop already closed (e.g. test client teardown, server shutdown).
-            # Reader thread continues writing to the log file regardless.
-            pass
 
-    def _reader():
+    def _reader() -> None:
         from pipeline_core import match_line
 
         current_step = 0
@@ -141,6 +141,7 @@ def spawn_pipeline(
                 f.write(f"# Pipeline-Run started {job.started_at.isoformat()}\n")
                 f.write(f"# Command: {shlex.join(cmd)}\n")
                 f.write("# " + ("─" * 60) + "\n\n")
+                assert proc.stdout is not None  # text=True+PIPE guarantees a stream
                 for line in proc.stdout:
                     line = line.rstrip("\n")
                     f.write(line + "\n")
@@ -213,7 +214,7 @@ def latest_logfile(output_dir: Path) -> Path | None:
     return logs[-1] if logs else None
 
 
-def replay_logfile(log_file: Path, start_seq: int = 0):
+def replay_logfile(log_file: Path, start_seq: int = 0) -> Iterator[StreamEvent]:
     """Yield StreamEvent log lines from a logfile, starting AFTER start_seq.
 
     Lines starting with '#' or blank lines are header/separator — skipped
@@ -292,19 +293,18 @@ def spawn_upload(
     def _put(event: StreamEvent) -> None:
         if loop is None or job.queue is None:
             return
-        try:
+        with contextlib.suppress(RuntimeError):
             loop.call_soon_threadsafe(job.queue.put_nowait, event)
-        except RuntimeError:
-            pass
 
     upload_pct = re.compile(r"Upload:\s*(\d+)\s*%")
 
-    def _reader():
+    def _reader() -> None:
         try:
             with log_file.open("a", encoding="utf-8", buffering=1) as f:
                 f.write(f"\n# Upload started {job.started_at.isoformat()}\n")
                 f.write(f"# Command: {shlex.join(cmd)}\n")
                 f.write("# " + ("─" * 60) + "\n\n")
+                assert proc.stdout is not None  # text=True+PIPE guarantees a stream
                 for line in proc.stdout:
                     line = line.rstrip("\n")
                     f.write(line + "\n")

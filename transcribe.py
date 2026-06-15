@@ -11,6 +11,7 @@ Usage:
 import argparse
 import json
 import os
+from typing import Any
 
 
 def format_srt_time(seconds: float) -> str:
@@ -39,14 +40,14 @@ def transcribe(
     hf_token: str | None = None,
     diarize: bool = True,
     num_speakers: int | None = None,
-) -> dict:
+) -> dict[str, Any]:
     import whisperx
 
     device = "cpu"
     compute_type = "int8"
 
     print(f"[1/4] Modell laden ({model_size})...", flush=True)
-    from faster_whisper import WhisperModel
+    from faster_whisper import WhisperModel  # type: ignore[import-not-found]  # no stubs
 
     fw_model = WhisperModel(model_size, device=device, compute_type=compute_type)
 
@@ -59,7 +60,7 @@ def transcribe(
     detected_lang = info.language
 
     # Stream-Output: jedes Segment sofort drucken, sobald fertig
-    segments: list[dict] = []
+    segments: list[dict[str, Any]] = []
     for seg in segments_iter:
         segments.append({"start": seg.start, "end": seg.end, "text": seg.text})
         mins, secs = divmod(seg.start, 60)
