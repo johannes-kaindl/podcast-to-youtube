@@ -32,6 +32,7 @@ uploads/
 
 # --- Claude/Superpowers brainstorm artefakte ---
 .superpowers/
+.claude/
 
 # --- Agent local context (privat, nicht committen) ---
 AGENTS.md
