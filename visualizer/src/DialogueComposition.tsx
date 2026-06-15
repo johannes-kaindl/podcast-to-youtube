@@ -1,25 +1,17 @@
-import React, {useLayoutEffect, useMemo, useRef} from 'react';
 import {
-  AbsoluteFill,
-  Audio,
-  spring,
-  staticFile,
-  useCurrentFrame,
-  useVideoConfig,
-} from 'remotion';
-import {useWindowedAudioData, visualizeAudio, visualizeAudioWaveform} from '@remotion/media-utils';
+  useWindowedAudioData,
+  visualizeAudio,
+  visualizeAudioWaveform,
+} from '@remotion/media-utils';
+import React, { useLayoutEffect, useMemo, useRef } from 'react';
+import { AbsoluteFill, Audio, spring, staticFile, useCurrentFrame, useVideoConfig } from 'remotion';
 
-import {ChamberBackground} from './components/ChamberBackground';
-import {ProgressHairline} from './components/ProgressHairline';
-import {SectionCard} from './components/SectionCard';
-import type {Timeline, Turn} from './utils/timeline';
-import {
-  useTimeline,
-  useEffectiveSpeaker,
-  useActiveChapter,
-  useNextTurn,
-} from './utils/timeline';
-import {SIGNAL_BY_SPEAKER} from './utils/speakers';
+import { ChamberBackground } from './components/ChamberBackground';
+import { ProgressHairline } from './components/ProgressHairline';
+import { SectionCard } from './components/SectionCard';
+import { SIGNAL_BY_SPEAKER } from './utils/speakers';
+import type { Timeline, Turn } from './utils/timeline';
+import { useActiveChapter, useEffectiveSpeaker, useNextTurn, useTimeline } from './utils/timeline';
 
 export type DialogueVizMode = 'dialogue' | 'monologue';
 
@@ -50,12 +42,6 @@ const formatSpeakerLabel = (s: string): string => {
   if (!m) return s;
   const n = parseInt(m[1], 10) + 1;
   return `Speaker ${String(n).padStart(2, '0')}`;
-};
-const formatSpeakerShort = (s: string): string => {
-  const m = s.match(/SPEAKER_(\d+)/);
-  if (!m) return s;
-  const n = parseInt(m[1], 10) + 1;
-  return `SPK·${String(n).padStart(2, '0')}`;
 };
 
 // ── Prompter layout ────────────────────────────────────────────────────────
@@ -95,24 +81,46 @@ export const DialogueVisualizer: React.FC<DialogueProps> = ({
   showName,
 }) => {
   const frame = useCurrentFrame();
-  const {fps, durationInFrames} = useVideoConfig();
+  const { fps, durationInFrames } = useVideoConfig();
 
   const audioSrc = staticFile('podcast.wav');
   // dataOffsetInSeconds MUSS an visualizeAudio/Waveform durchgereicht werden —
   // sonst liest die FFT ab Frame ≥ windowInSeconds*3 (bei 30s: ab 1:30) out-of-bounds
   // und gibt Nullen zurück. Buffer startet nicht bei 0s, sobald wir uns weit genug
   // im Audio bewegen.
-  const {audioData, dataOffsetInSeconds} = useWindowedAudioData({src: audioSrc, frame, fps, windowInSeconds: 30});
+  const { audioData, dataOffsetInSeconds } = useWindowedAudioData({
+    src: audioSrc,
+    frame,
+    fps,
+    windowInSeconds: 30,
+  });
 
   const audioLevel = useMemo(() => {
     if (!audioData) return 0;
-    const sp = visualizeAudio({fps, frame, audioData, numberOfSamples: 16, optimizeFor: 'speed', dataOffsetInSeconds});
-    return Math.min(1, Math.log10(1 + (sp.reduce((a, b) => a + b, 0) / Math.max(1, sp.length)) * 9));
+    const sp = visualizeAudio({
+      fps,
+      frame,
+      audioData,
+      numberOfSamples: 16,
+      optimizeFor: 'speed',
+      dataOffsetInSeconds,
+    });
+    return Math.min(
+      1,
+      Math.log10(1 + (sp.reduce((a, b) => a + b, 0) / Math.max(1, sp.length)) * 9),
+    );
   }, [audioData, frame, fps, dataOffsetInSeconds]);
 
   const spectrum = useMemo(() => {
     if (!audioData) return new Array(256).fill(0) as number[];
-    return visualizeAudio({fps, frame, audioData, numberOfSamples: 256, optimizeFor: 'speed', dataOffsetInSeconds});
+    return visualizeAudio({
+      fps,
+      frame,
+      audioData,
+      numberOfSamples: 256,
+      optimizeFor: 'speed',
+      dataOffsetInSeconds,
+    });
   }, [audioData, frame, fps, dataOffsetInSeconds]);
 
   // Echte Time-Domain-Waveform für DualWaveform — visualizeAudio gibt FFT-Bins
@@ -122,7 +130,9 @@ export const DialogueVisualizer: React.FC<DialogueProps> = ({
   const waveform = useMemo(() => {
     if (!audioData) return new Array(140).fill(0) as number[];
     return visualizeAudioWaveform({
-      fps, frame, audioData,
+      fps,
+      frame,
+      audioData,
       numberOfSamples: 140,
       windowInSeconds: 1 / fps,
       channel: 0,
@@ -131,17 +141,19 @@ export const DialogueVisualizer: React.FC<DialogueProps> = ({
   }, [audioData, frame, fps, dataOffsetInSeconds]);
 
   const timeline = useTimeline();
-  const {effectiveIdx: activeSpeaker, current: currentTurn} =
-    useEffectiveSpeaker(timeline, frame, fps, 4);
-  const {chapter, framesFromBoundary} = useActiveChapter(timeline, frame, fps);
+  const { effectiveIdx: activeSpeaker, current: currentTurn } = useEffectiveSpeaker(
+    timeline,
+    frame,
+    fps,
+    4,
+  );
+  const { chapter, framesFromBoundary } = useActiveChapter(timeline, frame, fps);
   const nextTurn = useNextTurn(timeline, frame, fps);
 
   // Silence-Detection auf DialogueVisualizer-Level — sowohl CompactRing
   // (Glow-Atmen) als auch MetaBar (LIVE-Dot-Atmen) brauchen es.
   const isSilent = !currentTurn && audioLevel < 0.08;
-  const silenceBreath = isSilent
-    ? 0.5 + 0.5 * Math.sin((frame * 2 * Math.PI) / 60)
-    : 0;
+  const silenceBreath = isSilent ? 0.5 + 0.5 * Math.sin((frame * 2 * Math.PI) / 60) : 0;
 
   const elapsed = frame / fps;
   const total = durationInFrames / fps;
@@ -161,14 +173,14 @@ export const DialogueVisualizer: React.FC<DialogueProps> = ({
     timeUntilEnd >= FADE_START
       ? 1
       : timeUntilEnd >= FADE_END
-      ? (timeUntilEnd - FADE_END) / (FADE_START - FADE_END)
-      : 0;
+        ? (timeUntilEnd - FADE_END) / (FADE_START - FADE_END)
+        : 0;
   const endFrameAlpha =
     timeUntilEnd >= FADE_END
       ? 0
       : timeUntilEnd >= FADE_END - END_FADE_IN
-      ? 1 - (timeUntilEnd - (FADE_END - END_FADE_IN)) / END_FADE_IN
-      : 1;
+        ? 1 - (timeUntilEnd - (FADE_END - END_FADE_IN)) / END_FADE_IN
+        : 1;
 
   return (
     <AbsoluteFill className="ksp-stage" data-aspect="kantoku">
@@ -191,15 +203,10 @@ export const DialogueVisualizer: React.FC<DialogueProps> = ({
         silenceBreath={silenceBreath}
       />
 
-      <div style={{opacity: contentAlpha, transition: 'none'}}>
+      <div style={{ opacity: contentAlpha, transition: 'none' }}>
         {vizMode === 'dialogue' ? (
           <>
-            <PrompterArea
-              timeline={timeline}
-              currentTurn={currentTurn}
-              frame={frame}
-              fps={fps}
-            />
+            <PrompterArea timeline={timeline} currentTurn={currentTurn} frame={frame} fps={fps} />
             <RightPanel
               spectrum={spectrum}
               waveform={waveform}
@@ -237,11 +244,7 @@ export const DialogueVisualizer: React.FC<DialogueProps> = ({
       />
 
       {endFrameAlpha > 0 && (
-        <EndFrame
-          showName={showName}
-          episode={episode}
-          opacity={endFrameAlpha}
-        />
+        <EndFrame showName={showName} episode={episode} opacity={endFrameAlpha} />
       )}
 
       <Audio src={audioSrc} />
@@ -257,7 +260,7 @@ const EndFrame: React.FC<{
   showName: string;
   episode: string;
   opacity: number;
-}> = ({showName, episode, opacity}) => (
+}> = ({ showName, episode, opacity }) => (
   <AbsoluteFill
     style={{
       opacity,
@@ -322,17 +325,25 @@ const MetaBar: React.FC<{
   activeSpeaker: 0 | 1 | null;
   isSilent: boolean;
   silenceBreath: number;
-}> = ({showName, episode, elapsed, total, audioLevel, activeSpeaker, isSilent, silenceBreath}) => {
+}> = ({
+  showName,
+  episode,
+  elapsed,
+  total,
+  audioLevel,
+  activeSpeaker,
+  isSilent,
+  silenceBreath,
+}) => {
   // Active-Speaker-Indicator in der Mitte des Headers: kleiner Dot in der
   // Speaker-Farbe + Mono-Label. Bei null (Silence) gedimmt mit „—".
   const speakerColor =
     activeSpeaker === 0
       ? 'var(--signal-phosphor)'
       : activeSpeaker === 1
-      ? 'var(--signal-spectre)'
-      : 'var(--void-600)';
-  const speakerLabel =
-    activeSpeaker === 0 ? 'SPK·01' : activeSpeaker === 1 ? 'SPK·02' : '—';
+        ? 'var(--signal-spectre)'
+        : 'var(--void-600)';
+  const speakerLabel = activeSpeaker === 0 ? 'SPK·01' : activeSpeaker === 1 ? 'SPK·02' : '—';
   return (
     <div
       style={{
@@ -346,7 +357,7 @@ const MetaBar: React.FC<{
         zIndex: 5,
       }}
     >
-      <div style={{display: 'flex', alignItems: 'center', gap: 16}}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
         <div
           style={{
             width: 28,
@@ -355,11 +366,18 @@ const MetaBar: React.FC<{
             background: 'linear-gradient(135deg, var(--signal-crimson), var(--signal-ember))',
           }}
         />
-        <span style={{fontWeight: 500, fontSize: 16, letterSpacing: '-0.01em', color: 'var(--signal-pearl)'}}>
+        <span
+          style={{
+            fontWeight: 500,
+            fontSize: 16,
+            letterSpacing: '-0.01em',
+            color: 'var(--signal-pearl)',
+          }}
+        >
           {showName}
         </span>
-        <div style={{width: 1, height: 14, background: 'var(--void-400)'}} />
-        <span style={{fontWeight: 400, fontSize: 15, color: 'var(--void-700)'}}>{episode}</span>
+        <div style={{ width: 1, height: 14, background: 'var(--void-400)' }} />
+        <span style={{ fontWeight: 400, fontSize: 15, color: 'var(--void-700)' }}>{episode}</span>
       </div>
       {/* Center: Active-Speaker-Indicator */}
       <div
@@ -396,7 +414,7 @@ const MetaBar: React.FC<{
           {speakerLabel}
         </span>
       </div>
-      <div style={{display: 'flex', alignItems: 'center', gap: 24}}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
         <span
           style={{
             fontFamily: 'var(--font-mono)',
@@ -407,7 +425,7 @@ const MetaBar: React.FC<{
         >
           {fmtTc(elapsed)} / {fmtTc(total)}
         </span>
-        <div style={{display: 'flex', alignItems: 'center', gap: 8}}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           {/* LIVE-Dot: bei Sprache pulst mit audioLevel (0.7..1.0), bei
               Silence atmet im 2s-Cycle (0.3..0.55) — konsistent zum Glow-
               Breath. */}
@@ -444,24 +462,24 @@ const PrompterArea: React.FC<{
   currentTurn: Turn | null;
   frame: number;
   fps: number;
-}> = ({timeline, currentTurn, frame, fps}) => {
+}> = ({ timeline, currentTurn, frame, fps }) => {
   const nowMs = (frame / fps) * 1000;
 
-  const {activeIdx, scrollFrac} = useMemo(() => {
-    if (!timeline.ready || timeline.turns.length === 0) return {activeIdx: 0, scrollFrac: 0};
-    if (currentTurn) return {activeIdx: timeline.turns.indexOf(currentTurn), scrollFrac: 0};
-    if (nowMs < timeline.turns[0].startMs) return {activeIdx: 0, scrollFrac: 0};
+  const { activeIdx, scrollFrac } = useMemo(() => {
+    if (!timeline.ready || timeline.turns.length === 0) return { activeIdx: 0, scrollFrac: 0 };
+    if (currentTurn) return { activeIdx: timeline.turns.indexOf(currentTurn), scrollFrac: 0 };
+    if (nowMs < timeline.turns[0].startMs) return { activeIdx: 0, scrollFrac: 0 };
     const last = timeline.turns.length - 1;
-    if (nowMs >= timeline.turns[last].endMs) return {activeIdx: last, scrollFrac: 0};
+    if (nowMs >= timeline.turns[last].endMs) return { activeIdx: last, scrollFrac: 0 };
     for (let i = 0; i < last; i++) {
       const end = timeline.turns[i].endMs;
       const next = timeline.turns[i + 1].startMs;
       if (nowMs >= end && nowMs < next) {
         const gap = next - end;
-        return {activeIdx: i, scrollFrac: gap > 0 ? smoothstep((nowMs - end) / gap) : 0};
+        return { activeIdx: i, scrollFrac: gap > 0 ? smoothstep((nowMs - end) / gap) : 0 };
       }
     }
-    return {activeIdx: 0, scrollFrac: 0};
+    return { activeIdx: 0, scrollFrac: 0 };
   }, [timeline.turns, timeline.ready, currentTurn, nowMs]);
 
   // y-midpoints of each turn block (initial fallback for the very first
@@ -549,8 +567,7 @@ const PrompterArea: React.FC<{
         {timeline.turns.map((turn, i) => {
           const isActive = i === activeIdx && scrollFrac < 0.5;
           const color = SIGNAL_BY_SPEAKER[turn.speaker] ?? 'var(--accent)';
-          const ref =
-            i === activeIdx ? activeRef : i === activeIdx + 1 ? nextRef : null;
+          const ref = i === activeIdx ? activeRef : i === activeIdx + 1 ? nextRef : null;
           return (
             <TurnBlock
               key={i}
@@ -575,7 +592,7 @@ const TurnBlock = React.forwardRef<
     nowMs: number;
     color: string;
   }
->(({turn, isActive, nowMs, color}, ref) => {
+>(({ turn, isActive, nowMs, color }, ref) => {
   const fontSize = isActive ? 68 : 60;
   // Base-Caption-Opacity: bei aktivem Turn 0.92, bei inaktivem 0.36.
   // Im aktiven Turn werden alle Wörter via per-word style auf opacity 0.36
@@ -585,7 +602,7 @@ const TurnBlock = React.forwardRef<
 
   return (
     <div ref={ref}>
-      <div style={{display: 'flex', alignItems: 'center', gap: 14, marginBottom: 18}}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 18 }}>
         <span
           style={{
             width: 8,
@@ -596,10 +613,10 @@ const TurnBlock = React.forwardRef<
             flexShrink: 0,
           }}
         />
-        <span style={{fontWeight: 500, fontSize: 15, letterSpacing: '-0.005em', color}}>
+        <span style={{ fontWeight: 500, fontSize: 15, letterSpacing: '-0.005em', color }}>
           {formatSpeakerLabel(turn.speaker)}
         </span>
-        <span style={{width: 1, height: 12, background: 'var(--void-400)'}} />
+        <span style={{ width: 1, height: 12, background: 'var(--void-400)' }} />
         <span
           style={{
             fontFamily: 'var(--font-mono)',
@@ -624,46 +641,42 @@ const TurnBlock = React.forwardRef<
           color: `rgba(232,228,216,${captionOpacity})`,
         }}
       >
-        {turn.words.length > 0 ? (
-          turn.words.map((w, j) => {
-            // Word-Fade im aktiven Turn:
-            //   • zukünftiges Wort (nowMs < startMs): opacity 0.36 (dim)
-            //   • aktuelles Wort (startMs..endMs):     speaker-color + glow
-            //   • Afterglow (≤ 500ms nach endMs):      speaker-color, Glow fadet
-            //   • Long past (>500ms nach endMs):        pearl (hell, lesbar)
-            // Bei inaktivem Turn übernimmt parent-captionOpacity (alle dim).
-            let style: React.CSSProperties = {};
-            if (isActive) {
-              const isCurrent = nowMs >= w.startMs && nowMs < w.endMs;
-              const isPast = nowMs >= w.endMs;
-              const elapsedSinceEnd = nowMs - w.endMs;
-              const afterGlow =
-                isPast && elapsedSinceEnd < AFTERGLOW_MS
-                  ? 1 - elapsedSinceEnd / AFTERGLOW_MS
-                  : 0;
-              if (isCurrent) {
-                style = {color, textShadow: '0 0 18px currentColor'};
-              } else if (afterGlow > 0) {
-                style = {
-                  color,
-                  textShadow: `0 0 ${(18 * afterGlow).toFixed(1)}px currentColor`,
-                };
-              } else if (isPast) {
-                style = {color: 'var(--signal-pearl)'};
-              } else {
-                style = {opacity: 0.36};
+        {turn.words.length > 0
+          ? turn.words.map((w, j) => {
+              // Word-Fade im aktiven Turn:
+              //   • zukünftiges Wort (nowMs < startMs): opacity 0.36 (dim)
+              //   • aktuelles Wort (startMs..endMs):     speaker-color + glow
+              //   • Afterglow (≤ 500ms nach endMs):      speaker-color, Glow fadet
+              //   • Long past (>500ms nach endMs):        pearl (hell, lesbar)
+              // Bei inaktivem Turn übernimmt parent-captionOpacity (alle dim).
+              let style: React.CSSProperties = {};
+              if (isActive) {
+                const isCurrent = nowMs >= w.startMs && nowMs < w.endMs;
+                const isPast = nowMs >= w.endMs;
+                const elapsedSinceEnd = nowMs - w.endMs;
+                const afterGlow =
+                  isPast && elapsedSinceEnd < AFTERGLOW_MS ? 1 - elapsedSinceEnd / AFTERGLOW_MS : 0;
+                if (isCurrent) {
+                  style = { color, textShadow: '0 0 18px currentColor' };
+                } else if (afterGlow > 0) {
+                  style = {
+                    color,
+                    textShadow: `0 0 ${(18 * afterGlow).toFixed(1)}px currentColor`,
+                  };
+                } else if (isPast) {
+                  style = { color: 'var(--signal-pearl)' };
+                } else {
+                  style = { opacity: 0.36 };
+                }
               }
-            }
-            return (
-              <React.Fragment key={j}>
-                <span style={style}>{w.word}</span>
-                {j < turn.words.length - 1 ? ' ' : null}
-              </React.Fragment>
-            );
-          })
-        ) : (
-          turn.text
-        )}
+              return (
+                <React.Fragment key={j}>
+                  <span style={style}>{w.word}</span>
+                  {j < turn.words.length - 1 ? ' ' : null}
+                </React.Fragment>
+              );
+            })
+          : turn.text}
       </p>
     </div>
   );
@@ -682,7 +695,17 @@ const RightPanel: React.FC<{
   nextTurn: Turn | null;
   elapsed: number;
   silenceBreath: number;
-}> = ({spectrum, waveform, frame, fps, activeSpeaker, currentTurn, nextTurn, elapsed, silenceBreath}) => {
+}> = ({
+  spectrum,
+  waveform,
+  frame,
+  fps,
+  activeSpeaker,
+  currentTurn,
+  nextTurn,
+  elapsed,
+  silenceBreath,
+}) => {
   // 96 log-spaced bins für Spoke-Render (volle 360°, keine Spiegelung).
   // bin 1..255 wird log über 96 Spokes verteilt — Bass dehnt sich über viele
   // Spokes, Treble wird komprimiert. Dadurch wandert die spektrale Energie
@@ -693,7 +716,7 @@ const RightPanel: React.FC<{
     const maxBin = spectrum.length - 1;
     for (let i = 0; i < N; i++) {
       const t = i / (N - 1);
-      const bin = Math.round(Math.pow(maxBin, t));
+      const bin = Math.round(maxBin ** t);
       out.push(spectrum[Math.min(maxBin, bin)] ?? 0);
     }
     return out;
@@ -704,7 +727,10 @@ const RightPanel: React.FC<{
   // sampleRate/512 Auflösung — bei 44.1kHz ≈ 86 Hz pro bin.
   const bassEnergy = useMemo(() => {
     const sub = spectrum.slice(1, 7);
-    return Math.min(1, Math.log10(1 + (sub.reduce((a, b) => a + b, 0) / Math.max(1, sub.length)) * 9));
+    return Math.min(
+      1,
+      Math.log10(1 + (sub.reduce((a, b) => a + b, 0) / Math.max(1, sub.length)) * 9),
+    );
   }, [spectrum]);
 
   const spectralCentroid = useMemo(() => {
@@ -719,7 +745,10 @@ const RightPanel: React.FC<{
 
   const midEnergy = useMemo(() => {
     const mid = spectrum.slice(8, 32);
-    return Math.min(1, Math.log10(1 + (mid.reduce((a, b) => a + b, 0) / Math.max(1, mid.length)) * 9));
+    return Math.min(
+      1,
+      Math.log10(1 + (mid.reduce((a, b) => a + b, 0) / Math.max(1, mid.length)) * 9),
+    );
   }, [spectrum]);
 
   return (
@@ -769,7 +798,7 @@ const RightPanel: React.FC<{
   );
 };
 
-const PanelHead: React.FC<{title: string; sub: string}> = ({title, sub}) => (
+const PanelHead: React.FC<{ title: string; sub: string }> = ({ title, sub }) => (
   <div
     style={{
       display: 'flex',
@@ -778,7 +807,7 @@ const PanelHead: React.FC<{title: string; sub: string}> = ({title, sub}) => (
       marginBottom: 12,
     }}
   >
-    <span style={{fontWeight: 500, fontSize: 13, color: 'var(--signal-pearl)'}}>{title}</span>
+    <span style={{ fontWeight: 500, fontSize: 13, color: 'var(--signal-pearl)' }}>{title}</span>
     <span
       style={{
         fontFamily: 'var(--font-mono)',
@@ -796,7 +825,7 @@ const PanelHead: React.FC<{title: string; sub: string}> = ({title, sub}) => (
 const DualWaveform: React.FC<{
   waveform: number[];
   activeSpeaker: 0 | 1 | null;
-}> = ({waveform, activeSpeaker}) => {
+}> = ({ waveform, activeSpeaker }) => {
   // Time-Domain-Waveform: jedes Sample ist eine signierte Amplitude ±1.
   // Sprach-Peaks liegen typisch bei 0.05–0.2 → ohne Gain praktisch unsichtbar
   // in einer 88 px hohen SVG. Mit GAIN=4.5 erreichen typische Peaks ~80 %
@@ -821,11 +850,33 @@ const DualWaveform: React.FC<{
   // Active-Indicator-Dots — pulsieren bei aktivem Sprecher
   const dotR = 3.5;
   return (
-    <svg viewBox={`0 0 ${SVG_W} ${SVG_H}`} width={SVG_W} height={SVG_H} style={{display: 'block'}}>
+    <svg
+      viewBox={`0 0 ${SVG_W} ${SVG_H}`}
+      width={SVG_W}
+      height={SVG_H}
+      style={{ display: 'block' }}
+    >
       {/* Center axis */}
-      <line x1={0} y1={CY} x2={SVG_W} y2={CY} stroke="var(--void-300)" strokeWidth={1} strokeDasharray="2 5" opacity={0.6} />
+      <line
+        x1={0}
+        y1={CY}
+        x2={SVG_W}
+        y2={CY}
+        stroke="var(--void-300)"
+        strokeWidth={1}
+        strokeDasharray="2 5"
+        opacity={0.6}
+      />
       {/* Now-marker */}
-      <line x1={SVG_W * 0.667} y1={4} x2={SVG_W * 0.667} y2={SVG_H - 4} stroke="var(--void-500)" strokeWidth={1} opacity={0.6} />
+      <line
+        x1={SVG_W * 0.667}
+        y1={4}
+        x2={SVG_W * 0.667}
+        y2={SVG_H - 4}
+        stroke="var(--void-500)"
+        strokeWidth={1}
+        opacity={0.6}
+      />
       {/* Lane labels */}
       <g transform={`translate(6 ${CY - AMP + 2})`}>
         <circle
@@ -881,8 +932,22 @@ const DualWaveform: React.FC<{
         </filter>
       </defs>
       <g filter="url(#dw-glow)">
-        <path d={dU} stroke="var(--signal-phosphor)" strokeWidth={1.5} fill="none" strokeLinecap="round" opacity={0.95} />
-        <path d={dL} stroke="var(--signal-spectre)" strokeWidth={1.5} fill="none" strokeLinecap="round" opacity={0.95} />
+        <path
+          d={dU}
+          stroke="var(--signal-phosphor)"
+          strokeWidth={1.5}
+          fill="none"
+          strokeLinecap="round"
+          opacity={0.95}
+        />
+        <path
+          d={dL}
+          stroke="var(--signal-spectre)"
+          strokeWidth={1.5}
+          fill="none"
+          strokeLinecap="round"
+          opacity={0.95}
+        />
       </g>
     </svg>
   );
@@ -898,7 +963,17 @@ const CompactRing: React.FC<{
   silenceBreath: number;
   frame: number;
   fps: number;
-}> = ({spec96, bassEnergy, spectralCentroid, midEnergy, activeSpeaker, currentTurn, silenceBreath, frame, fps}) => {
+}> = ({
+  spec96,
+  bassEnergy,
+  spectralCentroid,
+  midEnergy,
+  activeSpeaker,
+  currentTurn,
+  silenceBreath,
+  frame,
+  fps,
+}) => {
   // Ring B — Sprech-Cadence: pulse-Periode skaliert mit Words-per-Second der
   // letzten 3s. Schnelles Sprechen (~4 wps) → period 12 (schnell pulsierend),
   // langsam/Pausen (~0 wps) → period 32 (gemächliches Atmen).
@@ -906,18 +981,24 @@ const CompactRing: React.FC<{
     if (!currentTurn?.words?.length) return 24;
     const nowMs = (frame / fps) * 1000;
     const past3sMs = nowMs - 3000;
-    const recentWords = currentTurn.words.filter(
-      (w) => w.endMs >= past3sMs && w.startMs <= nowMs,
-    );
+    const recentWords = currentTurn.words.filter((w) => w.endMs >= past3sMs && w.startMs <= nowMs);
     const wps = recentWords.length / 3;
     return Math.round(Math.max(12, Math.min(32, 32 - wps * 5)));
   })();
   const pulseFrom = frame - (frame % cadencePeriod);
   const pulse =
-    spring({fps, frame: frame - pulseFrom, config: {damping: 14, stiffness: 140, mass: 0.6}, durationInFrames: 24}) *
-    bassEnergy;
+    spring({
+      fps,
+      frame: frame - pulseFrom,
+      config: { damping: 14, stiffness: 140, mass: 0.6 },
+      durationInFrames: 24,
+    }) * bassEnergy;
 
-  const RB = 96, CX = 210, CY = 190, RIN = 92, ROUT = 86;
+  const RB = 96,
+    CX = 210,
+    CY = 190,
+    RIN = 92,
+    ROUT = 86;
   const arcR = 82;
   const arcAngle = -90 + spectralCentroid * 360;
   const arcLen = 12 + midEnergy * 100;
@@ -956,7 +1037,7 @@ const CompactRing: React.FC<{
         x: Math.sin(frame * 0.65) * confidenceIntensity,
         y: Math.cos(frame * 0.54) * confidenceIntensity,
       }
-    : {x: 0, y: 0};
+    : { x: 0, y: 0 };
   const chromShift = lowConfidence ? Math.max(1, confidenceIntensity * 4) : 0; // 0..3.2 px
 
   // glowOpacity setzt sich aus drei Modulations-Quellen zusammen:
@@ -964,11 +1045,10 @@ const CompactRing: React.FC<{
   //   • pulse-modulated (sprech-rhythmisch, cadence-driven)
   //   • centroid-modulated (stimmen-brightness)
   //   • silenceBreath (nur bei Stille, atmend +0.25) — von Parent übergeben
-  const glowOpacity =
-    0.28 + pulse * 0.15 + c01 * 0.2 + silenceBreath * 0.25;
+  const glowOpacity = 0.28 + pulse * 0.15 + c01 * 0.2 + silenceBreath * 0.25;
 
   return (
-    <svg viewBox="0 0 420 380" width={420} height={380} style={{display: 'block'}}>
+    <svg viewBox="0 0 420 380" width={420} height={380} style={{ display: 'block' }}>
       <defs>
         <radialGradient id="cr-glow" cx="0.5" cy="0.5" r="0.5">
           <stop offset="0%" stopColor="var(--signal-crimson)" stopOpacity={glowOpacity} />
@@ -1027,11 +1107,12 @@ const CompactRing: React.FC<{
       >
         {(() => {
           const activeBarGrad = activeSpeaker === 1 ? 'cr-bar-01' : 'cr-bar-00';
-          return Array.from({length: RB}).map((_, i) => {
+          return Array.from({ length: RB }).map((_, i) => {
             const angle = (i / RB) * Math.PI * 2 - Math.PI / 2;
             const deg = ((angle * 180) / Math.PI + 360) % 360;
             const inSeam =
-              (deg < 4 || deg > 356) ||
+              deg < 4 ||
+              deg > 356 ||
               (deg > 86 && deg < 94) ||
               (deg > 176 && deg < 184) ||
               (deg > 266 && deg < 274);
@@ -1069,13 +1150,45 @@ const CompactRing: React.FC<{
         stroke="var(--signal-crimson)"
         strokeWidth={1}
         opacity={ringOpacity}
-        style={{filter: 'drop-shadow(0 0 8px var(--signal-crimson))'}}
+        style={{ filter: 'drop-shadow(0 0 8px var(--signal-crimson))' }}
       />
       <circle cx={CX} cy={CY} r={66} fill="var(--void-050)" />
-      <line x1={CX - 56} y1={CY} x2={CX + 56} y2={CY} stroke="var(--void-400)" strokeWidth={1} opacity={0.45} />
-      <line x1={CX} y1={CY - 56} x2={CX} y2={CY + 56} stroke="var(--void-400)" strokeWidth={1} opacity={0.45} />
-      <circle cx={CX} cy={CY} r={30} fill="none" stroke="var(--void-500)" strokeWidth={1} opacity={0.5} />
-      <circle cx={CX} cy={CY} r={50} fill="none" stroke="var(--void-500)" strokeWidth={1} opacity={0.35} />
+      <line
+        x1={CX - 56}
+        y1={CY}
+        x2={CX + 56}
+        y2={CY}
+        stroke="var(--void-400)"
+        strokeWidth={1}
+        opacity={0.45}
+      />
+      <line
+        x1={CX}
+        y1={CY - 56}
+        x2={CX}
+        y2={CY + 56}
+        stroke="var(--void-400)"
+        strokeWidth={1}
+        opacity={0.45}
+      />
+      <circle
+        cx={CX}
+        cy={CY}
+        r={30}
+        fill="none"
+        stroke="var(--void-500)"
+        strokeWidth={1}
+        opacity={0.5}
+      />
+      <circle
+        cx={CX}
+        cy={CY}
+        r={50}
+        fill="none"
+        stroke="var(--void-500)"
+        strokeWidth={1}
+        opacity={0.35}
+      />
 
       <path
         d={arcPath}
@@ -1084,16 +1197,22 @@ const CompactRing: React.FC<{
         fill="none"
         strokeLinecap="round"
         opacity={0.85}
-        style={{filter: 'drop-shadow(0 0 6px var(--signal-crimson))'}}
+        style={{ filter: 'drop-shadow(0 0 6px var(--signal-crimson))' }}
       />
-      <circle cx={CX} cy={CY} r={pupilR + 8} fill="var(--signal-crimson)" opacity={0.12 + pulse * 0.18} />
+      <circle
+        cx={CX}
+        cy={CY}
+        r={pupilR + 8}
+        fill="var(--signal-crimson)"
+        opacity={0.12 + pulse * 0.18}
+      />
       <circle
         cx={CX}
         cy={CY}
         r={pupilR}
         fill="var(--signal-crimson)"
         opacity={0.98}
-        style={{filter: 'drop-shadow(0 0 14px var(--signal-crimson))'}}
+        style={{ filter: 'drop-shadow(0 0 14px var(--signal-crimson))' }}
       />
       <circle cx={CX} cy={CY} r={4} fill="var(--signal-pearl)" />
     </svg>
@@ -1106,7 +1225,7 @@ const UpNextBar: React.FC<{
   frame: number;
   fps: number;
   elapsed: number;
-}> = ({nextTurn, currentTurn, frame, fps, elapsed}) => {
+}> = ({ nextTurn, currentTurn, frame, fps, elapsed }) => {
   if (!nextTurn) return null;
   const color = SIGNAL_BY_SPEAKER[nextTurn.speaker] ?? 'var(--accent)';
   const dt = nextTurn.startMs / 1000 - elapsed;
@@ -1127,7 +1246,7 @@ const UpNextBar: React.FC<{
       )
     : 0;
   return (
-    <div style={{position: 'relative', paddingTop: 12}}>
+    <div style={{ position: 'relative', paddingTop: 12 }}>
       {/* Countdown-Track + animierte Linie statt statischer Border-Top */}
       <div
         style={{
@@ -1153,8 +1272,10 @@ const UpNextBar: React.FC<{
           transition: 'none',
         }}
       />
-      <div style={{display: 'flex', alignItems: 'center', gap: 10}}>
-        <span style={{fontWeight: 500, fontSize: 13, color: 'var(--void-600)', marginRight: 'auto'}}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <span
+          style={{ fontWeight: 500, fontSize: 13, color: 'var(--void-600)', marginRight: 'auto' }}
+        >
           Up next
         </span>
         <span
@@ -1166,7 +1287,7 @@ const UpNextBar: React.FC<{
             boxShadow: `0 0 6px ${color}`,
           }}
         />
-        <span style={{fontWeight: 500, fontSize: 14, color}}>
+        <span style={{ fontWeight: 500, fontSize: 14, color }}>
           {formatSpeakerLabel(nextTurn.speaker)}
         </span>
         <span
@@ -1195,7 +1316,7 @@ const MonologueArea: React.FC<{
   silenceBreath: number;
   frame: number;
   fps: number;
-}> = ({timeline, spectrum, waveform, currentTurn, activeSpeaker, silenceBreath, frame, fps}) => {
+}> = ({ timeline, spectrum, waveform, currentTurn, activeSpeaker, silenceBreath, frame, fps }) => {
   const nowMs = (frame / fps) * 1000;
 
   // 128 log-spaced bins für Spoke-Render (volle 360°, keine Spiegelung).
@@ -1207,7 +1328,7 @@ const MonologueArea: React.FC<{
     const maxBin = spectrum.length - 1;
     for (let i = 0; i < N; i++) {
       const t = i / (N - 1);
-      const bin = Math.round(Math.pow(maxBin, t));
+      const bin = Math.round(maxBin ** t);
       out.push(spectrum[Math.min(maxBin, bin)] ?? 0);
     }
     return out;
@@ -1217,7 +1338,10 @@ const MonologueArea: React.FC<{
   // vom Spoke-Mapping.
   const bassEnergy = useMemo(() => {
     const sub = spectrum.slice(1, 10);
-    return Math.min(1, Math.log10(1 + (sub.reduce((a, b) => a + b, 0) / Math.max(1, sub.length)) * 9));
+    return Math.min(
+      1,
+      Math.log10(1 + (sub.reduce((a, b) => a + b, 0) / Math.max(1, sub.length)) * 9),
+    );
   }, [spectrum]);
 
   const spectralCentroid = useMemo(() => {
@@ -1232,7 +1356,10 @@ const MonologueArea: React.FC<{
 
   const midEnergy = useMemo(() => {
     const mid = spectrum.slice(12, 48);
-    return Math.min(1, Math.log10(1 + (mid.reduce((a, b) => a + b, 0) / Math.max(1, mid.length)) * 9));
+    return Math.min(
+      1,
+      Math.log10(1 + (mid.reduce((a, b) => a + b, 0) / Math.max(1, mid.length)) * 9),
+    );
   }, [spectrum]);
 
   const speakerColor =
@@ -1273,7 +1400,7 @@ const MonologueArea: React.FC<{
             }}
           >
             CHAPTER
-            <span style={{color: 'var(--signal-crimson)'}}> · 章 · </span>
+            <span style={{ color: 'var(--signal-crimson)' }}> · 章 · </span>
             {activeChapter.title}
           </span>
         </div>
@@ -1301,12 +1428,14 @@ const MonologueArea: React.FC<{
             boxShadow: `0 0 10px ${speakerColor}`,
           }}
         />
-        <span style={{fontWeight: 500, fontSize: 16, letterSpacing: '-0.005em', color: speakerColor}}>
+        <span
+          style={{ fontWeight: 500, fontSize: 16, letterSpacing: '-0.005em', color: speakerColor }}
+        >
           {currentTurn ? formatSpeakerLabel(currentTurn.speaker) : 'Speaker 01'}
         </span>
         {currentTurn && (
           <>
-            <span style={{width: 1, height: 12, background: 'var(--void-400)'}} />
+            <span style={{ width: 1, height: 12, background: 'var(--void-400)' }} />
             <span
               style={{
                 fontFamily: 'var(--font-mono)',
@@ -1368,43 +1497,39 @@ const MonologueArea: React.FC<{
             color: 'rgba(232,228,216,0.30)',
           }}
         >
-          {currentTurn && currentTurn.words.length > 0 ? (
-            currentTurn.words.map((w, i) => {
-              // Word-Fade (analog Teleprompter):
-              //   • Future word: dim
-              //   • Current:    speaker color + glow
-              //   • Afterglow:  speaker color, glow fades
-              //   • Long past:  pearl (lesbar)
-              const isCurrent = nowMs >= w.startMs && nowMs < w.endMs;
-              const isPast = nowMs >= w.endMs;
-              const elapsedSinceEnd = nowMs - w.endMs;
-              const afterGlow =
-                isPast && elapsedSinceEnd < AFTERGLOW_MS
-                  ? 1 - elapsedSinceEnd / AFTERGLOW_MS
-                  : 0;
-              let style: React.CSSProperties;
-              if (isCurrent) {
-                style = {color: speakerColor, textShadow: '0 0 28px currentColor'};
-              } else if (afterGlow > 0) {
-                style = {
-                  color: speakerColor,
-                  textShadow: `0 0 ${(28 * afterGlow).toFixed(1)}px currentColor`,
-                };
-              } else if (isPast) {
-                style = {color: 'var(--signal-pearl)'};
-              } else {
-                style = {opacity: 0.3};
-              }
-              return (
-                <React.Fragment key={i}>
-                  <span style={style}>{w.word}</span>
-                  {i < currentTurn.words.length - 1 ? ' ' : null}
-                </React.Fragment>
-              );
-            })
-          ) : (
-            currentTurn?.text ?? ''
-          )}
+          {currentTurn && currentTurn.words.length > 0
+            ? currentTurn.words.map((w, i) => {
+                // Word-Fade (analog Teleprompter):
+                //   • Future word: dim
+                //   • Current:    speaker color + glow
+                //   • Afterglow:  speaker color, glow fades
+                //   • Long past:  pearl (lesbar)
+                const isCurrent = nowMs >= w.startMs && nowMs < w.endMs;
+                const isPast = nowMs >= w.endMs;
+                const elapsedSinceEnd = nowMs - w.endMs;
+                const afterGlow =
+                  isPast && elapsedSinceEnd < AFTERGLOW_MS ? 1 - elapsedSinceEnd / AFTERGLOW_MS : 0;
+                let style: React.CSSProperties;
+                if (isCurrent) {
+                  style = { color: speakerColor, textShadow: '0 0 28px currentColor' };
+                } else if (afterGlow > 0) {
+                  style = {
+                    color: speakerColor,
+                    textShadow: `0 0 ${(28 * afterGlow).toFixed(1)}px currentColor`,
+                  };
+                } else if (isPast) {
+                  style = { color: 'var(--signal-pearl)' };
+                } else {
+                  style = { opacity: 0.3 };
+                }
+                return (
+                  <React.Fragment key={i}>
+                    <span style={style}>{w.word}</span>
+                    {i < currentTurn.words.length - 1 ? ' ' : null}
+                  </React.Fragment>
+                );
+              })
+            : (currentTurn?.text ?? '')}
         </p>
       </div>
 
@@ -1424,7 +1549,17 @@ const MonoRing: React.FC<{
   silenceBreath: number;
   frame: number;
   fps: number;
-}> = ({spec128, bassEnergy, spectralCentroid, midEnergy, activeSpeaker, currentTurn, silenceBreath, frame, fps}) => {
+}> = ({
+  spec128,
+  bassEnergy,
+  spectralCentroid,
+  midEnergy,
+  activeSpeaker,
+  currentTurn,
+  silenceBreath,
+  frame,
+  fps,
+}) => {
   // Cadence-Pulse (analog CompactRing): pulse-Periode aus Words-per-Second der
   // letzten 3 s. Bei Monologue ist meist nur ein Sprecher — Cadence skaliert
   // mit dessen Sprechtempo.
@@ -1432,18 +1567,25 @@ const MonoRing: React.FC<{
     if (!currentTurn?.words?.length) return 26;
     const nowMs = (frame / fps) * 1000;
     const past3sMs = nowMs - 3000;
-    const recentWords = currentTurn.words.filter(
-      (w) => w.endMs >= past3sMs && w.startMs <= nowMs,
-    );
+    const recentWords = currentTurn.words.filter((w) => w.endMs >= past3sMs && w.startMs <= nowMs);
     const wps = recentWords.length / 3;
     return Math.round(Math.max(14, Math.min(34, 34 - wps * 5)));
   })();
   const pulseFrom = frame - (frame % cadencePeriod);
   const pulse =
-    spring({fps, frame: frame - pulseFrom, config: {damping: 14, stiffness: 120, mass: 0.6}, durationInFrames: 28}) *
-    bassEnergy;
+    spring({
+      fps,
+      frame: frame - pulseFrom,
+      config: { damping: 14, stiffness: 120, mass: 0.6 },
+      durationInFrames: 28,
+    }) * bassEnergy;
 
-  const MRB = 128, MCX = 300, MCY = 300, MRIN = 132, MROUT = 122, arcR = 122;
+  const MRB = 128,
+    MCX = 300,
+    MCY = 300,
+    MRIN = 132,
+    MROUT = 122,
+    arcR = 122;
   const arcAngle = -90 + spectralCentroid * 360;
   const arcLen = 14 + midEnergy * 110;
   const a1 = (arcAngle * Math.PI) / 180;
@@ -1472,14 +1614,14 @@ const MonoRing: React.FC<{
         x: Math.sin(frame * 0.65) * confidenceIntensity,
         y: Math.cos(frame * 0.54) * confidenceIntensity,
       }
-    : {x: 0, y: 0};
+    : { x: 0, y: 0 };
   const chromShift = lowConfidence ? Math.max(1, confidenceIntensity * 4) : 0;
 
   // Bar-Gradient nach activeSpeaker (mr-bar-00 = phosphor, mr-bar-01 = spectre)
   const activeBarGrad = activeSpeaker === 1 ? 'mr-bar-01' : 'mr-bar-00';
 
   return (
-    <svg viewBox="0 0 600 600" width={600} height={600} style={{display: 'block'}}>
+    <svg viewBox="0 0 600 600" width={600} height={600} style={{ display: 'block' }}>
       <defs>
         <radialGradient id="mr-glow" cx="0.5" cy="0.5" r="0.5">
           <stop offset="0%" stopColor="var(--signal-crimson)" stopOpacity={glowOpacity} />
@@ -1522,7 +1664,7 @@ const MonoRing: React.FC<{
         transform={`translate(${wobble.x.toFixed(2)}, ${wobble.y.toFixed(2)})`}
         filter={lowConfidence ? 'url(#mr-glitch)' : undefined}
       >
-        {Array.from({length: MRB}).map((_, i) => {
+        {Array.from({ length: MRB }).map((_, i) => {
           const angle = (i / MRB) * Math.PI * 2 - Math.PI / 2;
           // Log-mapped spec128: Bass am 12 Uhr, Treble bei kurz-vor-12 CCW.
           // Treble-Boost (2x bei höchstem Bin) gleicht den Sprach-Bass-Bias aus.
@@ -1558,13 +1700,45 @@ const MonoRing: React.FC<{
         stroke="var(--signal-crimson)"
         strokeWidth={1}
         opacity={ringOpacity}
-        style={{filter: 'drop-shadow(0 0 10px var(--signal-crimson))'}}
+        style={{ filter: 'drop-shadow(0 0 10px var(--signal-crimson))' }}
       />
       <circle cx={MCX} cy={MCY} r={98} fill="var(--void-050)" />
-      <line x1={MCX - 82} y1={MCY} x2={MCX + 82} y2={MCY} stroke="var(--void-400)" strokeWidth={1} opacity={0.4} />
-      <line x1={MCX} y1={MCY - 82} x2={MCX} y2={MCY + 82} stroke="var(--void-400)" strokeWidth={1} opacity={0.4} />
-      <circle cx={MCX} cy={MCY} r={44} fill="none" stroke="var(--void-500)" strokeWidth={1} opacity={0.45} />
-      <circle cx={MCX} cy={MCY} r={72} fill="none" stroke="var(--void-500)" strokeWidth={1} opacity={0.3} />
+      <line
+        x1={MCX - 82}
+        y1={MCY}
+        x2={MCX + 82}
+        y2={MCY}
+        stroke="var(--void-400)"
+        strokeWidth={1}
+        opacity={0.4}
+      />
+      <line
+        x1={MCX}
+        y1={MCY - 82}
+        x2={MCX}
+        y2={MCY + 82}
+        stroke="var(--void-400)"
+        strokeWidth={1}
+        opacity={0.4}
+      />
+      <circle
+        cx={MCX}
+        cy={MCY}
+        r={44}
+        fill="none"
+        stroke="var(--void-500)"
+        strokeWidth={1}
+        opacity={0.45}
+      />
+      <circle
+        cx={MCX}
+        cy={MCY}
+        r={72}
+        fill="none"
+        stroke="var(--void-500)"
+        strokeWidth={1}
+        opacity={0.3}
+      />
 
       <path
         d={arcPath}
@@ -1573,23 +1747,29 @@ const MonoRing: React.FC<{
         fill="none"
         strokeLinecap="round"
         opacity={0.85}
-        style={{filter: 'drop-shadow(0 0 8px var(--signal-crimson))'}}
+        style={{ filter: 'drop-shadow(0 0 8px var(--signal-crimson))' }}
       />
-      <circle cx={MCX} cy={MCY} r={pupilR + 12} fill="var(--signal-crimson)" opacity={0.14 + pulse * 0.2} />
+      <circle
+        cx={MCX}
+        cy={MCY}
+        r={pupilR + 12}
+        fill="var(--signal-crimson)"
+        opacity={0.14 + pulse * 0.2}
+      />
       <circle
         cx={MCX}
         cy={MCY}
         r={pupilR}
         fill="var(--signal-crimson)"
         opacity={0.98}
-        style={{filter: 'drop-shadow(0 0 18px var(--signal-crimson))'}}
+        style={{ filter: 'drop-shadow(0 0 18px var(--signal-crimson))' }}
       />
       <circle cx={MCX} cy={MCY} r={6} fill="var(--signal-pearl)" />
     </svg>
   );
 };
 
-const MonoWaveform: React.FC<{waveform: number[]; color: string}> = ({waveform, color}) => {
+const MonoWaveform: React.FC<{ waveform: number[]; color: string }> = ({ waveform, color }) => {
   // Time-Domain analog DualWaveform: signed Audio-Samples, symmetrische
   // Auslenkung um die Mittellinie. Gain=4.5 mit Clamp wie in DualWaveform.
   const W = 1680;
@@ -1603,7 +1783,7 @@ const MonoWaveform: React.FC<{waveform: number[]; color: string}> = ({waveform, 
   let dDown = '';
   for (let i = 0; i < N; i++) {
     const x = (i / (N - 1)) * W;
-    const env = 0.45 + 0.55 * Math.exp(-Math.pow((i - N / 2) / (N * 0.35), 2));
+    const env = 0.45 + 0.55 * Math.exp(-(((i - N / 2) / (N * 0.35)) ** 2));
     const v = Math.min(1, Math.abs(waveform[i] ?? 0) * GAIN) * env;
     dUp += `${i ? 'L' : 'M'}${x.toFixed(1)},${(CY - v * AMP).toFixed(1)} `;
     dDown += `${i ? 'L' : 'M'}${x.toFixed(1)},${(CY + v * AMP).toFixed(1)} `;
@@ -1631,10 +1811,16 @@ const MonoWaveform: React.FC<{waveform: number[]; color: string}> = ({waveform, 
           textTransform: 'uppercase',
         }}
       >
-        <span style={{color}}>Waveform</span>
-        <span style={{color: 'var(--void-700)'}}>Single-Lane · live</span>
+        <span style={{ color }}>Waveform</span>
+        <span style={{ color: 'var(--void-700)' }}>Single-Lane · live</span>
       </div>
-      <svg viewBox="0 0 1680 60" width="100%" height={60} preserveAspectRatio="none" style={{display: 'block'}}>
+      <svg
+        viewBox="0 0 1680 60"
+        width="100%"
+        height={60}
+        preserveAspectRatio="none"
+        style={{ display: 'block' }}
+      >
         <defs>
           <filter id="mw-glow" x="-3%" y="-50%" width="106%" height="200%">
             <feGaussianBlur stdDeviation="2" result="b1" />
@@ -1646,11 +1832,42 @@ const MonoWaveform: React.FC<{waveform: number[]; color: string}> = ({waveform, 
             </feMerge>
           </filter>
         </defs>
-        <line x1={0} y1={30} x2={1680} y2={30} stroke="var(--void-300)" strokeWidth={1} strokeDasharray="2 6" opacity={0.5} />
-        <line x1={1120} y1={4} x2={1120} y2={56} stroke="var(--void-500)" strokeWidth={1} opacity={0.6} />
+        <line
+          x1={0}
+          y1={30}
+          x2={1680}
+          y2={30}
+          stroke="var(--void-300)"
+          strokeWidth={1}
+          strokeDasharray="2 6"
+          opacity={0.5}
+        />
+        <line
+          x1={1120}
+          y1={4}
+          x2={1120}
+          y2={56}
+          stroke="var(--void-500)"
+          strokeWidth={1}
+          opacity={0.6}
+        />
         <g filter="url(#mw-glow)">
-          <path d={dUp} stroke={color} strokeWidth={1.5} fill="none" strokeLinecap="round" opacity={0.95} />
-          <path d={dDown} stroke={color} strokeWidth={1.5} fill="none" strokeLinecap="round" opacity={0.95} />
+          <path
+            d={dUp}
+            stroke={color}
+            strokeWidth={1.5}
+            fill="none"
+            strokeLinecap="round"
+            opacity={0.95}
+          />
+          <path
+            d={dDown}
+            stroke={color}
+            strokeWidth={1.5}
+            fill="none"
+            strokeLinecap="round"
+            opacity={0.95}
+          />
         </g>
       </svg>
     </div>
@@ -1659,7 +1876,7 @@ const MonoWaveform: React.FC<{waveform: number[]; color: string}> = ({waveform, 
 
 // ── FooterBar ───────────────────────────────────────────────────────────────
 
-const FooterBar: React.FC<{vizMode: DialogueVizMode}> = ({vizMode}) => (
+const FooterBar: React.FC<{ vizMode: DialogueVizMode }> = ({ vizMode }) => (
   <div
     style={{
       position: 'absolute',

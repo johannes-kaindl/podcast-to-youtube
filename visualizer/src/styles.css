@@ -4,7 +4,7 @@
    inline here so the Remotion bundle ships self-contained.
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap");
 
 :root {
   /* Twelve Signals */
@@ -33,18 +33,26 @@
   --fg-secondary: var(--void-700);
   --fg-tertiary: var(--void-600);
 
-  --font-display: 'EB Garamond', Georgia, serif;
-  --font-sans: 'Space Grotesk', -apple-system, sans-serif;
-  --font-body: 'Inter', -apple-system, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --font-display: "EB Garamond", Georgia, serif;
+  --font-sans: "Space Grotesk", -apple-system, sans-serif;
+  --font-body: "Inter", -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
 
   --accent: var(--signal-phosphor);
 }
 
-[data-aspect='shugo']   { --accent: var(--signal-phosphor); }
-[data-aspect='gunshi']  { --accent: var(--signal-spectre); }
-[data-aspect='kantoku'] { --accent: var(--signal-crimson); }
-[data-aspect='sensei']  { --accent: var(--signal-ember); }
+[data-aspect="shugo"] {
+  --accent: var(--signal-phosphor);
+}
+[data-aspect="gunshi"] {
+  --accent: var(--signal-spectre);
+}
+[data-aspect="kantoku"] {
+  --accent: var(--signal-crimson);
+}
+[data-aspect="sensei"] {
+  --accent: var(--signal-ember);
+}
 
 .ksp-stage {
   background: var(--void-050);

@@ -1,6 +1,6 @@
-import React from 'react';
-import {interpolate, spring} from 'remotion';
-import type {ChapterMarker} from '../utils/timeline';
+import type React from 'react';
+import { interpolate, spring } from 'remotion';
+import type { ChapterMarker } from '../utils/timeline';
 
 type Props = {
   chapter: ChapterMarker | null;
@@ -22,13 +22,7 @@ type Props = {
  *    (< 6 s); for longer chapters the card auto-dismisses after 90
  *    frames so it doesn't block the visualiser.
  */
-export const SectionCard: React.FC<Props> = ({
-  chapter,
-  framesFromBoundary,
-  frame,
-  fps,
-  reducedMotion,
-}) => {
+export const SectionCard: React.FC<Props> = ({ chapter, frame, fps, reducedMotion }) => {
   if (!chapter) return null;
 
   const chapterFrameStart = (chapter.startMs / 1000) * fps;
@@ -43,7 +37,7 @@ export const SectionCard: React.FC<Props> = ({
     : spring({
         frame: localFrame,
         fps,
-        config: {damping: 22, stiffness: 140, mass: 0.7},
+        config: { damping: 22, stiffness: 140, mass: 0.7 },
         durationInFrames: 24,
       });
 

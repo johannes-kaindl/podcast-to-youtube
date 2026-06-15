@@ -1,7 +1,7 @@
-import {Composition, registerRoot, staticFile} from 'remotion';
-import {getAudioDurationInSeconds} from '@remotion/media-utils';
-import {DialogueVisualizer} from './DialogueComposition';
-import type {DialogueVizMode} from './DialogueComposition';
+import { getAudioDurationInSeconds } from '@remotion/media-utils';
+import { Composition, registerRoot, staticFile } from 'remotion';
+import type { DialogueVizMode } from './DialogueComposition';
+import { DialogueVisualizer } from './DialogueComposition';
 import './styles.css';
 
 // 30fps · 1920×1080. Duration is computed dynamically from public/podcast.wav
@@ -19,9 +19,9 @@ const calcAudioDuration = async () => {
   try {
     const seconds = await getAudioDurationInSeconds(staticFile('podcast.wav'));
     const usable = Math.max(1, Math.floor((seconds - AUDIO_TRAILING_PAD_SECONDS) * FPS));
-    return {durationInFrames: usable};
+    return { durationInFrames: usable };
   } catch {
-    return {durationInFrames: FALLBACK_DURATION};
+    return { durationInFrames: FALLBACK_DURATION };
   }
 };
 

@@ -1,5 +1,5 @@
-import React from 'react';
-import {AbsoluteFill} from 'remotion';
+import type React from 'react';
+import { AbsoluteFill } from 'remotion';
 
 /**
  * The chamber. Flat near-black ground, a 1px grid overlay at very low
@@ -9,7 +9,7 @@ import {AbsoluteFill} from 'remotion';
  */
 export const ChamberBackground: React.FC = () => {
   return (
-    <AbsoluteFill style={{background: 'var(--void-050)', overflow: 'hidden'}}>
+    <AbsoluteFill style={{ background: 'var(--void-050)', overflow: 'hidden' }}>
       {/* 1px grid — earned only on the vault surface */}
       <AbsoluteFill
         style={{
@@ -25,13 +25,12 @@ export const ChamberBackground: React.FC = () => {
       {/* Subtle radial darkening from edges — keeps focus center stage */}
       <AbsoluteFill
         style={{
-          background:
-            'radial-gradient(ellipse at center, transparent 0%, var(--void-050) 78%)',
+          background: 'radial-gradient(ellipse at center, transparent 0%, var(--void-050) 78%)',
         }}
       />
 
       {/* SVG noise grain at ~3% opacity */}
-      <AbsoluteFill style={{opacity: 0.04, mixBlendMode: 'overlay'}}>
+      <AbsoluteFill style={{ opacity: 0.04, mixBlendMode: 'overlay' }}>
         <svg width="100%" height="100%" preserveAspectRatio="none">
           <filter id="ksp-noise">
             <feTurbulence
@@ -62,16 +61,31 @@ const CornerTicks: React.FC = () => {
       height="100%"
       viewBox="0 0 1920 1080"
       preserveAspectRatio="none"
-      style={{position: 'absolute', inset: 0}}
+      style={{ position: 'absolute', inset: 0 }}
     >
       {/* TL */}
       <path d={`M${O} ${O + T} V${O} H${O + T}`} stroke={stroke} strokeWidth={sw} fill="none" />
       {/* TR */}
-      <path d={`M${1920 - O - T} ${O} H${1920 - O} V${O + T}`} stroke={stroke} strokeWidth={sw} fill="none" />
+      <path
+        d={`M${1920 - O - T} ${O} H${1920 - O} V${O + T}`}
+        stroke={stroke}
+        strokeWidth={sw}
+        fill="none"
+      />
       {/* BL */}
-      <path d={`M${O} ${1080 - O - T} V${1080 - O} H${O + T}`} stroke={stroke} strokeWidth={sw} fill="none" />
+      <path
+        d={`M${O} ${1080 - O - T} V${1080 - O} H${O + T}`}
+        stroke={stroke}
+        strokeWidth={sw}
+        fill="none"
+      />
       {/* BR */}
-      <path d={`M${1920 - O - T} ${1080 - O} H${1920 - O} V${1080 - O - T}`} stroke={stroke} strokeWidth={sw} fill="none" />
+      <path
+        d={`M${1920 - O - T} ${1080 - O} H${1920 - O} V${1080 - O - T}`}
+        stroke={stroke}
+        strokeWidth={sw}
+        fill="none"
+      />
     </svg>
   );
 };

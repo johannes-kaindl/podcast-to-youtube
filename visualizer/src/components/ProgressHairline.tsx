@@ -1,5 +1,5 @@
-import React from 'react';
-import {interpolate} from 'remotion';
+import type React from 'react';
+import { interpolate } from 'remotion';
 
 type Props = {
   frame: number;

@@ -1,5 +1,5 @@
-import {useEffect, useMemo, useState} from 'react';
-import {cancelRender, continueRender, delayRender, staticFile} from 'remotion';
+import { useEffect, useMemo, useState } from 'react';
+import { cancelRender, continueRender, delayRender, staticFile } from 'remotion';
 
 /* ────────────────────────────────────────────────────────────────────────
    WhisperX standard schema (the `--diarize` JSON output).
@@ -74,7 +74,7 @@ export type Timeline = {
    Loader
    ──────────────────────────────────────────────────────────────────────── */
 
-const speakerToIdx = (speaker: string | undefined): 0 | 1 => {
+export const speakerToIdx = (speaker: string | undefined): 0 | 1 => {
   if (!speaker) return 0;
   const m = speaker.match(/(\d+)/);
   if (!m) return 0;
@@ -82,7 +82,9 @@ const speakerToIdx = (speaker: string | undefined): 0 | 1 => {
   return n === 0 ? 0 : 1; // ≥1 collapses to lane 1
 };
 
-const normaliseFile = (raw: WhisperXFile): {turns: Turn[]; words: TimedWord[]} => {
+export const normaliseFile = (
+  raw: WhisperXFile,
+): { turns: Turn[]; words: TimedWord[]; chapters: ChapterMarker[] } => {
   const turns: Turn[] = [];
   const words: TimedWord[] = [];
 
@@ -104,9 +106,7 @@ const normaliseFile = (raw: WhisperXFile): {turns: Turn[]; words: TimedWord[]} =
       });
 
     const score =
-      segWords.length > 0
-        ? segWords.reduce((a, w) => a + w.score, 0) / segWords.length
-        : 1;
+      segWords.length > 0 ? segWords.reduce((a, w) => a + w.score, 0) / segWords.length : 1;
 
     turns.push({
       startMs: seg.start * 1000,
@@ -146,7 +146,7 @@ const normaliseFile = (raw: WhisperXFile): {turns: Turn[]; words: TimedWord[]} =
   // is the rest of that segment (or the bracketed name).
   const chapters: ChapterMarker[] = [];
   raw.segments?.forEach((seg) => {
-    const m = seg.text.match(/^\s*\[CHAPTER(?:\s*[:·\-]\s*([^\]]+))?\]\s*(.*)$/i);
+    const m = seg.text.match(/^\s*\[CHAPTER(?:\s*[:·-]\s*([^\]]+))?\]\s*(.*)$/i);
     if (!m) return;
     const title = (m[1] || m[2] || 'Chapter').trim();
     chapters.push({
@@ -160,7 +160,7 @@ const normaliseFile = (raw: WhisperXFile): {turns: Turn[]; words: TimedWord[]} =
     chapters[i].endMs = chapters[i + 1].startMs;
   }
 
-  return {turns, words, chapters};
+  return { turns, words, chapters };
 };
 
 /**
@@ -169,14 +169,12 @@ const normaliseFile = (raw: WhisperXFile): {turns: Turn[]; words: TimedWord[]} =
  *
  * Default path: `staticFile('podcast.whisperx.json')`.
  */
-export const useTimeline = (
-  src: string = staticFile('podcast.whisperx.json'),
-): Timeline => {
+export const useTimeline = (src: string = staticFile('podcast.whisperx.json')): Timeline => {
   const [data, setData] = useState<{
     turns: Turn[];
     words: TimedWord[];
     chapters: ChapterMarker[];
-  }>({turns: [], words: [], chapters: []});
+  }>({ turns: [], words: [], chapters: [] });
   const [ready, setReady] = useState(false);
   const [handle] = useState(() => delayRender('Loading WhisperX timeline'));
 
@@ -204,7 +202,7 @@ export const useTimeline = (
       ready,
       turns: data.turns,
       words: data.words,
-      chapters: (data as any).chapters ?? [],
+      chapters: data.chapters,
     }),
     [ready, data],
   );
@@ -219,15 +217,12 @@ export const useActiveChapter = (
   timeline: Timeline,
   frame: number,
   fps: number,
-): {chapter: ChapterMarker | null; framesFromBoundary: number} => {
+): { chapter: ChapterMarker | null; framesFromBoundary: number } => {
   return useMemo(() => {
     const ms = (frame / fps) * 1000;
-    const chapter =
-      timeline.chapters.find((c) => ms >= c.startMs && ms < c.endMs) ?? null;
-    const framesFromBoundary = chapter
-      ? ((ms - chapter.startMs) / 1000) * fps
-      : 0;
-    return {chapter, framesFromBoundary};
+    const chapter = timeline.chapters.find((c) => ms >= c.startMs && ms < c.endMs) ?? null;
+    const framesFromBoundary = chapter ? ((ms - chapter.startMs) / 1000) * fps : 0;
+    return { chapter, framesFromBoundary };
   }, [timeline.chapters, frame, fps]);
 };
 
@@ -239,29 +234,17 @@ export const useActiveChapter = (
    60-min podcast). We can swap to a sorted-index later if needed.
    ──────────────────────────────────────────────────────────────────────── */
 
-export const useActiveTurn = (
-  timeline: Timeline,
-  frame: number,
-  fps: number,
-): Turn | null => {
+export const useActiveTurn = (timeline: Timeline, frame: number, fps: number): Turn | null => {
   return useMemo(() => {
     const ms = (frame / fps) * 1000;
-    return (
-      timeline.turns.find((t) => ms >= t.startMs && ms < t.endMs) ?? null
-    );
+    return timeline.turns.find((t) => ms >= t.startMs && ms < t.endMs) ?? null;
   }, [timeline.turns, frame, fps]);
 };
 
-export const useActiveWord = (
-  timeline: Timeline,
-  frame: number,
-  fps: number,
-): TimedWord | null => {
+export const useActiveWord = (timeline: Timeline, frame: number, fps: number): TimedWord | null => {
   return useMemo(() => {
     const ms = (frame / fps) * 1000;
-    return (
-      timeline.words.find((w) => ms >= w.startMs && ms < w.endMs) ?? null
-    );
+    return timeline.words.find((w) => ms >= w.startMs && ms < w.endMs) ?? null;
   }, [timeline.words, frame, fps]);
 };
 
@@ -296,14 +279,11 @@ export const useEffectiveSpeaker = (
     const nowMs = (frame / fps) * 1000;
     const horizonMs = nowMs + (lookaheadFrames / fps) * 1000;
 
-    const current =
-      timeline.turns.find((t) => nowMs >= t.startMs && nowMs < t.endMs) ?? null;
+    const current = timeline.turns.find((t) => nowMs >= t.startMs && nowMs < t.endMs) ?? null;
 
     // First turn whose start is in (now, horizon].
     const upcoming =
-      timeline.turns.find(
-        (t) => t.startMs > nowMs && t.startMs <= horizonMs,
-      ) ?? null;
+      timeline.turns.find((t) => t.startMs > nowMs && t.startMs <= horizonMs) ?? null;
 
     let effectiveIdx: 0 | 1 | null = null;
     if (current) effectiveIdx = current.speakerIdx;
@@ -313,7 +293,7 @@ export const useEffectiveSpeaker = (
       ? Math.max(0, ((upcoming.startMs - nowMs) / 1000) * fps)
       : 0;
 
-    return {current, upcoming, framesUntilUpcoming, effectiveIdx};
+    return { current, upcoming, framesUntilUpcoming, effectiveIdx };
   }, [timeline.turns, frame, fps, lookaheadFrames]);
 };
 
@@ -321,11 +301,7 @@ export const useEffectiveSpeaker = (
  * Look up the next turn after `frame`, regardless of horizon.
  * Used by the caption-preview ghost line.
  */
-export const useNextTurn = (
-  timeline: Timeline,
-  frame: number,
-  fps: number,
-): Turn | null => {
+export const useNextTurn = (timeline: Timeline, frame: number, fps: number): Turn | null => {
   return useMemo(() => {
     const ms = (frame / fps) * 1000;
     return timeline.turns.find((t) => t.startMs > ms) ?? null;

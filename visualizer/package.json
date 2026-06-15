@@ -3,9 +3,15 @@
   "version": "1.0.0",
   "description": "Kuro Signal Protocol — Podcast Visualizer",
   "scripts": {
-    "start": "npx remotion studio",
-    "render:waveform": "npx remotion render Podcast-Waveform out/waveform.mp4",
-    "render:ring": "npx remotion render Podcast-Ring out/ring.mp4"
+    "dev": "remotion studio src/Root.tsx",
+    "start": "remotion studio src/Root.tsx",
+    "build": "tsc --noEmit && remotion bundle src/Root.tsx build",
+    "render:waveform": "remotion render Podcast-Waveform out/waveform.mp4",
+    "render:ring": "remotion render Podcast-Ring out/ring.mp4",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "biome check src",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@remotion/captions": "^4.0.291",
@@ -15,9 +21,11 @@
     "remotion": "4.0.291"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.0.0",
     "@remotion/cli": "4.0.291",
     "@types/react": "^18.3.0",
     "@types/react-dom": "^18.3.0",
-    "typescript": "^5.5.0"
+    "typescript": "^5.5.0",
+    "vitest": "^3.0.0"
   }
 }
