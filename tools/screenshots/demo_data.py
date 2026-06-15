@@ -206,6 +206,30 @@ VIDEO_STEMS = {"folge-081": "folge-081-dialogue.mp4",
 STEMS = ["folge-082", "folge-083", "folge-081"]
 
 
+def _whisperx_segments(stem: str) -> dict:
+    """Schema-accurate WhisperX JSON built from the demo transcript lines.
+
+    Deterministic synthetic word timings (no RNG) so the editor view is stable
+    across re-runs. Speaker labels reuse the transcript's ``Name:`` prefixes, so
+    the editor matches the run page's transcript preview.
+    """
+    segments = []
+    t = 0.0
+    for line in TRANSCRIPTS[stem]:
+        speaker, _, text = line.partition(": ")
+        words = []
+        wt = t
+        for w in text.split():
+            dur = max(0.12, len(w) * 0.06)
+            words.append({"word": w, "start": round(wt, 3),
+                          "end": round(wt + dur, 3), "score": 0.9})
+            wt += dur + 0.04
+        segments.append({"start": round(t, 3), "end": round(wt, 3),
+                         "text": text, "words": words, "speaker": speaker})
+        t = wt + 0.3
+    return {"segments": segments}
+
+
 def _wave_bars(stem: str, n: int = 56) -> str:
     """Deterministic, audio-shaped bar heights (no RNG → reproducible)."""
     seed = hashlib.md5(stem.encode()).digest()
@@ -247,6 +271,11 @@ def build(repo_root: Path) -> list[str]:
             (d / f"{stem}.txt").write_text("\n".join(TRANSCRIPTS[stem]) + "\n", encoding="utf-8")
             (d / f"{stem}.youtube-meta.json").write_text(
                 json.dumps(META[stem], indent=2, ensure_ascii=False), encoding="utf-8")
+            # WhisperX JSON drives the transcript editor + the "✎ Edit transcript"
+            # affordance the WebGUI surfaces on every run with a transcript.
+            (d / f"{stem}.whisperx.json").write_text(
+                json.dumps(_whisperx_segments(stem), indent=2, ensure_ascii=False),
+                encoding="utf-8")
             if stem in VIDEO_STEMS:
                 _make_poster(stem, VIDEO_STEMS[stem], d, page)
         browser.close()

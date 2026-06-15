@@ -2,8 +2,9 @@
 """Regenerate the WebGUI screenshots in docs/images/.
 
 End-to-end and self-contained: builds a synthetic demo output/ tree, starts the
-real FastAPI/HTMX WebGUI, drives it into four states with Playwright (system
-Chrome, dark theme forced), optimises the PNGs with pngquant, and cleans up.
+real FastAPI/HTMX WebGUI, drives it through five views (start, three run states,
+transcript editor) with Playwright (system Chrome, dark theme forced), optimises
+the PNGs with pngquant, and cleans up.
 
     python tools/screenshots/regenerate.py            # default port 8799
     python tools/screenshots/regenerate.py --port 9000 --keep-demo
@@ -69,6 +70,8 @@ TARGETS = [
     ("webgui-done", "/runs/folge-081",
      TRANSCRIBE + META + _render_done("folge-081") + _upload(_URL),
      {"pct": 100, "left": "Pipeline complete", "right": "4 / 4"}),
+    # Transcript editor — per-segment text + speaker editing, merge/split, bulk rename.
+    ("webgui-editor", "/runs/folge-081/edit", None, None),
 ]
 
 SEED_JS = """
