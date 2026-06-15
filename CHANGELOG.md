@@ -27,6 +27,8 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - **`Makefile`** — standard uv targets (`install` / `check` / `lint` / `format` / `typecheck` / `test` / `serve` / `watch` / `screenshots` / `hooks`).
 - **Diátaxis user manual** — `docs/manual/` (tutorial · how-to · reference · explanation), linked from the README.
 - **Visualizer dev tooling** — npm scripts (`dev` / `build` / `test` / `lint` / `typecheck`), vitest tests for the timeline + speaker helpers, and biome lint/format.
+- **Dual-licensing** — `LICENSING.md` (AGPL by default + an on-request commercial license) and `CLA.md` (a lightweight inbound contributor grant that keeps relicensing possible), linked from the README and CONTRIBUTING.
+- **German README** — `README.de.md` (full translation), with a language-toggle line at the top of both READMEs.
 
 ### Changed
 
@@ -36,6 +38,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - **Test suite** — grew from 64 to 151 tests (transcript editor V1 + Phase 2 modules and routes).
 - **Strict lint + types** — the codebase now passes `ruff` and `mypy --strict` (app modules); a one-time `ruff format` was applied. `.editorconfig`: TOML set to 4-space.
 - **Setup → uv** — README + CONTRIBUTING use `uv sync` (`--extra transcribe` for WhisperX) instead of `pip install -r requirements.txt`.
+- **README badges** — reordered to the canonical License · Release · CI · Platform sequence.
 
 ### Removed
 

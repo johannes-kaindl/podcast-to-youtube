@@ -1,12 +1,14 @@
 # podcast-to-youtube
 
+**English** · [Deutsch](README.de.md)
+
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 [![Docs: CC BY-SA 4.0](https://img.shields.io/badge/docs-CC%20BY--SA%204.0-blue.svg)](https://creativecommons.org/licenses/by-sa/4.0/)
 [![Codeberg Release](https://img.shields.io/badge/codeberg-v1.0.0-green)](https://codeberg.org/jkaindl/podcast-to-youtube/releases)
-[![Status: Active](https://img.shields.io/badge/status-active-brightgreen)](https://codeberg.org/jkaindl/podcast-to-youtube)
+[![Tests](https://img.shields.io/badge/tests-151%20passing-brightgreen)](https://codeberg.org/jkaindl/podcast-to-youtube/src/branch/main/tests)
 [![Python](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/)
 [![Platform: macOS](https://img.shields.io/badge/platform-macOS%2015%2B%20%C2%B7%20Apple%20Silicon-lightgrey)](https://www.apple.com/macos/)
-[![Tests](https://img.shields.io/badge/tests-151%20passing-brightgreen)](https://codeberg.org/jkaindl/podcast-to-youtube/src/branch/main/tests)
+[![Status: Active](https://img.shields.io/badge/status-active-brightgreen)](https://codeberg.org/jkaindl/podcast-to-youtube)
 
 Automated end-to-end pipeline: podcast audio → finished YouTube video, running locally on Apple Silicon.
 
@@ -289,7 +291,7 @@ Actively maintained by a single contributor. Apple Silicon focus — the pipelin
 
 Code: AGPL-3.0-or-later ([`LICENSE`](LICENSE)). Documentation: CC BY-SA 4.0 ([`LICENSE-DOCS`](LICENSE-DOCS)).
 
-The AGPL network clause keeps modifications to a networked deployment open-source.
+The AGPL network clause keeps modifications to a networked deployment open-source. A **commercial license** is available for uses that cannot meet the AGPL terms — see [`LICENSING.md`](LICENSING.md). External contributions are accepted under the [`CLA.md`](CLA.md).
 
 ---
 

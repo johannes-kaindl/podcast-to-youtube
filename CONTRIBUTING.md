@@ -45,6 +45,7 @@ make hooks
    ```
    Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
    ```
+7. **Contributor License Agreement.** Contributions are accepted under the [`CLA.md`](CLA.md) — a lightweight inbound grant that keeps the project dual-licensable (AGPL + a commercial option, see [`LICENSING.md`](LICENSING.md)). You keep your copyright; sign off non-trivial contributions with `git commit -s` (`Signed-off-by:`).
 
 ## Out of scope
 
