@@ -4,17 +4,18 @@ Each mutating operation calls snapshot() BEFORE the mutation, capturing
 the pre-mutation JSON. _history[] in the main JSON references each
 snapshot. cleanup_snapshots enforces SNAPSHOT_CAP.
 """
+
 import json
 import shutil
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 SNAPSHOT_CAP = 20
 
 
 def _now_iso() -> str:
-    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    return datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 def _load(json_path: str) -> dict:
@@ -22,9 +23,7 @@ def _load(json_path: str) -> dict:
 
 
 def _save(json_path: str, data: dict) -> None:
-    Path(json_path).write_text(
-        json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8"
-    )
+    Path(json_path).write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
 
 
 def snapshot(json_path: str, action: str, metric: str) -> str:
@@ -47,12 +46,14 @@ def snapshot(json_path: str, action: str, metric: str) -> str:
     shutil.copy2(path, snap_file)
 
     data = _load(json_path)
-    data.setdefault("_history", []).append({
-        "ts": _now_iso(),
-        "action": action,
-        "metric": metric,
-        "snapshot": f"snapshots/{snap_file.name}",
-    })
+    data.setdefault("_history", []).append(
+        {
+            "ts": _now_iso(),
+            "action": action,
+            "metric": metric,
+            "snapshot": f"snapshots/{snap_file.name}",
+        }
+    )
     _save(json_path, data)
     return str(snap_file)
 

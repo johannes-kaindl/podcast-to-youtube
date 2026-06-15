@@ -1,8 +1,10 @@
 """Tests for transcript_history — snapshot, undo_last, cleanup."""
+
 import json
 import shutil
 import time
 from pathlib import Path
+
 import pytest
 
 
@@ -19,7 +21,10 @@ def sample_run(tmp_path, fixtures_dir):
 
 def test_snapshot_creates_file(sample_run):
     from transcript_history import snapshot
-    snap_path = snapshot(str(sample_run["json_path"]), action="edit_text", metric="1 segment edited")
+
+    snap_path = snapshot(
+        str(sample_run["json_path"]), action="edit_text", metric="1 segment edited"
+    )
     assert Path(snap_path).exists()
     # File should be a sibling under snapshots/
     assert "snapshots" in str(snap_path)
@@ -27,6 +32,7 @@ def test_snapshot_creates_file(sample_run):
 
 def test_snapshot_content_matches_pre_mutation(sample_run):
     from transcript_history import snapshot
+
     pre_content = sample_run["json_path"].read_text(encoding="utf-8")
     snap_path = snapshot(str(sample_run["json_path"]), action="edit_text", metric="x")
     # Snapshot file must contain the PRE-mutation state (caller hasn't mutated yet)
@@ -35,6 +41,7 @@ def test_snapshot_content_matches_pre_mutation(sample_run):
 
 def test_snapshot_appends_history_entry(sample_run):
     from transcript_history import snapshot
+
     snapshot(str(sample_run["json_path"]), action="edit_text", metric="1 segment edited")
     data = json.loads(sample_run["json_path"].read_text(encoding="utf-8"))
     history = data.get("_history", [])
@@ -47,6 +54,7 @@ def test_snapshot_appends_history_entry(sample_run):
 
 def test_snapshot_history_path_is_relative(sample_run):
     from transcript_history import snapshot
+
     snap_path = snapshot(str(sample_run["json_path"]), action="merge", metric="0+1")
     data = json.loads(sample_run["json_path"].read_text(encoding="utf-8"))
     # Stored path should be relative to output dir: "snapshots/<ts>.json"
@@ -56,7 +64,8 @@ def test_snapshot_history_path_is_relative(sample_run):
 
 
 def test_cleanup_snapshots_keeps_cap(sample_run, monkeypatch):
-    from transcript_history import snapshot, cleanup_snapshots, SNAPSHOT_CAP
+    from transcript_history import cleanup_snapshots, snapshot
+
     # Force a small cap for the test
     monkeypatch.setattr("transcript_history.SNAPSHOT_CAP", 3)
     for i in range(5):
@@ -73,6 +82,7 @@ def test_cleanup_snapshots_keeps_cap(sample_run, monkeypatch):
 
 def test_undo_last_restores_pre_mutation_state(sample_run):
     from transcript_history import snapshot, undo_last
+
     pre_content = sample_run["json_path"].read_text(encoding="utf-8")
     snapshot(str(sample_run["json_path"]), action="edit_text", metric="1 changed")
     # Simulate a mutation: alter segment 0's text
@@ -90,6 +100,7 @@ def test_undo_last_restores_pre_mutation_state(sample_run):
 
 def test_undo_last_deletes_snapshot_file(sample_run):
     from transcript_history import snapshot, undo_last
+
     snap_path = snapshot(str(sample_run["json_path"]), action="x", metric="y")
     assert Path(snap_path).exists()
     undo_last(str(sample_run["json_path"]))
@@ -98,12 +109,14 @@ def test_undo_last_deletes_snapshot_file(sample_run):
 
 def test_undo_last_returns_none_when_empty(sample_run):
     from transcript_history import undo_last
+
     entry = undo_last(str(sample_run["json_path"]))
     assert entry is None
 
 
 def test_list_history_returns_entries_newest_last(sample_run):
-    from transcript_history import snapshot, list_history
+    from transcript_history import list_history, snapshot
+
     snapshot(str(sample_run["json_path"]), action="a", metric="1")
     time.sleep(0.01)
     snapshot(str(sample_run["json_path"]), action="b", metric="2")

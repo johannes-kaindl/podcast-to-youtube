@@ -4,6 +4,7 @@ V1 does not re-align word timings against audio. After a word edit, the
 word's start/end remain at the pre-edit values; segment.text is
 rebuilt from the (possibly updated) word list.
 """
+
 import json
 from pathlib import Path
 
@@ -15,9 +16,7 @@ def _load(json_path: str) -> dict:
 
 
 def _save(json_path: str, data: dict) -> None:
-    Path(json_path).write_text(
-        json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8"
-    )
+    Path(json_path).write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
 
 
 def load_words_flat(json_path: str, segment_index: int | None = None) -> list[dict]:
@@ -31,11 +30,13 @@ def load_words_flat(json_path: str, segment_index: int | None = None) -> list[di
         if segment_index is not None and seg_i != segment_index:
             continue
         for word_i, w in enumerate(seg.get("words", [])):
-            out.append({
-                **w,
-                "segment_index": seg_i,
-                "word_index": word_i,
-            })
+            out.append(
+                {
+                    **w,
+                    "segment_index": seg_i,
+                    "word_index": word_i,
+                }
+            )
     return out
 
 
@@ -56,9 +57,7 @@ def save_word_edits(json_path: str, segment_index: int, new_words: list[str]) ->
     seg = segments[segment_index]
     words = seg.get("words", [])
     if len(new_words) != len(words):
-        raise ValueError(
-            f"new_words length {len(new_words)} != words length {len(words)}"
-        )
+        raise ValueError(f"new_words length {len(new_words)} != words length {len(words)}")
     edited_count = 0
     for word, new_str in zip(words, new_words):
         if word.get("word") != new_str:

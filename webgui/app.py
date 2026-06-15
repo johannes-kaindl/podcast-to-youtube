@@ -2,12 +2,14 @@
 
 Single-User, localhost only. No auth, no CSRF.
 """
+
 import json
 import os
 import signal
 import subprocess
 from datetime import datetime
 from pathlib import Path
+
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
@@ -16,14 +18,22 @@ from pydantic import BaseModel
 from sse_starlette.sse import EventSourceResponse
 
 from pipeline_core import PipelineConfig, build_command, resolve_audio_path
-from transcript_editor import load_segments, save_edits, invalidate_downstream, has_been_edited
-from transcript_segment_ops import change_speaker, bulk_rename_speaker, merge_segment, split_segment
-from transcript_word_ops import load_words_flat, save_word_edits
-from transcript_history import snapshot, undo_last, list_history, cleanup_snapshots
 from transcript_diff import compute_segment_diff
+from transcript_editor import has_been_edited, invalidate_downstream, load_segments, save_edits
+from transcript_history import cleanup_snapshots, list_history, snapshot, undo_last
+from transcript_segment_ops import bulk_rename_speaker, change_speaker, merge_segment, split_segment
+from transcript_word_ops import save_word_edits
+
 from .probe import audio_probe
-from .runner import registry, spawn_pipeline, spawn_upload, StreamEvent, latest_logfile, replay_logfile
-from .runs import list_runs, filter_runs
+from .runner import (
+    StreamEvent,
+    latest_logfile,
+    registry,
+    replay_logfile,
+    spawn_pipeline,
+    spawn_upload,
+)
+from .runs import filter_runs, list_runs
 from .settings import load_settings, save_settings
 
 REPO_ROOT = Path(__file__).parent.parent
@@ -40,8 +50,7 @@ templates = Jinja2Templates(directory=TEMPLATES_DIR)
 def _load_state(stem: str) -> dict:
     state_file = OUTPUT_ROOT / stem / "run-state.json"
     default = {
-        "phases": {p: {"status": "pending"}
-                   for p in ("transcribe", "meta", "render", "upload")}
+        "phases": {p: {"status": "pending"} for p in ("transcribe", "meta", "render", "upload")}
     }
     if not state_file.exists():
         return default
@@ -84,7 +93,9 @@ def _distinct_speakers(json_path: Path) -> list[str]:
     if not json_path.exists():
         return []
     data = json.loads(json_path.read_text(encoding="utf-8"))
-    return sorted({seg.get("speaker", "") for seg in data.get("segments", []) if seg.get("speaker")})
+    return sorted(
+        {seg.get("speaker", "") for seg in data.get("segments", []) if seg.get("speaker")}
+    )
 
 
 class AudioProbeRequest(BaseModel):
@@ -125,17 +136,19 @@ async def api_audio_pick():
     Single-user / localhost only — never expose without auth.
     """
     script = (
-        'try\n'
+        "try\n"
         '  POSIX path of (choose file of type {"public.audio"} '
         'with prompt "Choose audio for the pipeline")\n'
-        'on error number -128\n'
+        "on error number -128\n"
         '  return ""\n'
-        'end try'
+        "end try"
     )
     try:
         result = subprocess.run(
             ["osascript", "-e", script],
-            capture_output=True, text=True, timeout=120,
+            capture_output=True,
+            text=True,
+            timeout=120,
         )
     except (subprocess.TimeoutExpired, FileNotFoundError) as exc:
         raise HTTPException(status_code=500, detail=f"osascript failed: {exc}")
@@ -175,8 +188,11 @@ async def runs_phase_start(stem: str, phase: str):
     if registry.current is not None:
         raise HTTPException(
             status_code=409,
-            detail={"error": "slot_busy", "stem": registry.current.stem,
-                    "kind": registry.current.kind},
+            detail={
+                "error": "slot_busy",
+                "stem": registry.current.stem,
+                "kind": registry.current.kind,
+            },
         )
 
     state_file = OUTPUT_ROOT / stem / "run-state.json"
@@ -199,8 +215,12 @@ async def runs_phase_start(stem: str, phase: str):
         if privacy not in ("private", "unlisted"):
             privacy = "private"
         spawn_upload(
-            video_path=mp4, stem=stem, privacy=privacy,
-            output_dir=output_dir, log_file=log_file, registry=registry,
+            video_path=mp4,
+            stem=stem,
+            privacy=privacy,
+            output_dir=output_dir,
+            log_file=log_file,
+            registry=registry,
         )
     else:
         cfg_dict = state.get("config", {})
@@ -212,8 +232,10 @@ async def runs_phase_start(stem: str, phase: str):
         else:
             diarize = "auto"
         skip_map = {
-            "transcribe": "skip_transcribe", "meta": "skip_meta",
-            "render": "skip_render", "upload": "skip_upload",
+            "transcribe": "skip_transcribe",
+            "meta": "skip_meta",
+            "render": "skip_render",
+            "upload": "skip_upload",
         }
         skips = {key: True for key in skip_map.values()}
         skips[skip_map[phase]] = False
@@ -229,8 +251,12 @@ async def runs_phase_start(stem: str, phase: str):
         )
         cmd = build_command(cfg, REPO_ROOT)
         spawn_pipeline(
-            cmd=cmd, stem=stem, audio_path=Path(audio_str),
-            output_dir=output_dir, log_file=log_file, registry=registry,
+            cmd=cmd,
+            stem=stem,
+            audio_path=Path(audio_str),
+            output_dir=output_dir,
+            log_file=log_file,
+            registry=registry,
         )
     return RedirectResponse(url=f"/runs/{stem}", status_code=303)
 
@@ -259,16 +285,27 @@ async def api_create_run(req: RunRequest):
     skip_upload = req.skip_upload or req.pause_after_transcribe
 
     cfg = PipelineConfig(
-        audio=str(audio_path), viz=req.viz, language=req.language, model=req.model,
-        diarize=req.diarize, episode=req.episode, show_name=req.show_name,
-        skip_transcribe=req.skip_transcribe, skip_meta=skip_meta,
-        skip_render=skip_render, skip_upload=skip_upload,
+        audio=str(audio_path),
+        viz=req.viz,
+        language=req.language,
+        model=req.model,
+        diarize=req.diarize,
+        episode=req.episode,
+        show_name=req.show_name,
+        skip_transcribe=req.skip_transcribe,
+        skip_meta=skip_meta,
+        skip_render=skip_render,
+        skip_upload=skip_upload,
     )
     cmd = build_command(cfg, REPO_ROOT)
 
     spawn_pipeline(
-        cmd=cmd, stem=stem, audio_path=audio_path,
-        output_dir=output_dir, log_file=log_file, registry=registry,
+        cmd=cmd,
+        stem=stem,
+        audio_path=audio_path,
+        output_dir=output_dir,
+        log_file=log_file,
+        registry=registry,
     )
     return RedirectResponse(url=f"/runs/{stem}", status_code=303)
 
@@ -277,8 +314,7 @@ async def api_create_run(req: RunRequest):
 async def runs_detail(stem: str, request: Request):
     state_file = OUTPUT_ROOT / stem / "run-state.json"
     is_starting = (
-        registry.current is not None and registry.current.stem == stem
-        and not state_file.exists()
+        registry.current is not None and registry.current.stem == stem and not state_file.exists()
     )
     if not state_file.exists() and not is_starting:
         raise HTTPException(status_code=404, detail="Run not found")
@@ -286,8 +322,10 @@ async def runs_detail(stem: str, request: Request):
     phases = state.get("phases", {})
 
     # Variant precedence: aborted > done > ready-to-upload > running
-    if any(phases.get(p, {}).get("status") == "aborted"
-           for p in ("transcribe", "meta", "render", "upload")):
+    if any(
+        phases.get(p, {}).get("status") == "aborted"
+        for p in ("transcribe", "meta", "render", "upload")
+    ):
         variant = "aborted"
         page_mood = "error"
     elif phases.get("upload", {}).get("status") == "done":
@@ -296,8 +334,10 @@ async def runs_detail(stem: str, request: Request):
     elif phases.get("render", {}).get("status") == "done":
         variant = "ready-to-upload"
         page_mood = "neutral"
-    elif any(phases.get(p, {}).get("status") == "running"
-             for p in ("transcribe", "meta", "render", "upload")):
+    elif any(
+        phases.get(p, {}).get("status") == "running"
+        for p in ("transcribe", "meta", "render", "upload")
+    ):
         variant = "running"
         page_mood = "neutral"
     else:
@@ -370,8 +410,11 @@ async def run_edit_save(stem: str, request: Request):
     if registry.current is not None:
         raise HTTPException(
             status_code=409,
-            detail={"error": "slot_busy", "stem": registry.current.stem,
-                    "kind": registry.current.kind},
+            detail={
+                "error": "slot_busy",
+                "stem": registry.current.stem,
+                "kind": registry.current.kind,
+            },
         )
     form = await request.form()
     # Form fields come back as segment_text_0, segment_text_1, … — collect in order
@@ -409,7 +452,9 @@ async def run_edit_speaker(stem: str, request: Request):
     new_speaker = form.get("speaker", "").strip()
     if not new_speaker:
         raise HTTPException(status_code=400, detail="speaker required")
-    snapshot(str(json_path), action="edit_speaker", metric=f"segment {segment_index} → {new_speaker}")
+    snapshot(
+        str(json_path), action="edit_speaker", metric=f"segment {segment_index} → {new_speaker}"
+    )
     try:
         change_speaker(str(json_path), segment_index, new_speaker)
     except ValueError as exc:
@@ -421,7 +466,8 @@ async def run_edit_speaker(stem: str, request: Request):
     speakers = _distinct_speakers(json_path)
     seg = segments[segment_index]
     return templates.TemplateResponse(
-        request, "_partials/segment_editor.html",
+        request,
+        "_partials/segment_editor.html",
         {"stem": stem, "seg": seg, "loop_index": segment_index, "speakers": speakers},
     )
 
@@ -431,7 +477,8 @@ def _render_segments_partial(request: Request, stem: str) -> HTMLResponse:
     segments = load_segments(str(json_path))
     speakers = _distinct_speakers(json_path)
     return templates.TemplateResponse(
-        request, "_partials/segments_list.html",
+        request,
+        "_partials/segments_list.html",
         {"stem": stem, "segments": segments, "speakers": speakers},
     )
 
@@ -446,8 +493,7 @@ async def run_edit_bulk_rename(stem: str, request: Request):
     new_name = (form.get("new_name") or "").strip()
     if not old_name or not new_name:
         raise HTTPException(status_code=400, detail="old_name and new_name required")
-    snapshot(str(json_path), action="bulk_rename",
-             metric=f"{old_name} → {new_name}")
+    snapshot(str(json_path), action="bulk_rename", metric=f"{old_name} → {new_name}")
     try:
         count = bulk_rename_speaker(str(json_path), old_name, new_name)
     except ValueError as exc:
@@ -467,8 +513,7 @@ async def run_edit_merge(stem: str, request: Request):
         segment_index = int(form.get("segment_index", "-1"))
     except ValueError:
         raise HTTPException(status_code=400, detail="segment_index must be int")
-    snapshot(str(json_path), action="merge",
-             metric=f"segments {segment_index}+{segment_index + 1}")
+    snapshot(str(json_path), action="merge", metric=f"segments {segment_index}+{segment_index + 1}")
     try:
         merge_segment(str(json_path), segment_index)
     except ValueError as exc:
@@ -489,8 +534,9 @@ async def run_edit_split(stem: str, request: Request):
         char_position = int(form.get("char_position", "0"))
     except ValueError:
         raise HTTPException(status_code=400, detail="indices must be int")
-    snapshot(str(json_path), action="split",
-             metric=f"segment {segment_index} at char {char_position}")
+    snapshot(
+        str(json_path), action="split", metric=f"segment {segment_index} at char {char_position}"
+    )
     try:
         split_segment(str(json_path), segment_index, char_position)
     except ValueError as exc:
@@ -509,6 +555,7 @@ async def run_edit_undo(stem: str):
     # Note: undo restores the pre-snapshot state which already had SRT/TXT
     # in sync at that point. Re-generate to be safe.
     from transcript_editor import regenerate_srt_txt as _regen
+
     if json_path.exists():
         _regen(str(json_path))
     # Downstream is invalidated anyway on next save; no need to invalidate here.
@@ -588,14 +635,19 @@ async def runs_resume_banner(stem: str, request: Request):
     state = _load_state(stem)
     phases = state.get("phases", {})
     aborted_phase = next(
-        (p for p in ("transcribe", "meta", "render", "upload")
-         if phases.get(p, {}).get("status") == "aborted"),
+        (
+            p
+            for p in ("transcribe", "meta", "render", "upload")
+            if phases.get(p, {}).get("status") == "aborted"
+        ),
         None,
     )
     if aborted_phase:
         variant = "aborted"
-    elif all(phases.get(p, {}).get("status") in ("done", "skipped")
-             for p in ("transcribe", "meta", "render", "upload")):
+    elif all(
+        phases.get(p, {}).get("status") in ("done", "skipped")
+        for p in ("transcribe", "meta", "render", "upload")
+    ):
         variant = "complete"
     else:
         variant = "inprogress"
@@ -607,8 +659,7 @@ async def runs_resume_banner(stem: str, request: Request):
 
 
 @app.get("/runs/{stem}/progress", response_class=HTMLResponse)
-async def runs_progress_fragment(stem: str, request: Request,
-                                  value: float = 0, label: str = ""):
+async def runs_progress_fragment(stem: str, request: Request, value: float = 0, label: str = ""):
     return templates.TemplateResponse(
         request,
         "_partials/progress_bar.html",
@@ -704,8 +755,11 @@ async def runs_upload(stem: str, req: UploadRequest):
     if registry.current is not None:
         raise HTTPException(
             status_code=409,
-            detail={"error": "slot_busy", "stem": registry.current.stem,
-                    "kind": registry.current.kind},
+            detail={
+                "error": "slot_busy",
+                "stem": registry.current.stem,
+                "kind": registry.current.kind,
+            },
         )
 
     output_dir = OUTPUT_ROOT / stem
@@ -713,8 +767,12 @@ async def runs_upload(stem: str, req: UploadRequest):
     log_file = output_dir / f"run-{ts}.log"
 
     spawn_upload(
-        video_path=mp4, stem=stem, privacy=req.privacy,
-        output_dir=output_dir, log_file=log_file, registry=registry,
+        video_path=mp4,
+        stem=stem,
+        privacy=req.privacy,
+        output_dir=output_dir,
+        log_file=log_file,
+        registry=registry,
     )
     return {"status": "accepted", "stem": stem}
 
@@ -722,6 +780,7 @@ async def runs_upload(stem: str, req: UploadRequest):
 @app.post("/runs/{stem}/skip-upload", status_code=204)
 async def runs_skip_upload(stem: str):
     from fastapi import Response
+
     state_file = OUTPUT_ROOT / stem / "run-state.json"
     if not state_file.exists():
         raise HTTPException(status_code=404, detail="Run not found")
@@ -739,8 +798,9 @@ class OpenRequest(BaseModel):
 def _path_is_safe(path: Path) -> bool:
     try:
         resolved = path.resolve()
-        return (resolved.is_relative_to(REPO_ROOT.resolve())
-                or resolved.is_relative_to(OUTPUT_ROOT.resolve()))
+        return resolved.is_relative_to(REPO_ROOT.resolve()) or resolved.is_relative_to(
+            OUTPUT_ROOT.resolve()
+        )
     except (OSError, ValueError):
         return False
 
@@ -748,6 +808,7 @@ def _path_is_safe(path: Path) -> bool:
 @app.post("/runs/{stem}/abort", status_code=204)
 async def runs_abort(stem: str):
     from fastapi import Response
+
     job = registry.current
     if job is None or job.stem != stem:
         raise HTTPException(status_code=404, detail="No active run for this stem")
@@ -762,6 +823,7 @@ async def runs_abort(stem: str):
 @app.post("/open/finder", status_code=204)
 async def open_finder(req: OpenRequest):
     from fastapi import Response
+
     path = Path(req.path)
     if not _path_is_safe(path):
         raise HTTPException(status_code=400, detail="Path outside repo")
@@ -772,6 +834,7 @@ async def open_finder(req: OpenRequest):
 @app.post("/open/quicktime", status_code=204)
 async def open_quicktime(req: OpenRequest):
     from fastapi import Response
+
     path = Path(req.path)
     if not _path_is_safe(path):
         raise HTTPException(status_code=400, detail="Path outside repo")
@@ -794,6 +857,7 @@ async def api_get_settings():
 @app.post("/api/settings", status_code=204)
 async def api_post_settings(patch: SettingsPatch):
     from fastapi import Response
+
     payload = {k: v for k, v in patch.model_dump().items() if v is not None}
     save_settings(SETTINGS_PATH, payload)
     return Response(status_code=204)
@@ -810,10 +874,16 @@ async def run_edit_words(stem: str, request: Request, segment_index: int = 0):
     seg = segments[segment_index]
     words = seg.get("words", [])
     return templates.TemplateResponse(
-        request, "run_edit_words.html",
-        {"stem": stem, "segment_index": segment_index,
-         "segment": seg, "words": words,
-         "total_segments": len(segments), "page_mood": "neutral"},
+        request,
+        "run_edit_words.html",
+        {
+            "stem": stem,
+            "segment_index": segment_index,
+            "segment": seg,
+            "words": words,
+            "total_segments": len(segments),
+            "page_mood": "neutral",
+        },
     )
 
 
@@ -837,8 +907,11 @@ async def run_edit_words_save(stem: str, request: Request):
         if v is None:
             raise HTTPException(status_code=400, detail=f"Missing word_{i}")
         new_words.append(v)
-    snapshot(str(json_path), action="edit_words",
-             metric=f"segment {segment_index}, {len(new_words)} words")
+    snapshot(
+        str(json_path),
+        action="edit_words",
+        metric=f"segment {segment_index}, {len(new_words)} words",
+    )
     try:
         save_word_edits(str(json_path), segment_index, new_words)
     except ValueError as exc:
@@ -856,10 +929,15 @@ async def run_diff_view(stem: str, request: Request):
     diffs = compute_segment_diff(str(json_path))
     changed = [d for d in diffs if d["text_changed"] or d["speaker_changed"] or d["merge_or_split"]]
     return templates.TemplateResponse(
-        request, "run_diff.html",
-        {"stem": stem, "diffs": diffs, "changed_count": len(changed),
-         "has_original": (json_path.with_name(json_path.stem + ".original.json").exists()),
-         "page_mood": "neutral"},
+        request,
+        "run_diff.html",
+        {
+            "stem": stem,
+            "diffs": diffs,
+            "changed_count": len(changed),
+            "has_original": (json_path.with_name(json_path.stem + ".original.json").exists()),
+            "page_mood": "neutral",
+        },
     )
 
 

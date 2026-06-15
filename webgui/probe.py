@@ -1,4 +1,5 @@
 """Audio-probe + pre-flight helpers (ffprobe, disk-free, ETA-heuristic)."""
+
 import json
 import shutil
 import subprocess
@@ -9,16 +10,16 @@ SUPPORTED_EXTS = {".m4a", ".mp3", ".wav"}
 # ETA factors per phase (× audio-duration-seconds, on M-series Mac)
 _MODEL_FACTORS = {
     "large-v3-turbo": 0.045,
-    "large-v3":       0.18,
-    "large-v2":       0.16,
-    "medium":         0.08,
-    "small":          0.04,
-    "base":           0.02,
-    "tiny":           0.01,
+    "large-v3": 0.18,
+    "large-v2": 0.16,
+    "medium": 0.08,
+    "small": 0.04,
+    "base": 0.02,
+    "tiny": 0.01,
 }
 _VIZ_FACTORS = {"dialogue": 0.17, "monologue": 0.15}
 _META_FIXED_S = 45
-_UPLOAD_FACTOR = 0.03    # bandwidth-dependent — heuristic only
+_UPLOAD_FACTOR = 0.03  # bandwidth-dependent — heuristic only
 
 
 def audio_probe(audio_path: Path, output_root: Path) -> dict:
@@ -30,9 +31,20 @@ def audio_probe(audio_path: Path, output_root: Path) -> dict:
 
     try:
         ff = subprocess.run(
-            ["ffprobe", "-v", "error", "-show_format", "-show_streams",
-             "-of", "json", str(audio_path)],
-            capture_output=True, text=True, check=True, timeout=5,
+            [
+                "ffprobe",
+                "-v",
+                "error",
+                "-show_format",
+                "-show_streams",
+                "-of",
+                "json",
+                str(audio_path),
+            ],
+            capture_output=True,
+            text=True,
+            check=True,
+            timeout=5,
         )
     except (subprocess.CalledProcessError, subprocess.TimeoutExpired, FileNotFoundError):
         return {"valid": False, "error": "ffprobe_failed"}

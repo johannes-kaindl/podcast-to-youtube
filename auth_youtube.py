@@ -8,15 +8,17 @@ Usage:
   source .venv/bin/activate
   python auth_youtube.py
 """
+
 import os
 import pickle
 import sys
-from pathlib import Path
 
 SECRETS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "client_secrets.json")
 TOKEN_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".youtube_token.pickle")
-SCOPES = ["https://www.googleapis.com/auth/youtube.upload",
-          "https://www.googleapis.com/auth/youtube"]
+SCOPES = [
+    "https://www.googleapis.com/auth/youtube.upload",
+    "https://www.googleapis.com/auth/youtube",
+]
 
 
 def main():

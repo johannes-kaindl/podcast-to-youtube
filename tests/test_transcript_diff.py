@@ -1,7 +1,8 @@
 """Tests for transcript_diff — segment-level diff vs .original.json."""
+
 import json
 import shutil
-from pathlib import Path
+
 import pytest
 
 
@@ -26,19 +27,20 @@ def unedited_run(tmp_path, fixtures_dir):
     stem = "ep01"
     run_dir = tmp_path / stem
     run_dir.mkdir()
-    shutil.copy(fixtures_dir / "sample-transcript.whisperx.json",
-                run_dir / f"{stem}.whisperx.json")
+    shutil.copy(fixtures_dir / "sample-transcript.whisperx.json", run_dir / f"{stem}.whisperx.json")
     return {"json_path": run_dir / f"{stem}.whisperx.json"}
 
 
 def test_compute_segment_diff_returns_empty_when_no_original(unedited_run):
     from transcript_diff import compute_segment_diff
+
     diffs = compute_segment_diff(str(unedited_run["json_path"]))
     assert diffs == []
 
 
 def test_compute_segment_diff_marks_text_changes(edited_run):
     from transcript_diff import compute_segment_diff
+
     # Mutate current: change segment 0 text
     data = json.loads(edited_run["json_path"].read_text(encoding="utf-8"))
     data["segments"][0]["text"] = "Hello and good morning."
@@ -55,6 +57,7 @@ def test_compute_segment_diff_marks_text_changes(edited_run):
 
 def test_compute_segment_diff_detects_speaker_change(edited_run):
     from transcript_diff import compute_segment_diff
+
     data = json.loads(edited_run["json_path"].read_text(encoding="utf-8"))
     data["segments"][0]["speaker"] = "Anna"
     data["segments"][0]["_speaker_edited"] = True
@@ -69,6 +72,7 @@ def test_compute_segment_diff_detects_speaker_change(edited_run):
 
 def test_compute_segment_diff_handles_merged_segments(edited_run):
     from transcript_diff import compute_segment_diff
+
     data = json.loads(edited_run["json_path"].read_text(encoding="utf-8"))
     # Simulate merge of segments 0+1 → produces 2 segments instead of 3
     seg_0 = data["segments"][0]
@@ -92,14 +96,27 @@ def test_compute_segment_diff_handles_merged_segments(edited_run):
 
 def test_compute_segment_diff_handles_split_segments(edited_run):
     from transcript_diff import compute_segment_diff
+
     data = json.loads(edited_run["json_path"].read_text(encoding="utf-8"))
     # Simulate split of segment 1 → into two halves, both _split_from=1
     seg_1 = data["segments"][1]
     mid = (seg_1["start"] + seg_1["end"]) / 2
-    left = {"start": seg_1["start"], "end": mid, "text": "Left half.",
-            "speaker": seg_1["speaker"], "words": [], "_split_from": 1}
-    right = {"start": mid, "end": seg_1["end"], "text": "Right half.",
-             "speaker": seg_1["speaker"], "words": [], "_split_from": 1}
+    left = {
+        "start": seg_1["start"],
+        "end": mid,
+        "text": "Left half.",
+        "speaker": seg_1["speaker"],
+        "words": [],
+        "_split_from": 1,
+    }
+    right = {
+        "start": mid,
+        "end": seg_1["end"],
+        "text": "Right half.",
+        "speaker": seg_1["speaker"],
+        "words": [],
+        "_split_from": 1,
+    }
     data["segments"] = [data["segments"][0], left, right, data["segments"][2]]
     edited_run["json_path"].write_text(json.dumps(data, indent=2), encoding="utf-8")
 

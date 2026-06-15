@@ -3,6 +3,7 @@
 All operations work on the WhisperX JSON in-place and regenerate SRT/TXT
 siblings via transcript_editor.regenerate_srt_txt.
 """
+
 import json
 from pathlib import Path
 
@@ -14,9 +15,7 @@ def _load(json_path: str) -> dict:
 
 
 def _save(json_path: str, data: dict) -> None:
-    Path(json_path).write_text(
-        json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8"
-    )
+    Path(json_path).write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
 
 
 def change_speaker(json_path: str, segment_index: int, new_speaker: str) -> None:
@@ -93,7 +92,7 @@ def merge_segment(json_path: str, segment_index: int) -> None:
     for flag in ("_edited", "_speaker_edited"):
         if curr.get(flag):
             merged[flag] = True
-    segments[segment_index:segment_index + 2] = [merged]
+    segments[segment_index : segment_index + 2] = [merged]
     _save(json_path, data)
     regenerate_srt_txt(json_path)
 
@@ -118,15 +117,11 @@ def split_segment(json_path: str, segment_index: int, char_position: int) -> Non
     seg = segments[segment_index]
     text = seg["text"]
     if char_position <= 0 or char_position >= len(text):
-        raise ValueError(
-            f"char_position {char_position} must be between 1 and {len(text) - 1}"
-        )
+        raise ValueError(f"char_position {char_position} must be between 1 and {len(text) - 1}")
     text_left = text[:char_position].rstrip()
     text_right = text[char_position:].lstrip()
     if not text_left or not text_right:
-        raise ValueError(
-            "split position would create empty segment after whitespace trim"
-        )
+        raise ValueError("split position would create empty segment after whitespace trim")
 
     start = seg["start"]
     end = seg["end"]
@@ -144,13 +139,17 @@ def split_segment(json_path: str, segment_index: int, char_position: int) -> Non
     words_right = [w for w in words if w.get("start", start) >= split_time]
 
     left = {
-        "start": start, "end": split_time, "text": text_left,
+        "start": start,
+        "end": split_time,
+        "text": text_left,
         "speaker": seg.get("speaker", "SPEAKER_00"),
         "words": words_left,
         "_split_from": segment_index,
     }
     right = {
-        "start": split_time, "end": end, "text": text_right,
+        "start": split_time,
+        "end": end,
+        "text": text_right,
         "speaker": seg.get("speaker", "SPEAKER_00"),
         "words": words_right,
         "_split_from": segment_index,
@@ -160,6 +159,6 @@ def split_segment(json_path: str, segment_index: int, char_position: int) -> Non
         if seg.get(flag):
             left[flag] = True
 
-    segments[segment_index:segment_index + 1] = [left, right]
+    segments[segment_index : segment_index + 1] = [left, right]
     _save(json_path, data)
     regenerate_srt_txt(json_path)

@@ -7,10 +7,10 @@ Usage:
   python transcribe.py audio.m4a --output-dir ./output
   python transcribe.py audio.m4a --output-dir ./output --language en --hf-token hf_xxx
 """
+
 import argparse
 import json
 import os
-import sys
 
 
 def format_srt_time(seconds: float) -> str:
@@ -31,9 +31,15 @@ def _pyannote_is_cached() -> bool:
     return os.path.isdir(model_dir)
 
 
-def transcribe(audio_path: str, output_dir: str, language: str = "de",
-               model_size: str = "large-v3-turbo", hf_token: str | None = None,
-               diarize: bool = True, num_speakers: int | None = None) -> dict:
+def transcribe(
+    audio_path: str,
+    output_dir: str,
+    language: str = "de",
+    model_size: str = "large-v3-turbo",
+    hf_token: str | None = None,
+    diarize: bool = True,
+    num_speakers: int | None = None,
+) -> dict:
     import whisperx
 
     device = "cpu"
@@ -41,6 +47,7 @@ def transcribe(audio_path: str, output_dir: str, language: str = "de",
 
     print(f"[1/4] Modell laden ({model_size})...", flush=True)
     from faster_whisper import WhisperModel
+
     fw_model = WhisperModel(model_size, device=device, compute_type=compute_type)
 
     print(f"[2/4] Transkribieren: {os.path.basename(audio_path)}", flush=True)
@@ -65,11 +72,10 @@ def transcribe(audio_path: str, output_dir: str, language: str = "de",
     del fw_model
 
     print("[3/4] Wort-Alignment...", flush=True)
-    model_a, metadata = whisperx.load_align_model(
-        language_code=detected_lang, device=device
+    model_a, metadata = whisperx.load_align_model(language_code=detected_lang, device=device)
+    result = whisperx.align(
+        result["segments"], model_a, metadata, audio, device, return_char_alignments=False
     )
-    result = whisperx.align(result["segments"], model_a, metadata, audio, device,
-                             return_char_alignments=False)
 
     cached = _pyannote_is_cached()
     can_diarize = diarize and (hf_token or cached)
@@ -81,6 +87,7 @@ def transcribe(audio_path: str, output_dir: str, language: str = "de",
         if cached:
             os.environ.setdefault("HF_HUB_OFFLINE", "1")
         from whisperx.diarize import DiarizationPipeline, assign_word_speakers
+
         diarize_model = DiarizationPipeline(token=hf_token or "", device=device)
         diarize_kwargs = {}
         if num_speakers is not None:
@@ -90,8 +97,7 @@ def transcribe(audio_path: str, output_dir: str, language: str = "de",
         for seg in result["segments"]:
             if "speaker" not in seg:
                 first_speaker = next(
-                    (w.get("speaker") for w in seg.get("words", []) if "speaker" in w),
-                    "SPEAKER_00"
+                    (w.get("speaker") for w in seg.get("words", []) if "speaker" in w), "SPEAKER_00"
                 )
                 seg["speaker"] = first_speaker
     else:
@@ -118,9 +124,11 @@ def transcribe(audio_path: str, output_dir: str, language: str = "de",
         for i, seg in enumerate(result["segments"], 1):
             speaker = seg.get("speaker", "SPEAKER_00")
             text = f"[{speaker}] {seg['text'].strip()}"
-            f.write(f"{i}\n"
-                    f"{format_srt_time(seg['start'])} --> {format_srt_time(seg['end'])}\n"
-                    f"{text}\n\n")
+            f.write(
+                f"{i}\n"
+                f"{format_srt_time(seg['start'])} --> {format_srt_time(seg['end'])}\n"
+                f"{text}\n\n"
+            )
     print(f"  → {srt_path}")
 
     # Plain-text Transkript mit Speaker-Labels
@@ -150,16 +158,20 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="WhisperX Transkription")
     parser.add_argument("audio", help="Audio-Datei (m4a/mp3/wav)")
     parser.add_argument("--output-dir", "-o", default="./output")
-    parser.add_argument("--language", "-l", default="de",
-                        help="Sprachcode: de, en, auto")
-    parser.add_argument("--model", "-m", default="large-v3-turbo",
-                        choices=["tiny", "base", "small", "medium", "large-v2", "large-v3",
-                                 "large-v3-turbo"])
+    parser.add_argument("--language", "-l", default="de", help="Sprachcode: de, en, auto")
+    parser.add_argument(
+        "--model",
+        "-m",
+        default="large-v3-turbo",
+        choices=["tiny", "base", "small", "medium", "large-v2", "large-v3", "large-v3-turbo"],
+    )
     parser.add_argument("--hf-token", help="HuggingFace-Token für Diarization")
-    parser.add_argument("--no-diarize", action="store_true",
-                        help="Speaker-Diarization deaktivieren")
-    parser.add_argument("--speakers", type=int, default=None,
-                        help="Exakte Anzahl Sprecher:innen (leer = Auto)")
+    parser.add_argument(
+        "--no-diarize", action="store_true", help="Speaker-Diarization deaktivieren"
+    )
+    parser.add_argument(
+        "--speakers", type=int, default=None, help="Exakte Anzahl Sprecher:innen (leer = Auto)"
+    )
     args = parser.parse_args()
 
     result = transcribe(
@@ -171,5 +183,7 @@ if __name__ == "__main__":
         diarize=not args.no_diarize,
         num_speakers=args.speakers,
     )
-    print(f"\n✓ {result['segments']} Segmente, Sprache={result['language']}, "
-          f"Diarization={'ja' if result['has_diarization'] else 'nein'}")
+    print(
+        f"\n✓ {result['segments']} Segmente, Sprache={result['language']}, "
+        f"Diarization={'ja' if result['has_diarization'] else 'nein'}"
+    )

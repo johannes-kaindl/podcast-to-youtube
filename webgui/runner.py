@@ -3,13 +3,14 @@
 JobRegistry is in-memory, single-slot. Both pipeline runs and uploads
 share this slot — only one subprocess can run at a time.
 """
+
 import asyncio
 import re
 import shlex
 import subprocess
 import threading
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Literal
 
@@ -19,6 +20,7 @@ JobKind = Literal["pipeline", "upload"]
 @dataclass
 class StreamEvent:
     """One SSE event to push to subscribers."""
+
     type: Literal["log", "phase", "progress", "done"]
     data: dict[str, Any]
     seq: int = 0
@@ -32,7 +34,7 @@ class ActiveJob:
     process: subprocess.Popen | None
     log_file: Path
     kind: JobKind
-    started_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    started_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     seq: int = 0
     queue: asyncio.Queue[StreamEvent] | None = None
 
@@ -79,8 +81,12 @@ def spawn_pipeline(
     exits, the registry is released and a "done" event is emitted.
     """
     job = ActiveJob(
-        stem=stem, audio_path=audio_path, output_dir=output_dir,
-        process=None, log_file=log_file, kind=kind,
+        stem=stem,
+        audio_path=audio_path,
+        output_dir=output_dir,
+        process=None,
+        log_file=log_file,
+        kind=kind,
         queue=asyncio.Queue(),
     )
     if not registry.try_claim(job):
@@ -128,6 +134,7 @@ def spawn_pipeline(
 
     def _reader():
         from pipeline_core import match_line
+
         current_step = 0
         try:
             with log_file.open("w", encoding="utf-8", buffering=1) as f:
@@ -140,35 +147,43 @@ def spawn_pipeline(
                     if not line:
                         continue
                     job.seq += 1
-                    _put(StreamEvent(
-                        type="log",
-                        seq=job.seq,
-                        data={"msg": line, "level": _classify_level(line)},
-                    ))
+                    _put(
+                        StreamEvent(
+                            type="log",
+                            seq=job.seq,
+                            data={"msg": line, "level": _classify_level(line)},
+                        )
+                    )
                     evt = match_line(line, current_step)
                     if evt is not None:
                         current_step = evt.step
                         job.seq += 1
-                        _put(StreamEvent(
-                            type="phase",
-                            seq=job.seq,
-                            data={"step": evt.step, "label": evt.label},
-                        ))
+                        _put(
+                            StreamEvent(
+                                type="phase",
+                                seq=job.seq,
+                                data={"step": evt.step, "label": evt.label},
+                            )
+                        )
                         job.seq += 1
-                        _put(StreamEvent(
-                            type="progress",
-                            seq=job.seq,
-                            data={"value": evt.progress, "label": evt.label},
-                        ))
+                        _put(
+                            StreamEvent(
+                                type="progress",
+                                seq=job.seq,
+                                data={"value": evt.progress, "label": evt.label},
+                            )
+                        )
             if proc.stdout is not None:
                 proc.stdout.close()
             proc.wait()
             job.seq += 1
-            _put(StreamEvent(
-                type="done",
-                seq=job.seq,
-                data={"exit_code": proc.returncode, "kind": kind},
-            ))
+            _put(
+                StreamEvent(
+                    type="done",
+                    seq=job.seq,
+                    data={"exit_code": proc.returncode, "kind": kind},
+                )
+            )
         finally:
             registry.release(job)
 
@@ -231,15 +246,22 @@ def spawn_upload(
 ) -> ActiveJob:
     """Spawn upload_youtube.py as a subprocess. Same plumbing as spawn_pipeline."""
     import sys
+
     cmd = [
-        sys.executable, "-u",  # unbuffered — stream the upload-progress live
+        sys.executable,
+        "-u",  # unbuffered — stream the upload-progress live
         str(Path(__file__).parent.parent / "upload_youtube.py"),
         str(video_path),
-        "--privacy", privacy,
+        "--privacy",
+        privacy,
     ]
     job = ActiveJob(
-        stem=stem, audio_path=video_path, output_dir=output_dir,
-        process=None, log_file=log_file, kind="upload",
+        stem=stem,
+        audio_path=video_path,
+        output_dir=output_dir,
+        process=None,
+        log_file=log_file,
+        kind="upload",
         queue=asyncio.Queue(),
     )
     if not registry.try_claim(job):
@@ -251,8 +273,11 @@ def spawn_upload(
         output_dir.mkdir(parents=True, exist_ok=True)
         log_file.parent.mkdir(parents=True, exist_ok=True)
         proc = subprocess.Popen(
-            cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-            text=True, bufsize=1,
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            bufsize=1,
         )
     except Exception:
         registry.release(job)
@@ -285,26 +310,37 @@ def spawn_upload(
                     f.write(line + "\n")
                     if line:
                         job.seq += 1
-                        _put(StreamEvent(
-                            type="log", seq=job.seq,
-                            data={"msg": line, "level": _classify_level(line)},
-                        ))
+                        _put(
+                            StreamEvent(
+                                type="log",
+                                seq=job.seq,
+                                data={"msg": line, "level": _classify_level(line)},
+                            )
+                        )
                         m = upload_pct.search(line)
                         if m:
                             job.seq += 1
-                            _put(StreamEvent(
-                                type="progress", seq=job.seq,
-                                data={"value": int(m.group(1)),
-                                      "label": f"Uploading … {m.group(1)} %"},
-                            ))
+                            _put(
+                                StreamEvent(
+                                    type="progress",
+                                    seq=job.seq,
+                                    data={
+                                        "value": int(m.group(1)),
+                                        "label": f"Uploading … {m.group(1)} %",
+                                    },
+                                )
+                            )
             if proc.stdout is not None:
                 proc.stdout.close()
             proc.wait()
             job.seq += 1
-            _put(StreamEvent(
-                type="done", seq=job.seq,
-                data={"exit_code": proc.returncode, "kind": "upload"},
-            ))
+            _put(
+                StreamEvent(
+                    type="done",
+                    seq=job.seq,
+                    data={"exit_code": proc.returncode, "kind": "upload"},
+                )
+            )
         finally:
             registry.release(job)
 

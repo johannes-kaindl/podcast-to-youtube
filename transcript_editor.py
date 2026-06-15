@@ -3,6 +3,7 @@
 Pure Python, no FastAPI dependency. Tested standalone in
 tests/test_transcript_editor.py.
 """
+
 import json
 import shutil
 from pathlib import Path
@@ -41,9 +42,7 @@ def save_edits(json_path: str, new_texts: list[str]) -> dict:
     data = json.loads(path.read_text(encoding="utf-8"))
     segments = data.get("segments", [])
     if len(new_texts) != len(segments):
-        raise ValueError(
-            f"new_texts length {len(new_texts)} != segments length {len(segments)}"
-        )
+        raise ValueError(f"new_texts length {len(new_texts)} != segments length {len(segments)}")
     edited_count = 0
     for seg, new_text in zip(segments, new_texts):
         if seg.get("text") != new_text:

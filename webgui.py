@@ -6,6 +6,7 @@ Usage:
   python webgui.py --port 9000 # custom port
   python webgui.py --no-open   # don't open browser
 """
+
 import argparse
 import threading
 import time
@@ -30,14 +31,18 @@ def main() -> None:
     url = f"http://{args.host}:{args.port}"
     if not args.no_open:
         threading.Thread(
-            target=_open_browser_after_delay, args=(url,), daemon=True,
+            target=_open_browser_after_delay,
+            args=(url,),
+            daemon=True,
         ).start()
 
     print(f"\n  Whisper-Pipeline WebGUI  ->  {url}\n")
     uvicorn.run(
         "webgui.app:app",
-        host=args.host, port=args.port,
-        reload=args.reload, log_level="info",
+        host=args.host,
+        port=args.port,
+        reload=args.reload,
+        log_level="info",
     )
 
 

@@ -1,22 +1,28 @@
 """Tests for webgui.runner — JobRegistry + subprocess spawning."""
-import asyncio
+
 import sys
 from pathlib import Path
+
 import pytest
 
 
 def test_registry_starts_empty():
     from webgui.runner import JobRegistry
+
     reg = JobRegistry()
     assert reg.current is None
 
 
 def test_registry_claim_succeeds_when_empty():
-    from webgui.runner import JobRegistry, ActiveJob
+    from webgui.runner import ActiveJob, JobRegistry
+
     reg = JobRegistry()
     job = ActiveJob(
-        stem="folge-082", audio_path=Path("/tmp/a.m4a"),
-        output_dir=Path("/tmp/out"), process=None, log_file=Path("/tmp/log"),
+        stem="folge-082",
+        audio_path=Path("/tmp/a.m4a"),
+        output_dir=Path("/tmp/out"),
+        process=None,
+        log_file=Path("/tmp/log"),
         kind="pipeline",
     )
     claimed = reg.try_claim(job)
@@ -26,22 +32,42 @@ def test_registry_claim_succeeds_when_empty():
 
 
 def test_registry_claim_fails_when_busy():
-    from webgui.runner import JobRegistry, ActiveJob
+    from webgui.runner import ActiveJob, JobRegistry
+
     reg = JobRegistry()
-    first = ActiveJob(stem="first", audio_path=Path("/a"), output_dir=Path("/b"),
-                      process=None, log_file=Path("/c"), kind="pipeline")
-    second = ActiveJob(stem="second", audio_path=Path("/a"), output_dir=Path("/b"),
-                       process=None, log_file=Path("/c"), kind="pipeline")
+    first = ActiveJob(
+        stem="first",
+        audio_path=Path("/a"),
+        output_dir=Path("/b"),
+        process=None,
+        log_file=Path("/c"),
+        kind="pipeline",
+    )
+    second = ActiveJob(
+        stem="second",
+        audio_path=Path("/a"),
+        output_dir=Path("/b"),
+        process=None,
+        log_file=Path("/c"),
+        kind="pipeline",
+    )
     reg.try_claim(first)
     assert reg.try_claim(second) is False
     assert reg.current.stem == "first"
 
 
 def test_registry_release_frees_slot():
-    from webgui.runner import JobRegistry, ActiveJob
+    from webgui.runner import ActiveJob, JobRegistry
+
     reg = JobRegistry()
-    job = ActiveJob(stem="x", audio_path=Path("/a"), output_dir=Path("/b"),
-                    process=None, log_file=Path("/c"), kind="pipeline")
+    job = ActiveJob(
+        stem="x",
+        audio_path=Path("/a"),
+        output_dir=Path("/b"),
+        process=None,
+        log_file=Path("/c"),
+        kind="pipeline",
+    )
     reg.try_claim(job)
     reg.release(job)
     assert reg.current is None
@@ -49,12 +75,25 @@ def test_registry_release_frees_slot():
 
 def test_registry_release_ignores_wrong_job():
     """Releasing a job that doesn't match current should not free the slot."""
-    from webgui.runner import JobRegistry, ActiveJob
+    from webgui.runner import ActiveJob, JobRegistry
+
     reg = JobRegistry()
-    real = ActiveJob(stem="real", audio_path=Path("/a"), output_dir=Path("/b"),
-                     process=None, log_file=Path("/c"), kind="pipeline")
-    other = ActiveJob(stem="other", audio_path=Path("/a"), output_dir=Path("/b"),
-                      process=None, log_file=Path("/c"), kind="pipeline")
+    real = ActiveJob(
+        stem="real",
+        audio_path=Path("/a"),
+        output_dir=Path("/b"),
+        process=None,
+        log_file=Path("/c"),
+        kind="pipeline",
+    )
+    other = ActiveJob(
+        stem="other",
+        audio_path=Path("/a"),
+        output_dir=Path("/b"),
+        process=None,
+        log_file=Path("/c"),
+        kind="pipeline",
+    )
     reg.try_claim(real)
     reg.release(other)
     assert reg.current is real
@@ -62,8 +101,9 @@ def test_registry_release_ignores_wrong_job():
 
 def test_spawn_pipeline_writes_to_logfile_and_releases_slot(tmp_path):
     """End-to-end: spawn mock pipeline, verify log file populated + slot freed after exit."""
-    from webgui.runner import spawn_pipeline, JobRegistry
     import time
+
+    from webgui.runner import JobRegistry, spawn_pipeline
 
     reg = JobRegistry()
     output_dir = tmp_path / "stem-x"
@@ -95,20 +135,26 @@ def test_spawn_pipeline_writes_to_logfile_and_releases_slot(tmp_path):
 
 
 def test_spawn_pipeline_fails_when_slot_busy(tmp_path):
-    from webgui.runner import spawn_pipeline, JobRegistry, ActiveJob
+    from webgui.runner import ActiveJob, JobRegistry, spawn_pipeline
 
     reg = JobRegistry()
     existing = ActiveJob(
-        stem="busy", audio_path=Path("/a"), output_dir=Path("/b"),
-        process=None, log_file=Path("/c"), kind="pipeline",
+        stem="busy",
+        audio_path=Path("/a"),
+        output_dir=Path("/b"),
+        process=None,
+        log_file=Path("/c"),
+        kind="pipeline",
     )
     reg.try_claim(existing)
 
     with pytest.raises(RuntimeError) as exc:
         spawn_pipeline(
             cmd=[sys.executable, "-c", "pass"],
-            stem="new", audio_path=Path("/tmp/a.m4a"),
-            output_dir=tmp_path, log_file=tmp_path / "x.log",
+            stem="new",
+            audio_path=Path("/tmp/a.m4a"),
+            output_dir=tmp_path,
+            log_file=tmp_path / "x.log",
             registry=reg,
         )
     assert "busy" in str(exc.value).lower() or "slot" in str(exc.value).lower()
@@ -118,7 +164,7 @@ def test_spawn_pipeline_releases_slot_when_popen_fails(tmp_path):
     """Critical: if Popen raises (bad binary, OS error), the slot must NOT
     stay claimed — otherwise the singleton registry becomes permanently
     unusable. Regression guard for T6/T7 code-quality review finding."""
-    from webgui.runner import spawn_pipeline, JobRegistry
+    from webgui.runner import JobRegistry, spawn_pipeline
 
     reg = JobRegistry()
     with pytest.raises(FileNotFoundError):

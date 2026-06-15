@@ -1,9 +1,6 @@
-import json
-from pathlib import Path
-
-
 def test_load_settings_returns_defaults_when_file_missing(tmp_path):
     from webgui.settings import load_settings
+
     s = load_settings(tmp_path / "nope.json")
     assert s["theme"] == "dark"
     assert s["tail_default"] is True
@@ -11,6 +8,7 @@ def test_load_settings_returns_defaults_when_file_missing(tmp_path):
 
 def test_save_then_load_roundtrips(tmp_path):
     from webgui.settings import load_settings, save_settings
+
     p = tmp_path / "settings.json"
     save_settings(p, {"theme": "light"})
     loaded = load_settings(p)
@@ -19,7 +17,8 @@ def test_save_then_load_roundtrips(tmp_path):
 
 
 def test_save_settings_partial_merges(tmp_path):
-    from webgui.settings import save_settings, load_settings
+    from webgui.settings import load_settings, save_settings
+
     p = tmp_path / "settings.json"
     save_settings(p, {"theme": "dark", "tail_default": False})
     save_settings(p, {"theme": "light"})
@@ -30,12 +29,14 @@ def test_save_settings_partial_merges(tmp_path):
 
 def test_default_pause_after_transcribe_is_false(tmp_path):
     from webgui.settings import load_settings
+
     s = load_settings(tmp_path / "nope.json")
     assert s["pause_after_transcribe"] is False
 
 
 def test_pause_after_transcribe_persists(tmp_path):
     from webgui.settings import load_settings, save_settings
+
     p = tmp_path / "settings.json"
     save_settings(p, {"pause_after_transcribe": True})
     loaded = load_settings(p)

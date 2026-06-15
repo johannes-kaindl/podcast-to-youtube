@@ -1,13 +1,17 @@
 """Backwards-compatibility shim — re-exports from pipeline_core."""
+
 from pipeline_core import (
     PipelineConfig,
-    is_pyannote_cached,
-    can_diarize,
-    resolve_audio_path,
     build_command,
+    can_diarize,
+    is_pyannote_cached,
+    resolve_audio_path,
 )
 
 __all__ = [
-    "PipelineConfig", "is_pyannote_cached", "can_diarize",
-    "resolve_audio_path", "build_command",
+    "PipelineConfig",
+    "build_command",
+    "can_diarize",
+    "is_pyannote_cached",
+    "resolve_audio_path",
 ]

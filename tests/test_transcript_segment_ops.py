@@ -1,7 +1,8 @@
 """Tests for transcript_segment_ops — merge, split, speaker change, bulk rename."""
+
 import json
 import shutil
-from pathlib import Path
+
 import pytest
 
 
@@ -19,6 +20,7 @@ def sample_run(tmp_path, fixtures_dir):
 
 def test_change_speaker_updates_segment(sample_run):
     from transcript_segment_ops import change_speaker
+
     change_speaker(str(sample_run["json_path"]), 0, "Anna")
     data = json.loads(sample_run["json_path"].read_text(encoding="utf-8"))
     assert data["segments"][0]["speaker"] == "Anna"
@@ -27,6 +29,7 @@ def test_change_speaker_updates_segment(sample_run):
 
 def test_change_speaker_noop_when_same(sample_run):
     from transcript_segment_ops import change_speaker
+
     original = json.loads(sample_run["json_path"].read_text(encoding="utf-8"))
     original_speaker = original["segments"][1]["speaker"]
     change_speaker(str(sample_run["json_path"]), 1, original_speaker)
@@ -37,12 +40,14 @@ def test_change_speaker_noop_when_same(sample_run):
 
 def test_change_speaker_raises_on_empty(sample_run):
     from transcript_segment_ops import change_speaker
+
     with pytest.raises(ValueError, match="speaker"):
         change_speaker(str(sample_run["json_path"]), 0, "")
 
 
 def test_bulk_rename_speaker_renames_all_matching(sample_run):
     from transcript_segment_ops import bulk_rename_speaker
+
     # Fixture has SPEAKER_00 (segs 0, 2) and SPEAKER_01 (seg 1)
     count = bulk_rename_speaker(str(sample_run["json_path"]), "SPEAKER_00", "Anna")
     assert count == 2
@@ -54,6 +59,7 @@ def test_bulk_rename_speaker_renames_all_matching(sample_run):
 
 def test_bulk_rename_speaker_does_not_set_flag(sample_run):
     from transcript_segment_ops import bulk_rename_speaker
+
     bulk_rename_speaker(str(sample_run["json_path"]), "SPEAKER_00", "Anna")
     data = json.loads(sample_run["json_path"].read_text(encoding="utf-8"))
     # Bulk-rename is a display change, not a diarization fix → no _speaker_edited
@@ -64,18 +70,21 @@ def test_bulk_rename_speaker_does_not_set_flag(sample_run):
 
 def test_bulk_rename_speaker_raises_on_same_names(sample_run):
     from transcript_segment_ops import bulk_rename_speaker
+
     with pytest.raises(ValueError, match="differ"):
         bulk_rename_speaker(str(sample_run["json_path"]), "SPEAKER_00", "SPEAKER_00")
 
 
 def test_bulk_rename_speaker_returns_zero_when_no_match(sample_run):
     from transcript_segment_ops import bulk_rename_speaker
+
     count = bulk_rename_speaker(str(sample_run["json_path"]), "SPEAKER_99", "Whoever")
     assert count == 0
 
 
 def test_merge_segment_combines_text_and_words(sample_run):
     from transcript_segment_ops import merge_segment
+
     original = json.loads(sample_run["json_path"].read_text(encoding="utf-8"))
     original_text_0 = original["segments"][0]["text"]
     original_text_1 = original["segments"][1]["text"]
@@ -91,6 +100,7 @@ def test_merge_segment_combines_text_and_words(sample_run):
 
 def test_merge_segment_extends_end_time(sample_run):
     from transcript_segment_ops import merge_segment
+
     original = json.loads(sample_run["json_path"].read_text(encoding="utf-8"))
     original_start_0 = original["segments"][0]["start"]
     original_end_1 = original["segments"][1]["end"]
@@ -103,6 +113,7 @@ def test_merge_segment_extends_end_time(sample_run):
 
 def test_merge_segment_sets_merged_from_flag(sample_run):
     from transcript_segment_ops import merge_segment
+
     merge_segment(str(sample_run["json_path"]), 0)
     data = json.loads(sample_run["json_path"].read_text(encoding="utf-8"))
     assert data["segments"][0]["_merged_from"] == [0, 1]
@@ -110,6 +121,7 @@ def test_merge_segment_sets_merged_from_flag(sample_run):
 
 def test_merge_segment_raises_when_no_next(sample_run):
     from transcript_segment_ops import merge_segment
+
     # last segment (index 2) has no successor
     with pytest.raises(ValueError, match="no next"):
         merge_segment(str(sample_run["json_path"]), 2)
@@ -117,6 +129,7 @@ def test_merge_segment_raises_when_no_next(sample_run):
 
 def test_split_segment_creates_two_segments(sample_run):
     from transcript_segment_ops import split_segment
+
     # Segment 1 text: "Let's dive into this autopoiesis thing."
     # Split at position 16 (after "Let's dive into ")
     split_segment(str(sample_run["json_path"]), 1, 16)
@@ -128,6 +141,7 @@ def test_split_segment_creates_two_segments(sample_run):
 
 def test_split_segment_interpolates_times(sample_run):
     from transcript_segment_ops import split_segment
+
     original = json.loads(sample_run["json_path"].read_text(encoding="utf-8"))
     seg_1 = original["segments"][1]
     original_start = seg_1["start"]
@@ -145,6 +159,7 @@ def test_split_segment_interpolates_times(sample_run):
 
 def test_split_segment_sets_split_from_flag(sample_run):
     from transcript_segment_ops import split_segment
+
     split_segment(str(sample_run["json_path"]), 1, 16)
     data = json.loads(sample_run["json_path"].read_text(encoding="utf-8"))
     assert data["segments"][1]["_split_from"] == 1
@@ -153,12 +168,14 @@ def test_split_segment_sets_split_from_flag(sample_run):
 
 def test_split_segment_raises_at_text_boundary_zero(sample_run):
     from transcript_segment_ops import split_segment
+
     with pytest.raises(ValueError, match="position"):
         split_segment(str(sample_run["json_path"]), 1, 0)
 
 
 def test_split_segment_raises_at_text_boundary_end(sample_run):
     from transcript_segment_ops import split_segment
+
     data = json.loads(sample_run["json_path"].read_text(encoding="utf-8"))
     text_len = len(data["segments"][1]["text"])
     with pytest.raises(ValueError, match="position"):
@@ -167,6 +184,7 @@ def test_split_segment_raises_at_text_boundary_end(sample_run):
 
 def test_split_segment_splits_words_by_time(sample_run):
     from transcript_segment_ops import split_segment
+
     # Segment 0 has words [All(0.04-0.1), right.(0.12-0.24)]
     # Split at position 4 (after "All ")
     split_segment(str(sample_run["json_path"]), 0, 4)

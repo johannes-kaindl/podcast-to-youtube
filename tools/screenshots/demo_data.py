@@ -9,6 +9,7 @@ shipped FastAPI/HTMX UI renders its populated states without a real run.
 
 Importable: ``build(repo_root)`` does everything and returns the demo stems.
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -89,10 +90,21 @@ META = {
             "Default Mode Network, über Deep Work und darüber, was „Fokus trainieren“ "
             "konkret bedeutet."
         ),
-        "tags": ["Aufmerksamkeit", "Achtsamkeit", "Fokus", "Produktivität",
-                 "Neurowissenschaft", "Default Mode Network", "Konzentration",
-                 "Deep Work", "Podcast", "Notizen aus der Kammer", "Kognition",
-                 "Aufmerksamkeitsökonomie", "Mentale Gesundheit"],
+        "tags": [
+            "Aufmerksamkeit",
+            "Achtsamkeit",
+            "Fokus",
+            "Produktivität",
+            "Neurowissenschaft",
+            "Default Mode Network",
+            "Konzentration",
+            "Deep Work",
+            "Podcast",
+            "Notizen aus der Kammer",
+            "Kognition",
+            "Aufmerksamkeitsökonomie",
+            "Mentale Gesundheit",
+        ],
         "chapters": [
             {"time": "00:00", "title": "Kaltstart: die These"},
             {"time": "03:12", "title": "Aufmerksamkeitsökonomie, kurz erklärt"},
@@ -108,9 +120,19 @@ META = {
             "nichts passiert. Dabei wird genau dann das Default Mode Network aktiv. "
             "Diese Folge ist eine kleine Verteidigung der Leerstellen."
         ),
-        "tags": ["Stille", "Default Mode Network", "Gehirn", "Achtsamkeit",
-                 "Kreativität", "Neurowissenschaft", "Pausen", "Fokus",
-                 "Podcast", "Notizen aus der Kammer", "Meditation"],
+        "tags": [
+            "Stille",
+            "Default Mode Network",
+            "Gehirn",
+            "Achtsamkeit",
+            "Kreativität",
+            "Neurowissenschaft",
+            "Pausen",
+            "Fokus",
+            "Podcast",
+            "Notizen aus der Kammer",
+            "Meditation",
+        ],
         "chapters": [
             {"time": "00:00", "title": "Was wir überhören"},
             {"time": "04:30", "title": "Das Default Mode Network"},
@@ -125,9 +147,19 @@ META = {
             "Werkzeug formt auch den, der es führt. Anhand von drei Beispielen drehen "
             "wir die Perspektive um und fragen, wer hier eigentlich wen benutzt."
         ),
-        "tags": ["Werkzeuge", "Technologie", "McLuhan", "Medientheorie",
-                 "Philosophie", "Kulturkritik", "Gewohnheiten", "Design",
-                 "Podcast", "Notizen aus der Kammer", "Aufmerksamkeit"],
+        "tags": [
+            "Werkzeuge",
+            "Technologie",
+            "McLuhan",
+            "Medientheorie",
+            "Philosophie",
+            "Kulturkritik",
+            "Gewohnheiten",
+            "Design",
+            "Podcast",
+            "Notizen aus der Kammer",
+            "Aufmerksamkeit",
+        ],
         "chapters": [
             {"time": "00:00", "title": "Die umgekehrte These"},
             {"time": "02:48", "title": "Beispiel 1: die Tastatur"},
@@ -142,65 +174,113 @@ META = {
 RUN_STATES = {
     # Live run: transcribe+meta done, render in progress, upload pending.
     "folge-082": {
-        "schema_version": 1, "audio": "/Users/jay/Audio/folge-082.m4a",
-        "stem": "folge-082", "started_at": "2026-05-20T14:02:11Z",
+        "schema_version": 1,
+        "audio": "/Users/jay/Audio/folge-082.m4a",
+        "stem": "folge-082",
+        "started_at": "2026-05-20T14:02:11Z",
         "updated_at": "2026-05-20T14:09:53Z",
-        "config": {"show_name": SHOW, "episode": "Folge 82", "language": "de",
-                   "model": "large-v3-turbo", "viz_type": "dialogue",
-                   "diarize": True, "num_speakers": None},
+        "config": {
+            "show_name": SHOW,
+            "episode": "Folge 82",
+            "language": "de",
+            "model": "large-v3-turbo",
+            "viz_type": "dialogue",
+            "diarize": True,
+            "num_speakers": None,
+        },
         "phases": {
             "transcribe": {"status": "done", "finished_at": "2026-05-20T14:05:25Z"},
-            "meta": {"status": "done", "title": META["folge-082"]["title"],
-                     "finished_at": "2026-05-20T14:06:08Z"},
+            "meta": {
+                "status": "done",
+                "title": META["folge-082"]["title"],
+                "finished_at": "2026-05-20T14:06:08Z",
+            },
             "render": {"status": "running", "started_at": "2026-05-20T14:06:08Z"},
             "upload": {"status": "pending"},
         },
     },
     # Trust moment: render done, awaiting an explicit upload decision.
     "folge-083": {
-        "schema_version": 1, "audio": "/Users/jay/Audio/folge-083.m4a",
-        "stem": "folge-083", "started_at": "2026-05-26T19:40:00Z",
+        "schema_version": 1,
+        "audio": "/Users/jay/Audio/folge-083.m4a",
+        "stem": "folge-083",
+        "started_at": "2026-05-26T19:40:00Z",
         "updated_at": "2026-05-26T20:03:42Z",
-        "config": {"show_name": SHOW, "episode": "Folge 83", "language": "de",
-                   "model": "large-v3-turbo", "viz_type": "dialogue",
-                   "diarize": True, "num_speakers": None, "privacy": "private"},
+        "config": {
+            "show_name": SHOW,
+            "episode": "Folge 83",
+            "language": "de",
+            "model": "large-v3-turbo",
+            "viz_type": "dialogue",
+            "diarize": True,
+            "num_speakers": None,
+            "privacy": "private",
+        },
         "phases": {
             "transcribe": {"status": "done", "finished_at": "2026-05-26T19:43:18Z"},
-            "meta": {"status": "done", "title": META["folge-083"]["title"],
-                     "finished_at": "2026-05-26T19:44:01Z"},
-            "render": {"status": "done", "size_mb": 176.0,
-                       "output": "folge-083-dialogue.mp4",
-                       "finished_at": "2026-05-26T20:03:42Z"},
+            "meta": {
+                "status": "done",
+                "title": META["folge-083"]["title"],
+                "finished_at": "2026-05-26T19:44:01Z",
+            },
+            "render": {
+                "status": "done",
+                "size_mb": 176.0,
+                "output": "folge-083-dialogue.mp4",
+                "finished_at": "2026-05-26T20:03:42Z",
+            },
             "upload": {"status": "pending"},
         },
     },
     # Terminal success: all four phases done, uploaded to YouTube.
     "folge-081": {
-        "schema_version": 1, "audio": "/Users/jay/Audio/folge-081.m4a",
-        "stem": "folge-081", "started_at": "2026-05-18T09:14:00Z",
+        "schema_version": 1,
+        "audio": "/Users/jay/Audio/folge-081.m4a",
+        "stem": "folge-081",
+        "started_at": "2026-05-18T09:14:00Z",
         "updated_at": "2026-05-18T09:36:18Z",
-        "config": {"show_name": SHOW, "episode": "Folge 81", "language": "de",
-                   "model": "large-v3-turbo", "viz_type": "dialogue",
-                   "diarize": True, "num_speakers": None, "privacy": "private"},
+        "config": {
+            "show_name": SHOW,
+            "episode": "Folge 81",
+            "language": "de",
+            "model": "large-v3-turbo",
+            "viz_type": "dialogue",
+            "diarize": True,
+            "num_speakers": None,
+            "privacy": "private",
+        },
         "phases": {
-            "transcribe": {"status": "done", "started_at": "2026-05-18T09:14:00Z",
-                           "finished_at": "2026-05-18T09:17:14Z"},
-            "meta": {"status": "done", "started_at": "2026-05-18T09:17:14Z",
-                     "finished_at": "2026-05-18T09:17:56Z",
-                     "title": META["folge-081"]["title"]},
-            "render": {"status": "done", "started_at": "2026-05-18T09:17:56Z",
-                       "finished_at": "2026-05-18T09:30:11Z", "size_mb": 198.0,
-                       "output": "folge-081-dialogue.mp4"},
-            "upload": {"status": "done", "started_at": "2026-05-18T09:30:11Z",
-                       "finished_at": "2026-05-18T09:36:18Z",
-                       "url": "https://youtu.be/qC7w-2hL", "video_id": "qC7w-2hL"},
+            "transcribe": {
+                "status": "done",
+                "started_at": "2026-05-18T09:14:00Z",
+                "finished_at": "2026-05-18T09:17:14Z",
+            },
+            "meta": {
+                "status": "done",
+                "started_at": "2026-05-18T09:17:14Z",
+                "finished_at": "2026-05-18T09:17:56Z",
+                "title": META["folge-081"]["title"],
+            },
+            "render": {
+                "status": "done",
+                "started_at": "2026-05-18T09:17:56Z",
+                "finished_at": "2026-05-18T09:30:11Z",
+                "size_mb": 198.0,
+                "output": "folge-081-dialogue.mp4",
+            },
+            "upload": {
+                "status": "done",
+                "started_at": "2026-05-18T09:30:11Z",
+                "finished_at": "2026-05-18T09:36:18Z",
+                "url": "https://youtu.be/qC7w-2hL",
+                "video_id": "qC7w-2hL",
+            },
         },
     },
 }
 
 # stems that have a rendered video → need a poster MP4
-VIDEO_STEMS = {"folge-081": "folge-081-dialogue.mp4",
-               "folge-083": "folge-083-dialogue.mp4"}
+VIDEO_STEMS = {"folge-081": "folge-081-dialogue.mp4", "folge-083": "folge-083-dialogue.mp4"}
 
 # capture order: hero first, then the three rich states
 STEMS = ["folge-082", "folge-083", "folge-081"]
@@ -221,11 +301,19 @@ def _whisperx_segments(stem: str) -> dict:
         wt = t
         for w in text.split():
             dur = max(0.12, len(w) * 0.06)
-            words.append({"word": w, "start": round(wt, 3),
-                          "end": round(wt + dur, 3), "score": 0.9})
+            words.append(
+                {"word": w, "start": round(wt, 3), "end": round(wt + dur, 3), "score": 0.9}
+            )
             wt += dur + 0.04
-        segments.append({"start": round(t, 3), "end": round(wt, 3),
-                         "text": text, "words": words, "speaker": speaker})
+        segments.append(
+            {
+                "start": round(t, 3),
+                "end": round(wt, 3),
+                "text": text,
+                "words": words,
+                "speaker": speaker,
+            }
+        )
         t = wt + 0.3
     return {"segments": segments}
 
@@ -243,17 +331,40 @@ def _wave_bars(stem: str, n: int = 56) -> str:
 
 def _make_poster(stem: str, mp4_name: str, out_dir: Path, page) -> None:
     html = POSTER_HTML.format(
-        show=SHOW.upper(), title=META[stem]["title"],
-        ep=RUN_STATES[stem]["config"]["episode"], bars=_wave_bars(stem))
+        show=SHOW.upper(),
+        title=META[stem]["title"],
+        ep=RUN_STATES[stem]["config"]["episode"],
+        bars=_wave_bars(stem),
+    )
     png = out_dir / "_poster.png"
     page.set_content(html, wait_until="networkidle")
     page.screenshot(path=str(png))
-    subprocess.run([
-        "ffmpeg", "-y", "-loglevel", "error", "-loop", "1", "-i", str(png),
-        "-t", "2", "-r", "30", "-c:v", "libx264", "-pix_fmt", "yuv420p",
-        "-vf", "scale=1920:1080", "-movflags", "+faststart",
-        str(out_dir / mp4_name),
-    ], check=True)
+    subprocess.run(
+        [
+            "ffmpeg",
+            "-y",
+            "-loglevel",
+            "error",
+            "-loop",
+            "1",
+            "-i",
+            str(png),
+            "-t",
+            "2",
+            "-r",
+            "30",
+            "-c:v",
+            "libx264",
+            "-pix_fmt",
+            "yuv420p",
+            "-vf",
+            "scale=1920:1080",
+            "-movflags",
+            "+faststart",
+            str(out_dir / mp4_name),
+        ],
+        check=True,
+    )
     png.unlink()
 
 
@@ -262,20 +373,20 @@ def build(repo_root: Path) -> list[str]:
     out = repo_root / "output"
     with sync_playwright() as p:
         browser = p.chromium.launch(channel="chrome", headless=True)
-        page = browser.new_page(viewport={"width": 1920, "height": 1080},
-                                device_scale_factor=1)
+        page = browser.new_page(viewport={"width": 1920, "height": 1080}, device_scale_factor=1)
         for stem, state in RUN_STATES.items():
             d = out / stem
             d.mkdir(parents=True, exist_ok=True)
             (d / "run-state.json").write_text(json.dumps(state, indent=2), encoding="utf-8")
             (d / f"{stem}.txt").write_text("\n".join(TRANSCRIPTS[stem]) + "\n", encoding="utf-8")
             (d / f"{stem}.youtube-meta.json").write_text(
-                json.dumps(META[stem], indent=2, ensure_ascii=False), encoding="utf-8")
+                json.dumps(META[stem], indent=2, ensure_ascii=False), encoding="utf-8"
+            )
             # WhisperX JSON drives the transcript editor + the "✎ Edit transcript"
             # affordance the WebGUI surfaces on every run with a transcript.
             (d / f"{stem}.whisperx.json").write_text(
-                json.dumps(_whisperx_segments(stem), indent=2, ensure_ascii=False),
-                encoding="utf-8")
+                json.dumps(_whisperx_segments(stem), indent=2, ensure_ascii=False), encoding="utf-8"
+            )
             if stem in VIDEO_STEMS:
                 _make_poster(stem, VIDEO_STEMS[stem], d, page)
         browser.close()

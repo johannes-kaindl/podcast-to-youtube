@@ -8,15 +8,15 @@ Usage:
   python generate_meta.py transcript.txt --whisperx transcript.whisperx.json
   python generate_meta.py transcript.txt --show-name "KSP Podcast" --episode "EP 01"
 """
+
 import argparse
 import json
 import os
 import re
 import sys
-import urllib.request
 import urllib.error
+import urllib.request
 from pathlib import Path
-
 
 MLX_BASE_URL = os.environ.get("MLX_BASE_URL", "http://localhost:8080/v1")
 MLX_MODEL = os.environ.get("MLX_MODEL", "mlx-community/Qwen3.6-35B-A3B-4bit")
@@ -34,7 +34,7 @@ def _load_prompt(name: str) -> str:
     if raw.startswith("---\n"):
         end = raw.find("\n---\n", 4)
         if end >= 0:
-            raw = raw[end + len("\n---\n"):]
+            raw = raw[end + len("\n---\n") :]
     return raw.strip()
 
 
@@ -61,8 +61,7 @@ LANGUAGE_NAMES = {
 }
 
 
-def mlx_chat(system: str, user: str, temperature: float = 0.3,
-             max_tokens: int = 2048) -> str:
+def mlx_chat(system: str, user: str, temperature: float = 0.3, max_tokens: int = 2048) -> str:
     payload = {
         "model": MLX_MODEL,
         "messages": [
@@ -96,8 +95,8 @@ def mlx_chat(system: str, user: str, temperature: float = 0.3,
 def parse_json_response(raw: str) -> dict:
     raw = raw.strip()
     # Markdown-Wrapper entfernen
-    raw = re.sub(r'^```(?:json)?\s*', '', raw, flags=re.MULTILINE)
-    raw = re.sub(r'\s*```\s*$', '', raw, flags=re.MULTILINE)
+    raw = re.sub(r"^```(?:json)?\s*", "", raw, flags=re.MULTILINE)
+    raw = re.sub(r"\s*```\s*$", "", raw, flags=re.MULTILINE)
     raw = raw.strip()
     # strict=False erlaubt rohe Control-Chars (\n, \t) in JSON-Strings —
     # LLM-Output enthält die regelmäßig (z.B. Newlines im description-Feld),
@@ -106,7 +105,7 @@ def parse_json_response(raw: str) -> dict:
         return json.loads(raw, strict=False)
     except json.JSONDecodeError:
         # Fallback: letzten geschweifte-Klammer-Block extrahieren
-        m = re.search(r'\{[\s\S]*\}', raw)
+        m = re.search(r"\{[\s\S]*\}", raw)
         if m:
             try:
                 return json.loads(m.group(0), strict=False)
@@ -228,40 +227,40 @@ def build_post_upload_checklist(meta: dict, show_name: str) -> str:
     # Kapitel-Übergang, ohne Intro 00:00).
     card_chapters = [c for c in chapters if c.get("time") != "00:00"][:3]
 
-    lines = [f'## {header}', '']
+    lines = [f"## {header}", ""]
     if is_de:
         lines += [
             f'- [ ] **Playlist:** Video zur Playlist „{show_name}" hinzufügen (falls nicht durch Auto-Assignment erfolgt)',
-            '- [ ] **Endscreen aktivieren** — Subscribe-Element + Next-Episode-Empfehlung aus Playlist (Visualizer ist in den letzten 20s endscreen-safe gerendert)',
-            '- [ ] **Infokarten** an thematischen Übergängen platzieren:',
+            "- [ ] **Endscreen aktivieren** — Subscribe-Element + Next-Episode-Empfehlung aus Playlist (Visualizer ist in den letzten 20s endscreen-safe gerendert)",
+            "- [ ] **Infokarten** an thematischen Übergängen platzieren:",
         ]
         if card_chapters:
             for ch in card_chapters:
-                lines.append(f'      - [ ] `{ch["time"]}` — {ch["title"]}')
+                lines.append(f"      - [ ] `{ch['time']}` — {ch['title']}")
         else:
-            lines.append('      - [ ] keine Kapitel-Übergänge erkannt — manuell entscheiden')
+            lines.append("      - [ ] keine Kapitel-Übergänge erkannt — manuell entscheiden")
         lines += [
-            '- [ ] **Auto-Kapitel** im Video-Detailbereich aktivieren (falls nicht via Kanal-Default)',
-            '- [ ] **Community-Post** mit Teaser-Frage zum Inhalt veröffentlichen',
-            '- [ ] **Thumbnail** prüfen: keine Gesichter/wichtigen Elemente im rechten unteren Bereich (Endscreen-Overlay-Zone)',
+            "- [ ] **Auto-Kapitel** im Video-Detailbereich aktivieren (falls nicht via Kanal-Default)",
+            "- [ ] **Community-Post** mit Teaser-Frage zum Inhalt veröffentlichen",
+            "- [ ] **Thumbnail** prüfen: keine Gesichter/wichtigen Elemente im rechten unteren Bereich (Endscreen-Overlay-Zone)",
         ]
     else:
         lines += [
             f'- [ ] **Playlist:** Add video to „{show_name}" playlist (if not done by auto-assignment)',
-            '- [ ] **Enable endscreen** — Subscribe element + next-episode recommendation from playlist (visualizer is endscreen-safe in the last 20s)',
-            '- [ ] **Info cards** at thematic transitions:',
+            "- [ ] **Enable endscreen** — Subscribe element + next-episode recommendation from playlist (visualizer is endscreen-safe in the last 20s)",
+            "- [ ] **Info cards** at thematic transitions:",
         ]
         if card_chapters:
             for ch in card_chapters:
-                lines.append(f'      - [ ] `{ch["time"]}` — {ch["title"]}')
+                lines.append(f"      - [ ] `{ch['time']}` — {ch['title']}")
         else:
-            lines.append('      - [ ] no chapter transitions detected — decide manually')
+            lines.append("      - [ ] no chapter transitions detected — decide manually")
         lines += [
-            '- [ ] **Auto-chapters** enabled in video details (unless set as channel default)',
-            '- [ ] **Community post** with a teaser question about the content',
-            '- [ ] **Thumbnail** check: no faces/important elements in lower-right (endscreen-overlay zone)',
+            "- [ ] **Auto-chapters** enabled in video details (unless set as channel default)",
+            "- [ ] **Community post** with a teaser question about the content",
+            "- [ ] **Thumbnail** check: no faces/important elements in lower-right (endscreen-overlay zone)",
         ]
-    return '\n'.join(lines) + '\n'
+    return "\n".join(lines) + "\n"
 
 
 def resolve_language(language: str, whisperx_path: str | None) -> str:
@@ -277,10 +276,14 @@ def resolve_language(language: str, whisperx_path: str | None) -> str:
     return "de"
 
 
-def generate_metadata(txt_path: str, whisperx_path: str | None = None,
-                      show_name: str = "Signal", episode: str = "EP 01",
-                      output_dir: str = "./output",
-                      language: str = "de") -> dict:
+def generate_metadata(
+    txt_path: str,
+    whisperx_path: str | None = None,
+    show_name: str = "Signal",
+    episode: str = "EP 01",
+    output_dir: str = "./output",
+    language: str = "de",
+) -> dict:
     with open(txt_path, encoding="utf-8") as f:
         transcript = f.read()
 
@@ -330,21 +333,21 @@ def generate_metadata(txt_path: str, whisperx_path: str | None = None,
     checklist = build_post_upload_checklist(meta, meta.get("show_name", show_name))
     with open(md_out, "w", encoding="utf-8") as f:
         f.write(f"""---
-title: "{meta['title']}"
-show_name: "{meta.get('show_name', show_name)}"
+title: "{meta["title"]}"
+show_name: "{meta.get("show_name", show_name)}"
 episode: "{episode}"
 youtube_status: privat
 tags:
-{chr(10).join(f'  - "{t}"' for t in meta.get('tags', []))}
-language: "{meta.get('language', 'de')}"
-category_id: "{meta.get('category_id', '27')}"
+{chr(10).join(f'  - "{t}"' for t in meta.get("tags", []))}
+language: "{meta.get("language", "de")}"
+category_id: "{meta.get("category_id", "27")}"
 ---
 
-# {meta['title']}
+# {meta["title"]}
 
 ## Beschreibung
 
-{meta['description']}
+{meta["description"]}
 
 {checklist}
 ## Rohdaten
@@ -364,11 +367,14 @@ if __name__ == "__main__":
     parser.add_argument("--whisperx", help="WhisperX-JSON für Zeitstempel")
     parser.add_argument("--show-name", default="Signal")
     parser.add_argument("--episode", default="EP 01")
-    parser.add_argument("--language", "-l", default="de",
-                        help="Sprache der Metadaten: de, en, auto, ... (Standard: de)")
+    parser.add_argument(
+        "--language",
+        "-l",
+        default="de",
+        help="Sprache der Metadaten: de, en, auto, ... (Standard: de)",
+    )
     parser.add_argument("--output-dir", "-o", default="./output")
-    parser.add_argument("--model", default=None,
-                        help="MLX-Modell-ID (überschreibt MLX_MODEL env)")
+    parser.add_argument("--model", default=None, help="MLX-Modell-ID (überschreibt MLX_MODEL env)")
     args = parser.parse_args()
 
     if args.model:

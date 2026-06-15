@@ -10,9 +10,9 @@ Usage:
   python download_models.py --languages de en fr    # Alignment für mehrere Sprachen
   python download_models.py --whisper-models base large-v3-turbo  # Nur bestimmte Modelle
 """
+
 import argparse
 import os
-import sys
 
 WHISPER_MODELS = ["tiny", "base", "small", "medium", "large-v2", "large-v3", "large-v3-turbo"]
 DEFAULT_LANGUAGES = ["de", "en"]
@@ -21,6 +21,7 @@ PYANNOTE_MODEL = "pyannote/speaker-diarization-3.1"
 
 def download_whisper(model_sizes: list[str]) -> None:
     import whisperx
+
     print(f"\n{'─' * 60}")
     print(f"Whisper-Modelle ({len(model_sizes)} Stück)")
     print(f"{'─' * 60}")
@@ -35,6 +36,7 @@ def download_whisper(model_sizes: list[str]) -> None:
 
 def download_alignment(languages: list[str]) -> None:
     import whisperx
+
     print(f"\n{'─' * 60}")
     print(f"Alignment-Modelle ({', '.join(languages)})")
     print(f"{'─' * 60}")
@@ -56,6 +58,7 @@ def download_pyannote(hf_token: str) -> None:
     print(f"  → {PYANNOTE_MODEL} laden ...", end=" ", flush=True)
     try:
         from pyannote.audio import Pipeline
+
         Pipeline.from_pretrained(PYANNOTE_MODEL, use_auth_token=hf_token)
         print("✓")
         print("  Modell gecacht — ab jetzt offline ohne Token nutzbar.")
@@ -71,6 +74,7 @@ def download_pyannote(hf_token: str) -> None:
 def check_cached() -> None:
     """Zeigt welche Modelle bereits gecacht sind."""
     import whisperx  # noqa: F401 — trigger HF_HOME setup
+
     cache_dir = os.path.expanduser("~/.cache/whisper")
     hf_home = os.environ.get("HF_HOME", os.path.expanduser("~/.cache/huggingface"))
     hub_dir = os.path.join(hf_home, "hub")
@@ -99,7 +103,7 @@ def check_cached() -> None:
     if os.path.isdir(model_dir):
         print(f"    ✓ gecacht  ({model_dir})")
     else:
-        print(f"    ✗ fehlt    (--hf-token benötigt + Terms akzeptieren)")
+        print("    ✗ fehlt    (--hf-token benötigt + Terms akzeptieren)")
 
 
 def main() -> None:
@@ -108,21 +112,27 @@ def main() -> None:
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
-        "--whisper-models", nargs="+", default=WHISPER_MODELS,
+        "--whisper-models",
+        nargs="+",
+        default=WHISPER_MODELS,
         metavar="MODEL",
         help=f"Whisper-Modelle (Standard: alle). Optionen: {', '.join(WHISPER_MODELS)}",
     )
     parser.add_argument(
-        "--languages", nargs="+", default=DEFAULT_LANGUAGES,
+        "--languages",
+        nargs="+",
+        default=DEFAULT_LANGUAGES,
         metavar="LANG",
         help="Sprachen für Alignment-Modelle (Standard: de en)",
     )
     parser.add_argument(
-        "--hf-token", default=os.environ.get("HF_TOKEN"),
+        "--hf-token",
+        default=os.environ.get("HF_TOKEN"),
         help="HuggingFace-Token für pyannote (oder HF_TOKEN env-Variable)",
     )
     parser.add_argument(
-        "--status", action="store_true",
+        "--status",
+        action="store_true",
         help="Nur Cache-Status anzeigen, nichts herunterladen",
     )
     args = parser.parse_args()

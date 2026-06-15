@@ -1,4 +1,5 @@
 """Settings persistence — Theme / tail-default / preferred-defaults."""
+
 import json
 from pathlib import Path
 

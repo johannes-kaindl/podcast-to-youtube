@@ -3,6 +3,7 @@
 
 Used by tests that need a subprocess to attach to without running the real pipeline.
 """
+
 import sys
 import time
 

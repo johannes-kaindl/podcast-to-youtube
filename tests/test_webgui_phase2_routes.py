@@ -1,7 +1,8 @@
 """Phase 2 route tests — speaker, bulk-rename, merge, split, undo, words, diff."""
+
 import json
 import shutil
-from pathlib import Path
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -9,6 +10,7 @@ from fastapi.testclient import TestClient
 @pytest.fixture
 def client():
     from webgui.app import app
+
     return TestClient(app)
 
 
@@ -18,26 +20,28 @@ def populated_run(tmp_path, fixtures_dir, monkeypatch):
     out = tmp_path / "output"
     ep_dir = out / "ep01"
     ep_dir.mkdir(parents=True)
-    shutil.copy(fixtures_dir / "sample-transcript.whisperx.json",
-                ep_dir / "ep01.whisperx.json")
+    shutil.copy(fixtures_dir / "sample-transcript.whisperx.json", ep_dir / "ep01.whisperx.json")
     state = {
-        "schema_version": 1, "stem": "ep01",
+        "schema_version": 1,
+        "stem": "ep01",
         "audio": str(fixtures_dir / "sample.m4a"),
         "phases": {
-            "transcribe": {"status": "done"}, "meta": {"status": "done"},
-            "render": {"status": "done"}, "upload": {"status": "skipped"},
+            "transcribe": {"status": "done"},
+            "meta": {"status": "done"},
+            "render": {"status": "done"},
+            "upload": {"status": "skipped"},
         },
         "config": {},
     }
     (ep_dir / "run-state.json").write_text(json.dumps(state, indent=2), encoding="utf-8")
     from webgui import app as app_mod
+
     monkeypatch.setattr(app_mod, "OUTPUT_ROOT", out)
     return out
 
 
 def test_post_speaker_change_updates_segment(client, populated_run):
-    r = client.post("/runs/ep01/edit/speaker",
-                    data={"segment_index": "0", "speaker": "Anna"})
+    r = client.post("/runs/ep01/edit/speaker", data={"segment_index": "0", "speaker": "Anna"})
     assert r.status_code == 200
     json_path = populated_run / "ep01" / "ep01.whisperx.json"
     data = json.loads(json_path.read_text(encoding="utf-8"))
@@ -46,8 +50,7 @@ def test_post_speaker_change_updates_segment(client, populated_run):
 
 
 def test_post_speaker_change_returns_segment_partial(client, populated_run):
-    r = client.post("/runs/ep01/edit/speaker",
-                    data={"segment_index": "0", "speaker": "Anna"})
+    r = client.post("/runs/ep01/edit/speaker", data={"segment_index": "0", "speaker": "Anna"})
     assert r.status_code == 200
     # Returns HTML partial — should contain the segment textarea + speaker dropdown
     assert "segment_text_0" in r.text
@@ -57,8 +60,7 @@ def test_post_speaker_change_returns_segment_partial(client, populated_run):
 def test_speaker_dropdown_does_not_duplicate_speaker(client, populated_run):
     """Regression: the fallback <option> used to always render, duplicating
     the current speaker when it was already in the distinct-speakers list."""
-    r = client.post("/runs/ep01/edit/speaker",
-                    data={"segment_index": "0", "speaker": "SPEAKER_00"})
+    r = client.post("/runs/ep01/edit/speaker", data={"segment_index": "0", "speaker": "SPEAKER_00"})
     # The HTMX partial contains exactly one segment_editor — count <option>s
     # inside it. Both SPEAKER_00 (current) and SPEAKER_01 should appear once
     # each, never duplicated by a fallback option.
@@ -67,9 +69,11 @@ def test_speaker_dropdown_does_not_duplicate_speaker(client, populated_run):
 
 
 def test_post_bulk_rename_renames_all_matching(client, populated_run):
-    r = client.post("/runs/ep01/edit/bulk-rename",
-                    data={"old_name": "SPEAKER_00", "new_name": "Anna"},
-                    follow_redirects=False)
+    r = client.post(
+        "/runs/ep01/edit/bulk-rename",
+        data={"old_name": "SPEAKER_00", "new_name": "Anna"},
+        follow_redirects=False,
+    )
     assert r.status_code == 303
     json_path = populated_run / "ep01" / "ep01.whisperx.json"
     data = json.loads(json_path.read_text(encoding="utf-8"))
@@ -79,8 +83,9 @@ def test_post_bulk_rename_renames_all_matching(client, populated_run):
 
 
 def test_post_bulk_rename_400_on_same_names(client, populated_run):
-    r = client.post("/runs/ep01/edit/bulk-rename",
-                    data={"old_name": "SPEAKER_00", "new_name": "SPEAKER_00"})
+    r = client.post(
+        "/runs/ep01/edit/bulk-rename", data={"old_name": "SPEAKER_00", "new_name": "SPEAKER_00"}
+    )
     assert r.status_code == 400
 
 
@@ -100,8 +105,7 @@ def test_post_merge_returns_all_segments_partial(client, populated_run):
 
 
 def test_post_split_creates_two_segments(client, populated_run):
-    r = client.post("/runs/ep01/edit/split",
-                    data={"segment_index": "1", "char_position": "16"})
+    r = client.post("/runs/ep01/edit/split", data={"segment_index": "1", "char_position": "16"})
     assert r.status_code == 200
     json_path = populated_run / "ep01" / "ep01.whisperx.json"
     data = json.loads(json_path.read_text(encoding="utf-8"))
@@ -109,8 +113,7 @@ def test_post_split_creates_two_segments(client, populated_run):
 
 
 def test_post_split_400_on_invalid_position(client, populated_run):
-    r = client.post("/runs/ep01/edit/split",
-                    data={"segment_index": "1", "char_position": "0"})
+    r = client.post("/runs/ep01/edit/split", data={"segment_index": "1", "char_position": "0"})
     assert r.status_code == 400
 
 
@@ -150,6 +153,7 @@ def test_get_words_404_when_transcribe_missing(client, tmp_path, monkeypatch):
     out = tmp_path / "output"
     (out / "ghost").mkdir(parents=True)
     from webgui import app as app_mod
+
     monkeypatch.setattr(app_mod, "OUTPUT_ROOT", out)
     r = client.get("/runs/ghost/edit/words?segment_index=0")
     assert r.status_code == 404
@@ -157,9 +161,11 @@ def test_get_words_404_when_transcribe_missing(client, tmp_path, monkeypatch):
 
 def test_post_words_saves_edits(client, populated_run):
     json_path = populated_run / "ep01" / "ep01.whisperx.json"
-    r = client.post("/runs/ep01/edit/words",
-                    data={"segment_index": "0", "word_0": "Alle", "word_1": "richtig."},
-                    follow_redirects=False)
+    r = client.post(
+        "/runs/ep01/edit/words",
+        data={"segment_index": "0", "word_0": "Alle", "word_1": "richtig."},
+        follow_redirects=False,
+    )
     assert r.status_code == 303
     data = json.loads(json_path.read_text(encoding="utf-8"))
     words = data["segments"][0]["words"]
@@ -177,8 +183,7 @@ def test_get_diff_empty_state_when_no_original(client, populated_run):
 
 def test_get_diff_shows_changed_segments(client, populated_run):
     # Make an edit so .original.json is created
-    client.post("/runs/ep01/edit/speaker",
-                data={"segment_index": "0", "speaker": "Anna"})
+    client.post("/runs/ep01/edit/speaker", data={"segment_index": "0", "speaker": "Anna"})
     # The speaker change should have triggered save_edits' backup-on-first-save
     # via regenerate paths. To trigger backup creation, run a text edit:
     form = {

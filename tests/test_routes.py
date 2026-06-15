@@ -1,6 +1,8 @@
 """FastAPI endpoint tests via TestClient."""
+
 import shutil
 from pathlib import Path
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -8,6 +10,7 @@ from fastapi.testclient import TestClient
 @pytest.fixture
 def client():
     from webgui.app import app
+
     return TestClient(app)
 
 
@@ -23,6 +26,7 @@ def populated_output(tmp_path, fixtures_dir, monkeypatch):
         (out / stem).mkdir()
         shutil.copy(src, out / stem / "run-state.json")
     from webgui import app as app_mod
+
     monkeypatch.setattr(app_mod, "OUTPUT_ROOT", out)
     return out
 
@@ -76,6 +80,7 @@ def test_runs_returns_html(client, populated_output):
 
 def test_runs_empty_state_when_no_runs(client, tmp_path, monkeypatch):
     from webgui import app as app_mod
+
     empty = tmp_path / "empty"
     monkeypatch.setattr(app_mod, "OUTPUT_ROOT", empty)
     r = client.get("/runs")
@@ -95,7 +100,9 @@ def test_runs_filter_done(client, populated_output):
 def test_api_runs_starts_pipeline_mock(client, tmp_path, monkeypatch):
     """POST /api/runs spawns a subprocess; client receives 303 to /runs/{stem}."""
     import sys
-    from webgui import app as app_mod, runner
+
+    from webgui import app as app_mod
+    from webgui import runner
 
     # Reset the singleton registry for test isolation
     runner.registry = runner.JobRegistry()
@@ -111,10 +118,16 @@ def test_api_runs_starts_pipeline_mock(client, tmp_path, monkeypatch):
 
     body = {
         "audio": str(Path(__file__).parent / "fixtures" / "sample.m4a"),
-        "viz": "dialogue", "language": "de", "model": "large-v3-turbo",
-        "diarize": "off", "episode": "EP X", "show_name": "Test",
-        "skip_transcribe": False, "skip_meta": False,
-        "skip_render": False, "skip_upload": True,
+        "viz": "dialogue",
+        "language": "de",
+        "model": "large-v3-turbo",
+        "diarize": "off",
+        "episode": "EP X",
+        "show_name": "Test",
+        "skip_transcribe": False,
+        "skip_meta": False,
+        "skip_render": False,
+        "skip_upload": True,
     }
     r = client.post("/api/runs", json=body, follow_redirects=False)
     assert r.status_code == 303
@@ -122,22 +135,36 @@ def test_api_runs_starts_pipeline_mock(client, tmp_path, monkeypatch):
 
 
 def test_api_runs_returns_409_when_busy(client, tmp_path, monkeypatch):
-    from webgui import app as app_mod, runner
+    from webgui import app as app_mod
+    from webgui import runner
 
     runner.registry = runner.JobRegistry()
     monkeypatch.setattr(app_mod, "registry", runner.registry)
 
     # Pre-claim the slot
-    runner.registry.try_claim(runner.ActiveJob(
-        stem="busy-stem", audio_path=Path("/x"), output_dir=Path("/y"),
-        process=None, log_file=Path("/z"), kind="pipeline",
-    ))
+    runner.registry.try_claim(
+        runner.ActiveJob(
+            stem="busy-stem",
+            audio_path=Path("/x"),
+            output_dir=Path("/y"),
+            process=None,
+            log_file=Path("/z"),
+            kind="pipeline",
+        )
+    )
 
     body = {
-        "audio": "/whatever.m4a", "viz": "dialogue", "language": "de",
-        "model": "large-v3-turbo", "diarize": "off", "episode": "X",
-        "show_name": "X", "skip_transcribe": False, "skip_meta": False,
-        "skip_render": False, "skip_upload": True,
+        "audio": "/whatever.m4a",
+        "viz": "dialogue",
+        "language": "de",
+        "model": "large-v3-turbo",
+        "diarize": "off",
+        "episode": "X",
+        "show_name": "X",
+        "skip_transcribe": False,
+        "skip_meta": False,
+        "skip_render": False,
+        "skip_upload": True,
     }
     r = client.post("/api/runs", json=body)
     assert r.status_code == 409
@@ -146,7 +173,8 @@ def test_api_runs_returns_409_when_busy(client, tmp_path, monkeypatch):
 
 def test_stream_replays_logfile_when_no_active_job(client, tmp_path, monkeypatch):
     """If a run has finished, /stream replays the logfile then closes."""
-    from webgui import app as app_mod, runner
+    from webgui import app as app_mod
+    from webgui import runner
 
     runner.registry = runner.JobRegistry()
     monkeypatch.setattr(app_mod, "registry", runner.registry)
@@ -173,7 +201,8 @@ def test_stream_replays_logfile_when_no_active_job(client, tmp_path, monkeypatch
 
 
 def test_stream_with_last_event_id_skips_already_seen_lines(client, tmp_path, monkeypatch):
-    from webgui import app as app_mod, runner
+    from webgui import app as app_mod
+    from webgui import runner
 
     runner.registry = runner.JobRegistry()
     monkeypatch.setattr(app_mod, "registry", runner.registry)
@@ -197,7 +226,7 @@ def test_phases_fragment_renders(client, populated_output):
     assert r.status_code == 200
     # "done" fixture has all four phases done
     assert 'data-status="done"' in r.text
-    assert 'Transcribe' in r.text
+    assert "Transcribe" in r.text
 
 
 def test_progress_fragment_renders(client):
@@ -247,6 +276,7 @@ def test_resume_banner_complete_variant(client, populated_output):
 
 def test_preview_mp4_404_when_missing(client, tmp_path, monkeypatch):
     from webgui import app as app_mod
+
     monkeypatch.setattr(app_mod, "OUTPUT_ROOT", tmp_path / "output")
     r = client.get("/runs/no-such-run/preview.mp4")
     assert r.status_code == 404
@@ -254,6 +284,7 @@ def test_preview_mp4_404_when_missing(client, tmp_path, monkeypatch):
 
 def test_preview_mp4_serves_file(client, tmp_path, monkeypatch):
     from webgui import app as app_mod
+
     output = tmp_path / "output" / "stem-1"
     output.mkdir(parents=True)
     mp4 = output / "stem-1-dialogue.mp4"
@@ -267,6 +298,7 @@ def test_preview_mp4_serves_file(client, tmp_path, monkeypatch):
 
 def test_preview_mp4_range_request(client, tmp_path, monkeypatch):
     from webgui import app as app_mod
+
     output = tmp_path / "output" / "stem-2"
     output.mkdir(parents=True)
     mp4 = output / "stem-2-dialogue.mp4"
@@ -282,15 +314,17 @@ def test_preview_mp4_range_request(client, tmp_path, monkeypatch):
 def test_find_mp4_prefers_run_state_output(tmp_path, monkeypatch):
     """With several .mp4 variants present, the one named in run-state wins."""
     import json
+
     from webgui import app as app_mod
+
     output = tmp_path / "output" / "stem-m"
     output.mkdir(parents=True)
     # Alphabetically `waveform` sorts last — the old sorted()[-1] picked it.
     (output / "stem-m-monologue.mp4").write_bytes(b"mono")
     (output / "stem-m-waveform.mp4").write_bytes(b"wave")
-    (output / "run-state.json").write_text(json.dumps(
-        {"phases": {"render": {"status": "done", "output": "stem-m-monologue.mp4"}}}
-    ))
+    (output / "run-state.json").write_text(
+        json.dumps({"phases": {"render": {"status": "done", "output": "stem-m-monologue.mp4"}}})
+    )
     monkeypatch.setattr(app_mod, "OUTPUT_ROOT", tmp_path / "output")
     assert app_mod._find_mp4("stem-m").name == "stem-m-monologue.mp4"
 
@@ -299,7 +333,9 @@ def test_find_mp4_falls_back_to_newest(tmp_path, monkeypatch):
     """Without a run-state render output, the newest .mp4 by mtime wins."""
     import os
     import time
+
     from webgui import app as app_mod
+
     output = tmp_path / "output" / "stem-n"
     output.mkdir(parents=True)
     older = output / "stem-n-waveform.mp4"
@@ -313,7 +349,9 @@ def test_find_mp4_falls_back_to_newest(tmp_path, monkeypatch):
 
 
 def test_upload_returns_404_if_no_mp4(client, tmp_path, monkeypatch):
-    from webgui import app as app_mod, runner
+    from webgui import app as app_mod
+    from webgui import runner
+
     runner.registry = runner.JobRegistry()
     monkeypatch.setattr(app_mod, "registry", runner.registry)
     monkeypatch.setattr(app_mod, "OUTPUT_ROOT", tmp_path / "output")
@@ -324,6 +362,7 @@ def test_upload_returns_404_if_no_mp4(client, tmp_path, monkeypatch):
 
 def test_upload_rejects_public_privacy(client, tmp_path, monkeypatch):
     from webgui import app as app_mod
+
     monkeypatch.setattr(app_mod, "OUTPUT_ROOT", tmp_path / "output")
     (tmp_path / "output" / "stem-q").mkdir(parents=True)
     (tmp_path / "output" / "stem-q" / "stem-q-dialogue.mp4").write_bytes(b"x")
@@ -333,15 +372,24 @@ def test_upload_rejects_public_privacy(client, tmp_path, monkeypatch):
 
 def test_skip_upload_marks_state(client, tmp_path, monkeypatch):
     import json as _json
+
     from webgui import app as app_mod
+
     monkeypatch.setattr(app_mod, "OUTPUT_ROOT", tmp_path / "output")
     output = tmp_path / "output" / "stem-r"
     output.mkdir(parents=True)
     state = {
-        "schema_version": 1, "stem": "stem-r", "audio": "/x",
-        "started_at": "2026-05-20T10:00:00Z", "updated_at": "2026-05-20T10:30:00Z",
-        "phases": {"transcribe": {"status":"done"}, "meta": {"status":"done"},
-                   "render": {"status":"done"}, "upload": {"status":"pending"}},
+        "schema_version": 1,
+        "stem": "stem-r",
+        "audio": "/x",
+        "started_at": "2026-05-20T10:00:00Z",
+        "updated_at": "2026-05-20T10:30:00Z",
+        "phases": {
+            "transcribe": {"status": "done"},
+            "meta": {"status": "done"},
+            "render": {"status": "done"},
+            "upload": {"status": "pending"},
+        },
     }
     (output / "run-state.json").write_text(_json.dumps(state))
     r = client.post("/runs/stem-r/skip-upload")
@@ -351,8 +399,11 @@ def test_skip_upload_marks_state(client, tmp_path, monkeypatch):
 
 
 def test_abort_run_sigterms_subprocess(client, tmp_path, monkeypatch):
-    import sys, time
-    from webgui import app as app_mod, runner
+    import sys
+    import time
+
+    from webgui import app as app_mod
+    from webgui import runner
 
     runner.registry = runner.JobRegistry()
     monkeypatch.setattr(app_mod, "registry", runner.registry)
@@ -362,8 +413,11 @@ def test_abort_run_sigterms_subprocess(client, tmp_path, monkeypatch):
     output.mkdir(parents=True)
     long_cmd = [sys.executable, "-c", "import time; print('hi', flush=True); time.sleep(30)"]
     runner.spawn_pipeline(
-        cmd=long_cmd, stem="abort-stem",
-        audio_path=Path("/x"), output_dir=output, log_file=output / "x.log",
+        cmd=long_cmd,
+        stem="abort-stem",
+        audio_path=Path("/x"),
+        output_dir=output,
+        log_file=output / "x.log",
         registry=runner.registry,
     )
     time.sleep(0.5)
@@ -374,7 +428,9 @@ def test_abort_run_sigterms_subprocess(client, tmp_path, monkeypatch):
 
 
 def test_abort_unknown_run_returns_404(client, tmp_path, monkeypatch):
-    from webgui import app as app_mod, runner
+    from webgui import app as app_mod
+    from webgui import runner
+
     runner.registry = runner.JobRegistry()
     monkeypatch.setattr(app_mod, "registry", runner.registry)
     r = client.post("/runs/no-such-stem/abort")
@@ -383,6 +439,7 @@ def test_abort_unknown_run_returns_404(client, tmp_path, monkeypatch):
 
 def test_open_finder_path_must_be_inside_repo(client, tmp_path, monkeypatch):
     from webgui import app as app_mod
+
     monkeypatch.setattr(app_mod, "OUTPUT_ROOT", tmp_path / "output")
     r = client.post("/open/finder", json={"path": "/etc/passwd"})
     assert r.status_code == 400
@@ -397,13 +454,15 @@ def test_config_form_renders_pause_checkbox(client):
 
 def test_run_detail_shows_edit_cta_when_transcript_exists(client, populated_output, fixtures_dir):
     """Any run with transcribe.status=done and a .whisperx.json should expose the Edit CTA."""
-    import shutil
     import json as _json
+    import shutil
+
     # Create a fresh stem dir with both a transcript JSON and a run-state file
     target = populated_output / "folge-082"
     target.mkdir(exist_ok=True)
-    shutil.copy(fixtures_dir / "sample-transcript.whisperx.json",
-                target / "folge-082.whisperx.json")
+    shutil.copy(
+        fixtures_dir / "sample-transcript.whisperx.json", target / "folge-082.whisperx.json"
+    )
     state = {
         "schema_version": 1,
         "stem": "folge-082",
@@ -433,7 +492,9 @@ def test_run_detail_no_edit_cta_when_transcript_missing(client, populated_output
 
 def test_open_finder_calls_open_minus_R(client, tmp_path, monkeypatch):
     import subprocess
+
     from webgui import app as app_mod
+
     calls = []
     monkeypatch.setattr(app_mod, "OUTPUT_ROOT", tmp_path / "output")
     (tmp_path / "output" / "stem-a").mkdir(parents=True)
@@ -443,6 +504,7 @@ def test_open_finder_calls_open_minus_R(client, tmp_path, monkeypatch):
     def fake_run(args, **kwargs):
         calls.append(args)
         return subprocess.CompletedProcess(args, 0)
+
     monkeypatch.setattr(app_mod.subprocess, "run", fake_run)
 
     r = client.post("/open/finder", json={"path": str(target)})

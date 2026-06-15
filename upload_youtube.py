@@ -13,19 +13,22 @@ Usage:
   python upload_youtube.py video.mp4 --meta meta.youtube-meta.json
   python upload_youtube.py video.mp4 --title "Titel" --description "Beschreibung"
 """
+
 import argparse
 import json
 import os
 import pickle
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 SECRETS_FILE = os.path.join(os.path.dirname(__file__), "client_secrets.json")
 TOKEN_FILE = os.path.join(os.path.dirname(__file__), ".youtube_token.pickle")
 PLAYLISTS_FILE = os.path.join(os.path.dirname(__file__), "playlists.json")
-SCOPES = ["https://www.googleapis.com/auth/youtube.upload",
-          "https://www.googleapis.com/auth/youtube"]
+SCOPES = [
+    "https://www.googleapis.com/auth/youtube.upload",
+    "https://www.googleapis.com/auth/youtube",
+]
 
 
 def load_playlist_mapping() -> dict[str, str]:
@@ -66,7 +69,7 @@ def add_to_playlist(youtube, video_id: str, playlist_id: str) -> bool:
                         "videoId": video_id,
                     },
                 }
-            }
+            },
         ).execute()
         return True
     except Exception as e:
@@ -76,9 +79,9 @@ def add_to_playlist(youtube, video_id: str, playlist_id: str) -> bool:
 
 def get_credentials():
     try:
-        from google_auth_oauthlib.flow import InstalledAppFlow
-        from google.auth.transport.requests import Request
         import google.auth
+        from google.auth.transport.requests import Request
+        from google_auth_oauthlib.flow import InstalledAppFlow
     except ImportError:
         print("FEHLER: Google-Bibliotheken fehlen.")
         print("Installieren: pip install google-api-python-client google-auth-oauthlib")
@@ -91,6 +94,7 @@ def get_credentials():
 
     if not creds or not creds.valid:
         from google.auth.exceptions import RefreshError
+
         if creds and creds.expired and creds.refresh_token:
             try:
                 creds.refresh(Request())
@@ -117,12 +121,19 @@ def get_credentials():
     return creds
 
 
-def upload(video_path: str, title: str, description: str, tags: list[str],
-           category_id: str = "27", language: str = "de",
-           privacy: str = "private", publish_at: str | None = None,
-           thumbnail_path: str | None = None,
-           show_name: str | None = None,
-           playlist_id: str | None = None) -> dict:
+def upload(
+    video_path: str,
+    title: str,
+    description: str,
+    tags: list[str],
+    category_id: str = "27",
+    language: str = "de",
+    privacy: str = "private",
+    publish_at: str | None = None,
+    thumbnail_path: str | None = None,
+    show_name: str | None = None,
+    playlist_id: str | None = None,
+) -> dict:
     try:
         from googleapiclient.discovery import build
         from googleapiclient.http import MediaFileUpload
@@ -157,7 +168,7 @@ def upload(video_path: str, title: str, description: str, tags: list[str],
     request = youtube.videos().insert(
         part="snippet,status",
         body={"snippet": snippet, "status": status_body},
-        media_body=MediaFileUpload(video_path, chunksize=1024*1024, resumable=True)
+        media_body=MediaFileUpload(video_path, chunksize=1024 * 1024, resumable=True),
     )
 
     response = None
@@ -178,8 +189,7 @@ def upload(video_path: str, title: str, description: str, tags: list[str],
     # Thumbnail hochladen
     if thumbnail_path and os.path.exists(thumbnail_path):
         youtube.thumbnails().set(
-            videoId=video_id,
-            media_body=MediaFileUpload(thumbnail_path)
+            videoId=video_id, media_body=MediaFileUpload(thumbnail_path)
         ).execute()
         print(f"  Thumbnail: {thumbnail_path}")
 
@@ -218,7 +228,7 @@ def _write_upload_state(video_path: str, **upload_phase) -> None:
     try:
         state = json.loads(state_file.read_text(encoding="utf-8"))
         state.setdefault("phases", {})["upload"] = upload_phase
-        state["updated_at"] = datetime.now(timezone.utc).isoformat()
+        state["updated_at"] = datetime.now(UTC).isoformat()
         state_file.write_text(json.dumps(state, indent=2), encoding="utf-8")
     except (OSError, json.JSONDecodeError):
         pass
@@ -231,11 +241,12 @@ def main():
     parser.add_argument("--title", help="Episodentitel (überschreibt --meta)")
     parser.add_argument("--description", help="Beschreibung (überschreibt --meta)")
     parser.add_argument("--tags", nargs="+", help="Tags (überschreibt --meta)")
-    parser.add_argument("--privacy", default="private",
-                        choices=["private", "unlisted", "public"])
+    parser.add_argument("--privacy", default="private", choices=["private", "unlisted", "public"])
     parser.add_argument("--publish-at", help="ISO-8601 Datum (nur bei --privacy private)")
     parser.add_argument("--thumbnail", help="Thumbnail-Bilddatei")
-    parser.add_argument("--playlist-id", help="YouTube-Playlist-ID (überschreibt show_name-Mapping)")
+    parser.add_argument(
+        "--playlist-id", help="YouTube-Playlist-ID (überschreibt show_name-Mapping)"
+    )
     args = parser.parse_args()
 
     meta = {}
@@ -257,8 +268,7 @@ def main():
     language = meta.get("language", "de")
     show_name = meta.get("show_name")
 
-    _write_upload_state(args.video, status="running",
-                        started_at=datetime.now(timezone.utc).isoformat())
+    _write_upload_state(args.video, status="running", started_at=datetime.now(UTC).isoformat())
     try:
         result = upload(
             video_path=args.video,
@@ -274,12 +284,17 @@ def main():
             playlist_id=args.playlist_id,
         )
     except Exception as exc:
-        _write_upload_state(args.video, status="aborted", error=str(exc),
-                            finished_at=datetime.now(timezone.utc).isoformat())
+        _write_upload_state(
+            args.video, status="aborted", error=str(exc), finished_at=datetime.now(UTC).isoformat()
+        )
         raise
-    _write_upload_state(args.video, status="done", url=result["url"],
-                        privacy=args.privacy,
-                        finished_at=datetime.now(timezone.utc).isoformat())
+    _write_upload_state(
+        args.video,
+        status="done",
+        url=result["url"],
+        privacy=args.privacy,
+        finished_at=datetime.now(UTC).isoformat(),
+    )
     print(f"\nVideo-ID: {result['video_id']}")
     print(f"URL:      {result['url']}")
 

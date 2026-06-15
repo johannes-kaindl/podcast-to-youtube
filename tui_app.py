@@ -1,4 +1,5 @@
 """Pipeline TUI — App, compose, event routing. Heavy lifting in tui_cmd / tui_progress."""
+
 import json
 import subprocess
 import time
@@ -10,12 +11,24 @@ from textual import work
 from textual.app import App, ComposeResult
 from textual.containers import Horizontal, Vertical, VerticalScroll
 from textual.widgets import (
-    Button, Checkbox, Footer, Header, Input, Label,
-    ProgressBar, RichLog, Rule, Select, Static,
+    Button,
+    Checkbox,
+    Footer,
+    Header,
+    Input,
+    Label,
+    ProgressBar,
+    RichLog,
+    Rule,
+    Select,
+    Static,
 )
 
 from tui_cmd import (
-    PipelineConfig, build_command, can_diarize, is_pyannote_cached,
+    PipelineConfig,
+    build_command,
+    can_diarize,
+    is_pyannote_cached,
     resolve_audio_path,
 )
 from tui_progress import match_line
@@ -207,8 +220,10 @@ class PipelineTUI(App[None]):
             # gerade läuft — sonst überschreibt das die User-Auswahl mitten drin.
             if not self._pipeline_active:
                 for box_id, default in [
-                    ("skip-transcribe", False), ("skip-meta", False),
-                    ("skip-render", False), ("skip-upload", True),
+                    ("skip-transcribe", False),
+                    ("skip-meta", False),
+                    ("skip-render", False),
+                    ("skip-upload", True),
                 ]:
                     try:
                         self.query_one(f"#{box_id}", Checkbox).value = default
@@ -222,12 +237,16 @@ class PipelineTUI(App[None]):
         # User-Default zurück (Upload default-True bleibt damit User-sicher).
         if not self._pipeline_active:
             defaults = {
-                "skip-transcribe": False, "skip-meta": False,
-                "skip-render": False, "skip-upload": True,
+                "skip-transcribe": False,
+                "skip-meta": False,
+                "skip-render": False,
+                "skip-upload": True,
             }
             phase_to_box = {
-                "transcribe": "skip-transcribe", "meta": "skip-meta",
-                "render": "skip-render", "upload": "skip-upload",
+                "transcribe": "skip-transcribe",
+                "meta": "skip-meta",
+                "render": "skip-render",
+                "upload": "skip-upload",
             }
             for phase, box_id in phase_to_box.items():
                 status = phases.get(phase, {}).get("status")
@@ -264,8 +283,11 @@ class PipelineTUI(App[None]):
         for name in ("transcribe", "meta", "render", "upload"):
             s = phases.get(name, {}).get("status", "pending")
             icon = {
-                "done": "✓", "running": "⟳", "aborted": "✗",
-                "skipped": "·", "pending": "○",
+                "done": "✓",
+                "running": "⟳",
+                "aborted": "✗",
+                "skipped": "·",
+                "pending": "○",
             }.get(s, "?")
             glyphs.append(f"{icon} {PHASE_LABELS[name]}")
         overview = "  ".join(glyphs)
@@ -282,8 +304,10 @@ class PipelineTUI(App[None]):
                 f"'Pipeline starten' nimmt nahtlos wieder auf.[/]"
             )
             banner.add_class("aborted")
-        elif all(phases.get(p, {}).get("status") in ("done", "skipped")
-                 for p in ("transcribe", "meta", "render", "upload")):
+        elif all(
+            phases.get(p, {}).get("status") in ("done", "skipped")
+            for p in ("transcribe", "meta", "render", "upload")
+        ):
             banner.update(
                 f"[bold green]✓ Letzter Run komplett.[/]\n"
                 f"[dim]{overview}[/]\n"
@@ -293,9 +317,7 @@ class PipelineTUI(App[None]):
             banner.add_class("done")
         else:
             # Mixed / unfinished pending — zeig Übersicht
-            banner.update(
-                f"[bold]Vorhandener Run gefunden.[/]\n[dim]{overview}[/]"
-            )
+            banner.update(f"[bold]Vorhandener Run gefunden.[/]\n[dim]{overview}[/]")
 
     def _hide_resume_banner(self) -> None:
         try:
@@ -382,6 +404,7 @@ class PipelineTUI(App[None]):
 
     def _explain_diarize_missing(self, log: RichLog) -> None:
         import os
+
         token_set = bool(os.environ.get("HF_TOKEN"))
         cached = is_pyannote_cached()
 
@@ -513,7 +536,10 @@ class PipelineTUI(App[None]):
                 event = match_line(line, self._current_step)
                 if event:
                     self.call_from_thread(
-                        self._advance, event.progress, event.label, event.step,
+                        self._advance,
+                        event.progress,
+                        event.label,
+                        event.step,
                     )
             proc.wait()
 
@@ -531,12 +557,12 @@ class PipelineTUI(App[None]):
                     log.write,
                     f"\n[bold red]✗ Pipeline fehlgeschlagen (Exit {proc.returncode}).[/]",
                 )
-                self.call_from_thread(
-                    status.update, f"[red]✗ Fehler (Exit {proc.returncode})[/]"
-                )
+                self.call_from_thread(status.update, f"[red]✗ Fehler (Exit {proc.returncode})[/]")
                 if log_fh is not None:
-                    log_fh.write(f"\n# ✗ Pipeline fehlgeschlagen (Exit {proc.returncode}) "
-                                 f"{datetime.now().isoformat()}\n")
+                    log_fh.write(
+                        f"\n# ✗ Pipeline fehlgeschlagen (Exit {proc.returncode}) "
+                        f"{datetime.now().isoformat()}\n"
+                    )
         except Exception as exc:
             self.call_from_thread(log.write, f"\n[bold red]✗ Fehler: {exc}[/]")
             self.call_from_thread(status.update, "[red]✗ Fehler[/]")

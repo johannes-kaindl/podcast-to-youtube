@@ -1,7 +1,8 @@
 """Tests for /runs/{stem}/edit GET + POST routes."""
+
 import json
 import shutil
-from pathlib import Path
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -9,6 +10,7 @@ from fastapi.testclient import TestClient
 @pytest.fixture
 def client():
     from webgui.app import app
+
     return TestClient(app)
 
 
@@ -19,8 +21,7 @@ def populated_run(tmp_path, fixtures_dir, monkeypatch):
     out = tmp_path / "output"
     ep_dir = out / "ep01"
     ep_dir.mkdir(parents=True)
-    shutil.copy(fixtures_dir / "sample-transcript.whisperx.json",
-                ep_dir / "ep01.whisperx.json")
+    shutil.copy(fixtures_dir / "sample-transcript.whisperx.json", ep_dir / "ep01.whisperx.json")
     state = {
         "schema_version": 1,
         "stem": "ep01",
@@ -35,6 +36,7 @@ def populated_run(tmp_path, fixtures_dir, monkeypatch):
     }
     (ep_dir / "run-state.json").write_text(json.dumps(state, indent=2), encoding="utf-8")
     from webgui import app as app_mod
+
     monkeypatch.setattr(app_mod, "OUTPUT_ROOT", out)
     return out
 
@@ -56,6 +58,7 @@ def test_get_edit_404_when_transcribe_missing(client, tmp_path, monkeypatch):
     out = tmp_path / "output"
     (out / "ghost").mkdir(parents=True)
     from webgui import app as app_mod
+
     monkeypatch.setattr(app_mod, "OUTPUT_ROOT", out)
     r = client.get("/runs/ghost/edit")
     assert r.status_code == 404
@@ -72,7 +75,7 @@ def test_post_edit_save_updates_json_and_redirects(client, populated_run):
         "original_text_2": "Sounds good to me.",
         "action": "save-return",
     }
-    r = client.post(f"/runs/ep01/edit", data=form, follow_redirects=False)
+    r = client.post("/runs/ep01/edit", data=form, follow_redirects=False)
     assert r.status_code == 303
     assert r.headers["location"] == "/runs/ep01"
     data = json.loads(json_path.read_text(encoding="utf-8"))
@@ -91,7 +94,7 @@ def test_post_edit_save_invalidates_downstream(client, populated_run):
         "original_text_2": "Sounds good to me.",
         "action": "save-return",
     }
-    client.post(f"/runs/ep01/edit", data=form, follow_redirects=False)
+    client.post("/runs/ep01/edit", data=form, follow_redirects=False)
     state = json.loads(state_path.read_text(encoding="utf-8"))
     assert state["phases"]["meta"]["status"] == "pending"
     assert state["phases"]["render"]["status"] == "pending"
@@ -102,9 +105,9 @@ def test_post_edit_404_when_transcribe_missing(client, tmp_path, monkeypatch):
     out = tmp_path / "output"
     (out / "ghost").mkdir(parents=True)
     from webgui import app as app_mod
+
     monkeypatch.setattr(app_mod, "OUTPUT_ROOT", out)
-    r = client.post("/runs/ghost/edit", data={"action": "save-return"},
-                    follow_redirects=False)
+    r = client.post("/runs/ghost/edit", data={"action": "save-return"}, follow_redirects=False)
     assert r.status_code == 404
 
 
@@ -112,11 +115,15 @@ def test_post_edit_save_continue_triggers_meta_phase(client, populated_run, monk
     """POST with action=save-continue should redirect (307) to
     /runs/{stem}/phase/meta/start, which then spawns the pipeline."""
     from webgui import app as app_mod
+
     calls = []
 
     def fake_spawn_pipeline(cmd, **kwargs):
         calls.append({"cmd": cmd, **kwargs})
-        class FakeJob: pass
+
+        class FakeJob:
+            pass
+
         return FakeJob()
 
     monkeypatch.setattr(app_mod, "spawn_pipeline", fake_spawn_pipeline)
@@ -131,7 +138,7 @@ def test_post_edit_save_continue_triggers_meta_phase(client, populated_run, monk
         "original_text_2": "Sounds good to me.",
         "action": "save-continue",
     }
-    r = client.post(f"/runs/ep01/edit", data=form, follow_redirects=True)
+    r = client.post("/runs/ep01/edit", data=form, follow_redirects=True)
     # follow_redirects=True traverses 307 -> phase/meta/start -> 303 -> /runs/ep01
     assert r.status_code == 200
     # spawn_pipeline was called for the meta phase

@@ -3,6 +3,7 @@
 Pure function — read-only. Produces a per-current-segment list with
 text-diff tags, speaker-change flag, and merge/split origin metadata.
 """
+
 import difflib
 import json
 from pathlib import Path
@@ -74,14 +75,16 @@ def compute_segment_diff(json_path: str) -> list[dict]:
         current_speaker = seg.get("speaker", "")
         speaker_changed = original_speaker != current_speaker
 
-        out.append({
-            "current_index": i,
-            "original_indices": orig_indices,
-            "text_changed": text_changed,
-            "text_diff": text_diff,
-            "speaker_changed": speaker_changed,
-            "original_speaker": original_speaker,
-            "current_speaker": current_speaker,
-            "merge_or_split": merge_or_split,
-        })
+        out.append(
+            {
+                "current_index": i,
+                "original_indices": orig_indices,
+                "text_changed": text_changed,
+                "text_diff": text_diff,
+                "speaker_changed": speaker_changed,
+                "original_speaker": original_speaker,
+                "current_speaker": current_speaker,
+                "merge_or_split": merge_or_split,
+            }
+        )
     return out

@@ -4,6 +4,7 @@ Pure-Python module with no UI dependencies (no textual, no fastapi).
 Owns the pipeline-config dataclass, command builder, audio-path resolution,
 diarization-availability check, and the stdout-line classifier.
 """
+
 import os
 import re
 import sys
@@ -18,7 +19,7 @@ class PipelineConfig:
     viz: str
     language: str
     model: str
-    diarize: str            # "auto" | "off" | "2" | "3" | ...
+    diarize: str  # "auto" | "off" | "2" | "3" | ...
     episode: str
     show_name: str
     skip_transcribe: bool
@@ -30,9 +31,7 @@ class PipelineConfig:
 # ── Diarization availability ──────────────────────────────────────────────
 def is_pyannote_cached() -> bool:
     hf_home = os.environ.get("HF_HOME", os.path.expanduser("~/.cache/huggingface"))
-    return os.path.isdir(
-        os.path.join(hf_home, "hub", "models--pyannote--speaker-diarization-3.1")
-    )
+    return os.path.isdir(os.path.join(hf_home, "hub", "models--pyannote--speaker-diarization-3.1"))
 
 
 def can_diarize() -> bool:
@@ -54,40 +53,54 @@ def resolve_audio_path(audio: str, fallback_dir: Path) -> Path:
 # ── Command builder ───────────────────────────────────────────────────────
 def build_command(config: PipelineConfig, pipeline_dir: Path) -> list[str]:
     cmd = [
-        sys.executable, str(pipeline_dir / "pipeline.py"), config.audio,
-        "--viz", config.viz, "--language", config.language, "--model", config.model,
-        "--episode", config.episode, "--show-name", config.show_name,
+        sys.executable,
+        str(pipeline_dir / "pipeline.py"),
+        config.audio,
+        "--viz",
+        config.viz,
+        "--language",
+        config.language,
+        "--model",
+        config.model,
+        "--episode",
+        config.episode,
+        "--show-name",
+        config.show_name,
     ]
     if config.diarize == "off":
         cmd.append("--no-diarize")
     elif config.diarize.isdigit():
         cmd.extend(["--speakers", config.diarize])
-    if config.skip_transcribe: cmd.append("--skip-transcribe")
-    if config.skip_meta:       cmd.append("--skip-meta")
-    if config.skip_render:     cmd.append("--skip-render")
-    if config.skip_upload:     cmd.append("--skip-upload")
+    if config.skip_transcribe:
+        cmd.append("--skip-transcribe")
+    if config.skip_meta:
+        cmd.append("--skip-meta")
+    if config.skip_render:
+        cmd.append("--skip-render")
+    if config.skip_upload:
+        cmd.append("--skip-upload")
     return cmd
 
 
 # ── Progress event dataclass ──────────────────────────────────────────────
 @dataclass
 class ProgressEvent:
-    progress: float    # 0–100
-    label: str         # display label
-    step: int          # 1–4
+    progress: float  # 0–100
+    label: str  # display label
+    step: int  # 1–4
 
 
 # ── Stdout-line classifier ────────────────────────────────────────────────
 _STEP_MARKERS = [
-    (re.compile(r"SCHRITT 1:"),               1, "Schritt 1/4 · Transkription",          2),
-    (re.compile(r"\[1/4\] Modell"),           1, "Schritt 1/4 · Modell laden …",         5),
-    (re.compile(r"\[2/4\] Transkrib"),        1, "Schritt 1/4 · Transkribieren …",       15),
-    (re.compile(r"\[3/4\] Wort"),             1, "Schritt 1/4 · Wort-Alignment …",       32),
-    (re.compile(r"\[4/4\]"),                  1, "Schritt 1/4 · Speaker-Erkennung …",    39),
-    (re.compile(r"SCHRITT 2:"),               2, "Schritt 2/4 · Metadaten generieren …", 44),
-    (re.compile(r"Metadaten generieren via"), 2, "Schritt 2/4 · LLM generiert …",        47),
-    (re.compile(r"SCHRITT 3:"),               3, "Schritt 3/4 · Video rendern …",        53),
-    (re.compile(r"SCHRITT 4:"),               4, "Schritt 4/4 · YouTube-Upload …",       96),
+    (re.compile(r"SCHRITT 1:"), 1, "Schritt 1/4 · Transkription", 2),
+    (re.compile(r"\[1/4\] Modell"), 1, "Schritt 1/4 · Modell laden …", 5),
+    (re.compile(r"\[2/4\] Transkrib"), 1, "Schritt 1/4 · Transkribieren …", 15),
+    (re.compile(r"\[3/4\] Wort"), 1, "Schritt 1/4 · Wort-Alignment …", 32),
+    (re.compile(r"\[4/4\]"), 1, "Schritt 1/4 · Speaker-Erkennung …", 39),
+    (re.compile(r"SCHRITT 2:"), 2, "Schritt 2/4 · Metadaten generieren …", 44),
+    (re.compile(r"Metadaten generieren via"), 2, "Schritt 2/4 · LLM generiert …", 47),
+    (re.compile(r"SCHRITT 3:"), 3, "Schritt 3/4 · Video rendern …", 53),
+    (re.compile(r"SCHRITT 4:"), 4, "Schritt 4/4 · YouTube-Upload …", 96),
 ]
 _RENDER_PCT_RE = re.compile(r"Rendering\s+(\d+\.?\d*)%")
 

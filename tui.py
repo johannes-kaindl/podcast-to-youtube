@@ -6,6 +6,7 @@ Usage:
   python tui.py                  # Startet ohne vorausgefüllten Pfad
   python tui.py podcast.m4a      # Pre-fills Audio-Pfad
 """
+
 import sys
 
 from tui_app import PipelineTUI
