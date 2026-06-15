@@ -1,0 +1,107 @@
+[project]
+name = "podcast-to-youtube"
+version = "1.0.0"
+description = "Local-only, Apple-Silicon pipeline that turns a podcast audio file into a private YouTube video: transcribe (WhisperX) · metadata (local MLX LLM) · render (Remotion) · upload (YouTube Data API)."
+readme = "README.md"
+license = { text = "AGPL-3.0-or-later" }
+keywords = [
+    "podcast",
+    "youtube",
+    "whisperx",
+    "transcription",
+    "diarization",
+    "subtitles",
+    "remotion",
+    "mlx",
+    "apple-silicon",
+    "fastapi",
+    "htmx",
+    "local-first",
+]
+authors = [
+    { name = "v6t2b9", email = "92732955+v6t2b9@users.noreply.github.com" },
+]
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.110.0",
+    "uvicorn[standard]>=0.27.0",
+    "jinja2>=3.1.0",
+    "sse-starlette>=2.0.0",
+    "python-multipart>=0.0.9",
+    "httpx>=0.27.0",
+    "textual>=0.50.0",
+    "google-api-python-client>=2.100.0",
+    "google-auth-httplib2>=0.2.0",
+    "google-auth-oauthlib>=1.2.0",
+]
+
+[project.optional-dependencies]
+# WhisperX pulls torch + the full ASR stack (multi-GB). It is imported lazily in
+# transcribe.py / download_models.py, so only the transcribe phase needs it:
+#   uv sync --extra transcribe
+transcribe = ["whisperx>=3.8.0"]
+
+[project.urls]
+Repository = "https://codeberg.org/jkaindl/podcast-to-youtube"
+
+# Flat application layout (17 top-level modules; webgui.py vs. the webgui/ package
+# would collide as installed names), so this is a uv "virtual" project: a managed
+# environment, not a distributable wheel. Entry points are documented Makefile /
+# `uv run` targets (PROF-PY-06) rather than [project.scripts]. See AGENTS.md
+# "Abweichungen von der Leitkonvention" (PROF-PY-02).
+[tool.uv]
+package = false
+
+[dependency-groups]
+# Source of truth for dev tooling — what `uv sync` installs. mypy lives here so the
+# strict type-check documented in AGENTS.md is actually runnable; playwright drives
+# tools/screenshots/.
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+    "ruff>=0.4",
+    "mypy>=1.10",
+    "pre-commit>=4.0",
+    "playwright>=1.40",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = ["visualizer", "output"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM", "RUF"]
+ignore = [
+    "E501",   # line length is handled by the formatter
+    "RUF001", # ambiguous Unicode (EN DASH etc.) in strings — fine in German prose
+    "RUF002", # Unicode punctuation in docstrings — fine in German prose
+    "RUF003", # Unicode punctuation in inline comments — fine in German prose
+]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_unused_ignores = true
+exclude = ["visualizer/", "output/", "tools/screenshots/", "tests/"]
+
+# Third-party modules without bundled type stubs (lazily imported in the pipeline).
+[[tool.mypy.overrides]]
+module = [
+    "whisperx",
+    "whisperx.*",
+    "googleapiclient.*",
+    "google.auth.*",
+    "google_auth_oauthlib.*",
+]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+addopts = "-ra --strict-markers"
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "needs_models: requires the WhisperX models / transcribe extra installed",
+    "needs_youtube: requires real YouTube Data API credentials",
+]
