@@ -228,6 +228,17 @@ uv run pytest tests/ -q        # or: make test
 
 ---
 
+## Documentation
+
+The full user manual lives in [`docs/manual/`](docs/manual/), organised by [Diátaxis](https://diataxis.fr/):
+
+- **[Tutorial](docs/manual/tutorial.md)** — your first video, start to finish.
+- **[How-to guides](docs/manual/how-to.md)** — focused recipes (headless runs, transcript editing, offline models, upload visibility).
+- **[Reference](docs/manual/reference.md)** — every CLI flag, WebGUI route, the `run-state.json` schema, configuration + environment.
+- **[Explanation](docs/manual/explanation.md)** — the four-phase architecture and the design rationale.
+
+---
+
 ## Project layout
 
 ```

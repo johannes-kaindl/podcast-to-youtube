@@ -22,6 +22,11 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - **`.forgejo/issue_template/`** — bug-report and feature-request templates for the Codeberg tracker.
 - **WebGUI screenshots** — `docs/images/` with a hero start-screen shot (incl. the *Pause after transcribe* control), a three-up gallery (live run, ready-to-upload, finished) that surfaces the post-hoc *Edit transcript* affordance, and a transcript-editor shot, all embedded in the README.
 - **`tools/screenshots/`** — regenerates those screenshots from the real WebGUI (synthetic, schema-accurate demo runs incl. WhisperX JSON for the editor view + Playwright capture).
+- **uv + `pyproject.toml`** — canonical python-uv layout (deps + ruff/mypy/pytest config) with a committed `uv.lock`; WhisperX is the optional `transcribe` extra, and `[tool.uv] package = false` reflects the flat app layout.
+- **pre-commit hooks** — `ruff`(`--fix`)/`ruff-format` at commit; `mypy --strict` + a fast pytest run at pre-push.
+- **`Makefile`** — standard uv targets (`install` / `check` / `lint` / `format` / `typecheck` / `test` / `serve` / `watch` / `screenshots` / `hooks`).
+- **Diátaxis user manual** — `docs/manual/` (tutorial · how-to · reference · explanation), linked from the README.
+- **Visualizer dev tooling** — npm scripts (`dev` / `build` / `test` / `lint` / `typecheck`), vitest tests for the timeline + speaker helpers, and biome lint/format.
 
 ### Changed
 
@@ -29,6 +34,13 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - **CONTRIBUTING.md** — referenced the issue templates and `SECURITY.md`, expanded the development-setup block, restated the out-of-scope list.
 - **Codeberg repo metadata** — set the public description and topics so the project shows up correctly in topic searches.
 - **Test suite** — grew from 64 to 151 tests (transcript editor V1 + Phase 2 modules and routes).
+- **Strict lint + types** — the codebase now passes `ruff` and `mypy --strict` (app modules); a one-time `ruff format` was applied. `.editorconfig`: TOML set to 4-space.
+- **Setup → uv** — README + CONTRIBUTING use `uv sync` (`--extra transcribe` for WhisperX) instead of `pip install -r requirements.txt`.
+
+### Removed
+
+- **`requirements.txt`** — superseded by `pyproject.toml` + `uv.lock` as the single dependency source.
+- **Unused dependencies** — dropped `anthropic` (metadata runs on a local MLX server — no cloud LLM) and `python-dotenv` (unreferenced).
 
 ### Fixed
 

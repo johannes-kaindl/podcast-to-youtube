@@ -4,13 +4,13 @@ Vollautomatische Podcast-zu-YouTube-Pipeline.
 
 Schritte:
   1. Transkription (WhisperX)
-  2. YouTube-Metadaten generieren (Claude API)
+  2. YouTube-Metadaten generieren (lokales MLX-LLM, OpenAI-kompatibel auf :8080)
   3. Video rendern (Remotion)
   4. Upload zu YouTube (als Private)
 
 Usage:
   python pipeline.py podcast.m4a
-  python pipeline.py podcast.m4a --skip-upload --viz ring
+  python pipeline.py podcast.m4a --skip-upload --viz monologue
   python pipeline.py podcast.m4a --hf-token hf_xxx --language en
   python pipeline.py podcast.m4a --show-name "Mein Podcast" --episode "EP 42"
 """
