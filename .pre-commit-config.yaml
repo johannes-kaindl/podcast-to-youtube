@@ -1,0 +1,42 @@
+# Run on every commit. Keeps the working tree clean without manual ruff/pytest invocations.
+#
+# Install once:  uv run pre-commit install --hook-type pre-commit --hook-type pre-push
+# Run manually:  uv run pre-commit run --all-files
+# Skip for one commit: git commit --no-verify
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md] # keep Markdown hard line breaks
+        exclude: ^tests/fixtures/
+      - id: end-of-file-fixer
+        exclude: ^tests/fixtures/
+      - id: check-yaml
+      - id: check-toml
+      - id: check-added-large-files
+        args: ['--maxkb=2048']
+      - id: check-merge-conflict
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.17
+    hooks:
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
+      - id: ruff-format
+
+  - repo: local
+    hooks:
+      - id: mypy-strict
+        name: mypy (strict)
+        entry: uv run mypy .
+        language: system
+        pass_filenames: false
+        stages: [pre-push] # strict type-check on push — keeps the gate from drifting
+      - id: pytest-fast
+        name: pytest (fast unit tests)
+        entry: uv run pytest tests/ -q -m "not slow and not needs_models and not needs_youtube"
+        language: system
+        pass_filenames: false
+        stages: [pre-push] # only on push; the fast suite needs no models or YouTube creds
