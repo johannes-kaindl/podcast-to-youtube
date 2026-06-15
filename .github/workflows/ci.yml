@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Runs the same gate as the pre-push hook + Makefile `check`, plus the
+# visualizer's TS checks. Lives in .github/workflows/ so it runs on the GitHub
+# mirror for free; Forgejo/Codeberg also picks it up when Actions is enabled.
+
+jobs:
+  python:
+    name: Python (ruff · mypy · pytest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv + Python 3.12
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          python-version: "3.12"
+      - name: Sync env (lint/type/test deps — no WhisperX extra)
+        run: uv sync --frozen
+      - name: Ruff lint
+        run: uv run ruff check .
+      - name: Ruff format check
+        run: uv run ruff format --check .
+      - name: Mypy (strict)
+        run: uv run mypy .
+      - name: Pytest (fast)
+        run: uv run pytest tests/ -q -m "not slow and not needs_models and not needs_youtube"
+
+  visualizer:
+    name: Visualizer (biome · tsc · vitest)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: visualizer
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: visualizer/package-lock.json
+      - name: Install
+        run: npm ci
+      - name: Lint (biome)
+        run: npm run lint
+      - name: Typecheck (tsc)
+        run: npm run typecheck
+      - name: Test (vitest)
+        run: npm run test

@@ -29,6 +29,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - **Visualizer dev tooling** — npm scripts (`dev` / `build` / `test` / `lint` / `typecheck`), vitest tests for the timeline + speaker helpers, and biome lint/format.
 - **Dual-licensing** — `LICENSING.md` (AGPL by default + an on-request commercial license) and `CLA.md` (a lightweight inbound contributor grant that keeps relicensing possible), linked from the README and CONTRIBUTING.
 - **German README** — `README.de.md` (full translation), with a language-toggle line at the top of both READMEs.
+- **CI** — `.github/workflows/ci.yml` runs the full gate on every push / PR: `ruff` + `ruff format --check` + `mypy --strict` + the fast pytest selection, plus the visualizer's biome / tsc / vitest. Runs on the GitHub mirror (free) and on Codeberg when Forgejo Actions is enabled.
 
 ### Changed
 
