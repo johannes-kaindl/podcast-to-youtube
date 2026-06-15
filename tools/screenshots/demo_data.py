@@ -76,6 +76,14 @@ TRANSCRIPTS = {
         "Anna: McLuhan lässt grüßen.",
         "Ben: Wir schauen uns heute drei konkrete Beispiele an.",
     ],
+    "folge-084": [
+        "Anna: Folge 84 — und hier brechen wir bewusst ab.",
+        "Ben: Genau, das Transkript steht, der Rest wartet.",
+        "Anna: Erst korrigieren wir Namen und Fachbegriffe.",
+        "Ben: Dann laufen Metadaten und Render mit dem sauberen Text.",
+        "Anna: Pausieren nach dem Transkribieren — dafür ist die Checkbox da.",
+        "Ben: Klein, aber es spart einen kompletten Re-Run.",
+    ],
 }
 
 # ---- YouTube metadata ---------------------------------------------------------
@@ -277,6 +285,37 @@ RUN_STATES = {
             },
         },
     },
+    # Paused after transcribe: transcript done, meta/render/upload deferred for editing.
+    "folge-084": {
+        "schema_version": 1,
+        "audio": "/Users/jay/Audio/folge-084.m4a",
+        "stem": "folge-084",
+        "started_at": "2026-06-02T08:30:00Z",
+        "updated_at": "2026-06-02T08:33:12Z",
+        "config": {
+            "show_name": SHOW,
+            "episode": "Folge 84",
+            "language": "de",
+            "model": "large-v3-turbo",
+            "viz_type": "dialogue",
+            "diarize": True,
+            "num_speakers": None,
+            "privacy": "private",
+            "skip_meta": True,
+            "skip_render": True,
+            "skip_upload": True,
+        },
+        "phases": {
+            "transcribe": {
+                "status": "done",
+                "started_at": "2026-06-02T08:30:00Z",
+                "finished_at": "2026-06-02T08:33:12Z",
+            },
+            "meta": {"status": "pending"},
+            "render": {"status": "pending"},
+            "upload": {"status": "pending"},
+        },
+    },
 }
 
 # stems that have a rendered video → need a poster MP4
@@ -379,9 +418,10 @@ def build(repo_root: Path) -> list[str]:
             d.mkdir(parents=True, exist_ok=True)
             (d / "run-state.json").write_text(json.dumps(state, indent=2), encoding="utf-8")
             (d / f"{stem}.txt").write_text("\n".join(TRANSCRIPTS[stem]) + "\n", encoding="utf-8")
-            (d / f"{stem}.youtube-meta.json").write_text(
-                json.dumps(META[stem], indent=2, ensure_ascii=False), encoding="utf-8"
-            )
+            if stem in META:  # paused/pre-meta runs have no metadata yet
+                (d / f"{stem}.youtube-meta.json").write_text(
+                    json.dumps(META[stem], indent=2, ensure_ascii=False), encoding="utf-8"
+                )
             # WhisperX JSON drives the transcript editor + the "✎ Edit transcript"
             # affordance the WebGUI surfaces on every run with a transcript.
             (d / f"{stem}.whisperx.json").write_text(

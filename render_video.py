@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
 Remotion-Video aus Audio + WhisperX-JSON rendern.
-Kopiert Dateien in public/, konvertiert zu MP3, ruft Remotion auf.
+Kopiert Dateien in public/, konvertiert zu WAV, ruft Remotion auf.
 
 Usage:
   python render_video.py audio.m4a --whisperx audio.whisperx.json --srt audio.srt
-  python render_video.py audio.m4a --whisperx audio.whisperx.json --viz ring --title "Mein Podcast"
+  python render_video.py audio.m4a --whisperx audio.whisperx.json --viz monologue --title "Mein Podcast"
 """
 
 import argparse

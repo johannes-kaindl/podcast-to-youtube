@@ -20,7 +20,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - **`SECURITY.md`** — disclosure policy, supported versions, reporting channel.
 - **`.editorconfig`** — shared editor defaults (4-space Python, 2-space web/data, LF, UTF-8).
 - **`.forgejo/issue_template/`** — bug-report and feature-request templates for the Codeberg tracker.
-- **WebGUI screenshots** — `docs/images/` with a hero start-screen shot (incl. the *Pause after transcribe* control), a three-up gallery (live run, ready-to-upload, finished) that surfaces the post-hoc *Edit transcript* affordance, and a transcript-editor shot, all embedded in the README.
+- **WebGUI screenshots** — `docs/images/` with a hero start-screen shot (incl. the *Pause after transcribe* control), a three-up gallery (live run, ready-to-upload, finished) that surfaces the post-hoc *Edit transcript* affordance, plus a paused-after-transcribe shot and a transcript-editor shot, all embedded in the README.
 - **`tools/screenshots/`** — regenerates those screenshots from the real WebGUI (synthetic, schema-accurate demo runs incl. WhisperX JSON for the editor view + Playwright capture).
 - **uv + `pyproject.toml`** — canonical python-uv layout (deps + ruff/mypy/pytest config) with a committed `uv.lock`; WhisperX is the optional `transcribe` extra, and `[tool.uv] package = false` reflects the flat app layout.
 - **pre-commit hooks** — `ruff`(`--fix`)/`ruff-format` at commit; `mypy --strict` + a fast pytest run at pre-push.
@@ -44,6 +44,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Fixed
 
+- **Stale docs + broken render scripts** — rewrote `visualizer/README.md` to the current Dialogue/Monologue architecture; fixed the broken `render:waveform` / `render:ring` npm scripts (those compositions no longer exist) to `render:dialogue` / `render:monologue`; corrected stale module docstrings (`render_video.py` converts to WAV not MP3; `pipeline.py` metadata is a local MLX LLM, not the "Claude API").
 - **Speaker dropdown duplicated the current speaker** — the fallback `<option>` rendered unconditionally, so any speaker already present in the distinct-speakers list appeared twice in every segment dropdown. The fallback now renders only when the speaker is unknown.
 
 ---

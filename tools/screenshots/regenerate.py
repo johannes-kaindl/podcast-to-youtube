@@ -2,7 +2,7 @@
 """Regenerate the WebGUI screenshots in docs/images/.
 
 End-to-end and self-contained: builds a synthetic demo output/ tree, starts the
-real FastAPI/HTMX WebGUI, drives it through five views (start, three run states,
+real FastAPI/HTMX WebGUI, drives it through six views (start, four run states,
 transcript editor) with Playwright (system Chrome, dark theme forced), optimises
 the PNGs with pngquant, and cleans up.
 
@@ -106,6 +106,13 @@ TARGETS = [
         "/runs/folge-081",
         TRANSCRIBE + META + _render_done("folge-081") + _upload(_URL),
         {"pct": 100, "left": "Pipeline complete", "right": "4 / 4"},
+    ),
+    # Paused after transcribe — the "Pause after transcribe" trust moment + Edit CTA.
+    (
+        "webgui-paused",
+        "/runs/folge-084",
+        [*TRANSCRIBE, "⏸ Pipeline pausiert nach Transkription — Transkript bereit zum Editieren"],
+        None,
     ),
     # Transcript editor — per-segment text + speaker editing, merge/split, bulk rename.
     ("webgui-editor", "/runs/folge-081/edit", None, None),

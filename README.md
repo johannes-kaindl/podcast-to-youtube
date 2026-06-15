@@ -135,6 +135,12 @@ Two ways in:
 - **Pause after transcribe** — tick the *Pause after transcribe for editing* checkbox on the start form. The pipeline stops after Whisper finishes; the run page surfaces an *Edit Transcript* button.
 - **Edit anytime** — every run with a transcript exposes an *Edit transcript* link on the run page. Saving an edit resets the `meta` + `render` phases to `pending`; click the phase indicator to re-run them with the corrected transcript.
 
+<p align="center">
+  <a href="docs/images/webgui-paused.png"><img src="docs/images/webgui-paused.png" width="880"
+    alt="A run paused after transcription: the phase stepper shows Transcribe done with Metadata, Render and Upload pending, and a 'Pipeline paused after Transcribe' card offers 'Edit Transcript' or 'Continue without editing', with the transcript preview below."></a>
+  <br><sub><b>Pause after transcribe</b> — the pipeline stops after Whisper; edit the transcript, then continue with Meta + Render.</sub>
+</p>
+
 What the editor can do:
 
 - **Segment text** — fix mistyped names, jargon, foreign words.

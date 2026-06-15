@@ -6,7 +6,7 @@ the top-level `README.md`.
 The screenshots are of the **real** shipped FastAPI/HTMX WebGUI — not mockups. The
 tool fakes only the *data*: it writes a synthetic `output/<stem>/` tree (schema-accurate
 `run-state.json` + transcript + WhisperX JSON + YouTube metadata, plus a poster MP4) for
-three pipeline states, starts `webgui.py`, and drives the live UI into each view with Playwright.
+four pipeline states, starts `webgui.py`, and drives the live UI into each view with Playwright.
 
 ## What it produces
 
@@ -16,6 +16,7 @@ three pipeline states, starts `webgui.py`, and drives the live UI into each view
 | `webgui-running.png` | Live run — render in progress, log streaming | `folge-082` |
 | `webgui-upload.png` | Trust moment — render done, upload card | `folge-083` |
 | `webgui-done.png` | Finished — all phases done, uploaded | `folge-081` |
+| `webgui-paused.png` | Paused after transcribe — the *Edit Transcript* CTA | `folge-084` |
 | `webgui-editor.png` | Transcript editor — segment text, speakers, merge/split | `folge-081` `/edit` |
 
 Dark theme is forced. The log panel is seeded with the project's real captured pipeline
