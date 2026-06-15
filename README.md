@@ -125,6 +125,12 @@ Pick an audio file, choose the options, click **Start pipeline**. The run page s
 
 Whisper occasionally mistypes names, jargon, and foreign words. Rather than re-running the whole pipeline, the editor lets the transcript be corrected between phases and reruns only what changed.
 
+<p align="center">
+  <a href="docs/images/webgui-editor.png"><img src="docs/images/webgui-editor.png" width="880"
+    alt="The transcript editor: a bulk speaker-rename form, then one card per segment with a timestamp, a speaker dropdown, an editable text field, and merge/split controls. An Undo dropdown sits top-right; Save & Return / Save & Continue / Cancel actions sit at the bottom. Saving invalidates the metadata and render phases so they re-run with the corrected transcript."></a>
+  <br><sub><b>Transcript editor</b> — per-segment text and speaker edits, merge/split, bulk speaker rename, and undo. Saving reruns only the affected phases.</sub>
+</p>
+
 Two ways in:
 
 - **Pause after transcribe** — tick the *Pause after transcribe for editing* checkbox on the start form. The pipeline stops after Whisper finishes; the run page surfaces an *Edit Transcript* button.
