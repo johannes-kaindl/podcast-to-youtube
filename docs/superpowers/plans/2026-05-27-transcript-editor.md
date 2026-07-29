@@ -38,7 +38,7 @@
 ## Conventions Reminder
 
 - **TemplateResponse:** Starlette 1.0+ signature → `templates.TemplateResponse(request, name, context)` (request as first positional)
-- **Tests:** Run from repo root with `VIRTUAL_ENV=/Users/Shared/code/whisper-pipeline/.venv .venv/bin/pytest tests/test_X.py -v`
+- **Tests:** Run from repo root with `VIRTUAL_ENV=$PWD/.venv .venv/bin/pytest tests/test_X.py -v`
 - **Encoding:** UTF-8 everywhere; JSON writes use `ensure_ascii=False`
 - **Commits:** Conventional commits (`feat(transcript-editor): …`, `test(transcript-editor): …`). Co-Authored-By footer for Claude commits.
 - **Style:** Match existing module style (module docstring at top, type hints throughout)
@@ -137,7 +137,7 @@ def test_load_segments_includes_edited_flag_default_false(sample_run):
 - [ ] **Step 1.3: Run test to verify it fails**
 
 ```bash
-VIRTUAL_ENV=/Users/Shared/code/whisper-pipeline/.venv .venv/bin/pytest tests/test_transcript_editor.py -v
+VIRTUAL_ENV=$PWD/.venv .venv/bin/pytest tests/test_transcript_editor.py -v
 ```
 
 Expected: FAIL with `ImportError` or `ModuleNotFoundError` for `transcript_editor`.
@@ -170,7 +170,7 @@ def load_segments(json_path: str) -> list[dict]:
 - [ ] **Step 1.5: Run tests to verify pass**
 
 ```bash
-VIRTUAL_ENV=/Users/Shared/code/whisper-pipeline/.venv .venv/bin/pytest tests/test_transcript_editor.py -v
+VIRTUAL_ENV=$PWD/.venv .venv/bin/pytest tests/test_transcript_editor.py -v
 ```
 
 Expected: 2 PASS.
@@ -234,7 +234,7 @@ def test_save_edits_raises_on_length_mismatch(sample_run):
 - [ ] **Step 2.2: Run tests to verify they fail**
 
 ```bash
-VIRTUAL_ENV=/Users/Shared/code/whisper-pipeline/.venv .venv/bin/pytest tests/test_transcript_editor.py -v
+VIRTUAL_ENV=$PWD/.venv .venv/bin/pytest tests/test_transcript_editor.py -v
 ```
 
 Expected: 3 FAIL (`save_edits` not defined).
@@ -270,7 +270,7 @@ def save_edits(json_path: str, new_texts: list[str]) -> dict:
 - [ ] **Step 2.4: Run tests to verify pass**
 
 ```bash
-VIRTUAL_ENV=/Users/Shared/code/whisper-pipeline/.venv .venv/bin/pytest tests/test_transcript_editor.py -v
+VIRTUAL_ENV=$PWD/.venv .venv/bin/pytest tests/test_transcript_editor.py -v
 ```
 
 Expected: 5 PASS.
@@ -335,7 +335,7 @@ def test_has_been_edited_returns_true_when_any_segment_edited(sample_run):
 - [ ] **Step 3.2: Run tests to verify they fail**
 
 ```bash
-VIRTUAL_ENV=/Users/Shared/code/whisper-pipeline/.venv .venv/bin/pytest tests/test_transcript_editor.py -v
+VIRTUAL_ENV=$PWD/.venv .venv/bin/pytest tests/test_transcript_editor.py -v
 ```
 
 Expected: 3 FAIL.
@@ -386,7 +386,7 @@ def has_been_edited(json_path: str) -> bool:
 - [ ] **Step 3.4: Run tests to verify pass**
 
 ```bash
-VIRTUAL_ENV=/Users/Shared/code/whisper-pipeline/.venv .venv/bin/pytest tests/test_transcript_editor.py -v
+VIRTUAL_ENV=$PWD/.venv .venv/bin/pytest tests/test_transcript_editor.py -v
 ```
 
 Expected: 8 PASS.
@@ -453,7 +453,7 @@ def test_save_edits_does_not_overwrite_backup_on_second_call(sample_run):
 - [ ] **Step 4.2: Run tests to verify they fail**
 
 ```bash
-VIRTUAL_ENV=/Users/Shared/code/whisper-pipeline/.venv .venv/bin/pytest tests/test_transcript_editor.py -v
+VIRTUAL_ENV=$PWD/.venv .venv/bin/pytest tests/test_transcript_editor.py -v
 ```
 
 Expected: 3 FAIL.
@@ -506,7 +506,7 @@ def save_edits(json_path: str, new_texts: list[str]) -> dict:
 - [ ] **Step 4.4: Run tests to verify pass**
 
 ```bash
-VIRTUAL_ENV=/Users/Shared/code/whisper-pipeline/.venv .venv/bin/pytest tests/test_transcript_editor.py -v
+VIRTUAL_ENV=$PWD/.venv .venv/bin/pytest tests/test_transcript_editor.py -v
 ```
 
 Expected: 11 PASS.
@@ -585,7 +585,7 @@ def test_save_edits_regenerates_srt_and_txt(sample_run):
 - [ ] **Step 5.2: Run tests to verify they fail**
 
 ```bash
-VIRTUAL_ENV=/Users/Shared/code/whisper-pipeline/.venv .venv/bin/pytest tests/test_transcript_editor.py -v
+VIRTUAL_ENV=$PWD/.venv .venv/bin/pytest tests/test_transcript_editor.py -v
 ```
 
 Expected: 4 FAIL.
@@ -659,7 +659,7 @@ Then modify `save_edits` to call `regenerate_srt_txt` at the end (just before th
 - [ ] **Step 5.4: Run tests to verify pass**
 
 ```bash
-VIRTUAL_ENV=/Users/Shared/code/whisper-pipeline/.venv .venv/bin/pytest tests/test_transcript_editor.py -v
+VIRTUAL_ENV=$PWD/.venv .venv/bin/pytest tests/test_transcript_editor.py -v
 ```
 
 Expected: 15 PASS.
@@ -748,7 +748,7 @@ def test_invalidate_downstream_returns_empty_when_already_pending(sample_run_sta
 - [ ] **Step 6.2: Run tests to verify they fail**
 
 ```bash
-VIRTUAL_ENV=/Users/Shared/code/whisper-pipeline/.venv .venv/bin/pytest tests/test_transcript_editor.py -v
+VIRTUAL_ENV=$PWD/.venv .venv/bin/pytest tests/test_transcript_editor.py -v
 ```
 
 Expected: 4 FAIL.
@@ -783,7 +783,7 @@ def invalidate_downstream(run_state_path: str) -> list[str]:
 - [ ] **Step 6.4: Run tests to verify pass**
 
 ```bash
-VIRTUAL_ENV=/Users/Shared/code/whisper-pipeline/.venv .venv/bin/pytest tests/test_transcript_editor.py -v
+VIRTUAL_ENV=$PWD/.venv .venv/bin/pytest tests/test_transcript_editor.py -v
 ```
 
 Expected: 19 PASS.
@@ -791,7 +791,7 @@ Expected: 19 PASS.
 - [ ] **Step 6.5: Sanity-check all existing tests still pass**
 
 ```bash
-VIRTUAL_ENV=/Users/Shared/code/whisper-pipeline/.venv .venv/bin/pytest tests/ -v
+VIRTUAL_ENV=$PWD/.venv .venv/bin/pytest tests/ -v
 ```
 
 Expected: 81 PASS (62 existing + 19 new).
@@ -841,7 +841,7 @@ def test_pause_after_transcribe_persists(tmp_path):
 - [ ] **Step 7.2: Run tests to verify they fail**
 
 ```bash
-VIRTUAL_ENV=/Users/Shared/code/whisper-pipeline/.venv .venv/bin/pytest tests/test_settings.py -v
+VIRTUAL_ENV=$PWD/.venv .venv/bin/pytest tests/test_settings.py -v
 ```
 
 Expected: 2 FAIL (`KeyError` on `pause_after_transcribe`).
@@ -863,7 +863,7 @@ DEFAULTS = {
 - [ ] **Step 7.4: Run tests to verify pass**
 
 ```bash
-VIRTUAL_ENV=/Users/Shared/code/whisper-pipeline/.venv .venv/bin/pytest tests/test_settings.py -v
+VIRTUAL_ENV=$PWD/.venv .venv/bin/pytest tests/test_settings.py -v
 ```
 
 Expected: 5 PASS (3 existing + 2 new).
@@ -997,7 +997,7 @@ def test_pause_flag_default_false_does_not_inject_skips(client, fixtures_dir, mo
 - [ ] **Step 8.2: Run tests to verify they fail**
 
 ```bash
-VIRTUAL_ENV=/Users/Shared/code/whisper-pipeline/.venv .venv/bin/pytest tests/test_pause_after_transcribe.py -v
+VIRTUAL_ENV=$PWD/.venv .venv/bin/pytest tests/test_pause_after_transcribe.py -v
 ```
 
 Expected: 3 FAIL (422 validation error — RunRequest has no `pause_after_transcribe`).
@@ -1066,7 +1066,7 @@ async def api_create_run(req: RunRequest):
 - [ ] **Step 8.4: Run tests to verify pass**
 
 ```bash
-VIRTUAL_ENV=/Users/Shared/code/whisper-pipeline/.venv .venv/bin/pytest tests/test_pause_after_transcribe.py -v
+VIRTUAL_ENV=$PWD/.venv .venv/bin/pytest tests/test_pause_after_transcribe.py -v
 ```
 
 Expected: 3 PASS.
@@ -1074,7 +1074,7 @@ Expected: 3 PASS.
 - [ ] **Step 8.5: Sanity-check all existing tests still pass**
 
 ```bash
-VIRTUAL_ENV=/Users/Shared/code/whisper-pipeline/.venv .venv/bin/pytest tests/ -v
+VIRTUAL_ENV=$PWD/.venv .venv/bin/pytest tests/ -v
 ```
 
 Expected: 84 PASS (81 + 3 new). If anything red — fix before moving on.
@@ -1130,7 +1130,7 @@ def test_config_form_renders_pause_checkbox(client):
 - [ ] **Step 9.3: Run test to verify it fails**
 
 ```bash
-VIRTUAL_ENV=/Users/Shared/code/whisper-pipeline/.venv .venv/bin/pytest tests/test_routes.py::test_config_form_renders_pause_checkbox -v
+VIRTUAL_ENV=$PWD/.venv .venv/bin/pytest tests/test_routes.py::test_config_form_renders_pause_checkbox -v
 ```
 
 Expected: FAIL (text not in response).
@@ -1159,7 +1159,7 @@ Look at the result of Step 9.1's grep. If app.js builds the JSON body manually, 
 - [ ] **Step 9.6: Run tests to verify pass**
 
 ```bash
-VIRTUAL_ENV=/Users/Shared/code/whisper-pipeline/.venv .venv/bin/pytest tests/ -v
+VIRTUAL_ENV=$PWD/.venv .venv/bin/pytest tests/ -v
 ```
 
 Expected: 85 PASS.
@@ -1261,7 +1261,7 @@ def test_get_edit_404_when_transcribe_missing(client, tmp_path, monkeypatch):
 - [ ] **Step 10.2: Run tests to verify they fail**
 
 ```bash
-VIRTUAL_ENV=/Users/Shared/code/whisper-pipeline/.venv .venv/bin/pytest tests/test_webgui_edit_routes.py -v
+VIRTUAL_ENV=$PWD/.venv .venv/bin/pytest tests/test_webgui_edit_routes.py -v
 ```
 
 Expected: 2 FAIL (404 for both — routes not defined).
@@ -1347,7 +1347,7 @@ Create `webgui/templates/run_edit.html`:
 - [ ] **Step 10.5: Run tests to verify pass**
 
 ```bash
-VIRTUAL_ENV=/Users/Shared/code/whisper-pipeline/.venv .venv/bin/pytest tests/test_webgui_edit_routes.py -v
+VIRTUAL_ENV=$PWD/.venv .venv/bin/pytest tests/test_webgui_edit_routes.py -v
 ```
 
 Expected: 2 PASS.
@@ -1430,7 +1430,7 @@ def test_post_edit_404_when_transcribe_missing(client, tmp_path, monkeypatch):
 - [ ] **Step 11.2: Run tests to verify they fail**
 
 ```bash
-VIRTUAL_ENV=/Users/Shared/code/whisper-pipeline/.venv .venv/bin/pytest tests/test_webgui_edit_routes.py -v
+VIRTUAL_ENV=$PWD/.venv .venv/bin/pytest tests/test_webgui_edit_routes.py -v
 ```
 
 Expected: 3 FAIL (POST not defined → 405 or 404).
@@ -1477,7 +1477,7 @@ async def run_edit_save(stem: str, request: Request):
 - [ ] **Step 11.4: Run tests to verify pass**
 
 ```bash
-VIRTUAL_ENV=/Users/Shared/code/whisper-pipeline/.venv .venv/bin/pytest tests/test_webgui_edit_routes.py -v
+VIRTUAL_ENV=$PWD/.venv .venv/bin/pytest tests/test_webgui_edit_routes.py -v
 ```
 
 Expected: 5 PASS.
@@ -1551,7 +1551,7 @@ def test_post_edit_save_continue_triggers_meta_phase(client, populated_run, monk
 - [ ] **Step 12.2: Run the test to verify it passes (or surfaces a bug)**
 
 ```bash
-VIRTUAL_ENV=/Users/Shared/code/whisper-pipeline/.venv .venv/bin/pytest tests/test_webgui_edit_routes.py::test_post_edit_save_continue_triggers_meta_phase -v
+VIRTUAL_ENV=$PWD/.venv .venv/bin/pytest tests/test_webgui_edit_routes.py::test_post_edit_save_continue_triggers_meta_phase -v
 ```
 
 Expected: PASS — the route logic from Task 11 already covers this. If it fails because of routing issues (e.g. 307 doesn't preserve form body), debug the redirect-status-code choice (307 vs 303). Phase-start route does NOT need form data — the URL is enough.
@@ -1568,7 +1568,7 @@ If it fails, switch the redirect in Task 11 from 307 to 303:
 Wait — `/runs/{stem}/phase/{phase}/start` accepts POST only. A 303 turns POST into GET, which will 405. So we keep 307 (preserves POST). If the test still fails, debug with verbose logging:
 
 ```bash
-VIRTUAL_ENV=/Users/Shared/code/whisper-pipeline/.venv .venv/bin/pytest tests/test_webgui_edit_routes.py::test_post_edit_save_continue_triggers_meta_phase -v -s
+VIRTUAL_ENV=$PWD/.venv .venv/bin/pytest tests/test_webgui_edit_routes.py::test_post_edit_save_continue_triggers_meta_phase -v -s
 ```
 
 - [ ] **Step 12.3: Commit**
@@ -1632,7 +1632,7 @@ def test_run_detail_no_edit_cta_when_transcript_missing(client, populated_output
 - [ ] **Step 13.2: Run tests to verify they fail**
 
 ```bash
-VIRTUAL_ENV=/Users/Shared/code/whisper-pipeline/.venv .venv/bin/pytest tests/test_routes.py -k "edit_cta" -v
+VIRTUAL_ENV=$PWD/.venv .venv/bin/pytest tests/test_routes.py -k "edit_cta" -v
 ```
 
 Expected: FAIL (text not in response).
@@ -1720,7 +1720,7 @@ In `webgui/templates/run_detail.html`, AFTER `{% include "_partials/phase_indica
 - [ ] **Step 13.6: Run tests to verify pass**
 
 ```bash
-VIRTUAL_ENV=/Users/Shared/code/whisper-pipeline/.venv .venv/bin/pytest tests/ -v
+VIRTUAL_ENV=$PWD/.venv .venv/bin/pytest tests/ -v
 ```
 
 Expected: all green (≥87 PASS).
@@ -1842,7 +1842,7 @@ Append to `webgui/static/style.css` (at the END of the file):
 - [ ] **Step 14.3: Verify CSS is served**
 
 ```bash
-VIRTUAL_ENV=/Users/Shared/code/whisper-pipeline/.venv .venv/bin/pytest tests/test_routes.py::test_static_css_served -v
+VIRTUAL_ENV=$PWD/.venv .venv/bin/pytest tests/test_routes.py::test_static_css_served -v
 ```
 
 Expected: PASS (sanity — file is still valid).
@@ -1919,7 +1919,7 @@ Not a unit test — a human-in-the-loop verification.
 - [ ] **Step 16.1: Start the webgui**
 
 ```bash
-VIRTUAL_ENV=/Users/Shared/code/whisper-pipeline/.venv .venv/bin/python webgui.py
+VIRTUAL_ENV=$PWD/.venv .venv/bin/python webgui.py
 ```
 
 Wait for the browser to open at `http://localhost:8765`.
@@ -1981,7 +1981,7 @@ If anything is broken, capture in a comment block in the PR description and fix.
 - [ ] **Step 17.1: Full test sweep**
 
 ```bash
-VIRTUAL_ENV=/Users/Shared/code/whisper-pipeline/.venv .venv/bin/pytest tests/ -v
+VIRTUAL_ENV=$PWD/.venv .venv/bin/pytest tests/ -v
 ```
 
 All ≥84 tests must pass.

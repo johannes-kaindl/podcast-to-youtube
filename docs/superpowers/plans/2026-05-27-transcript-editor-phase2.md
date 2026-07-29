@@ -43,7 +43,7 @@
 ## Conventions Reminder
 
 - **TemplateResponse:** Starlette 1.0+ signature → `templates.TemplateResponse(request, name, context)` (request as first positional)
-- **Tests:** `VIRTUAL_ENV=/Users/Shared/code/whisper-pipeline/.venv .venv/bin/pytest tests/ -v`
+- **Tests:** `VIRTUAL_ENV=$PWD/.venv .venv/bin/pytest tests/ -v`
 - **Encoding:** UTF-8, JSON with `ensure_ascii=False`
 - **Commits:** Conventional (`feat(transcript-editor-phase2): …`), Co-Authored-By footer
 - **Style:** Module docstring at top; type hints throughout
@@ -55,7 +55,7 @@
 - [ ] **Step 0.1: Verify baseline**
 
 ```bash
-VIRTUAL_ENV=/Users/Shared/code/whisper-pipeline/.venv .venv/bin/pytest tests/ -v 2>&1 | tail -5
+VIRTUAL_ENV=$PWD/.venv .venv/bin/pytest tests/ -v 2>&1 | tail -5
 ```
 
 Expected: `97 passed`. If lower, stop and report.
@@ -132,7 +132,7 @@ def test_change_speaker_raises_on_empty(sample_run):
 - [ ] **Step 1.2: Run, verify fail**
 
 ```bash
-VIRTUAL_ENV=/Users/Shared/code/whisper-pipeline/.venv .venv/bin/pytest tests/test_transcript_segment_ops.py -v
+VIRTUAL_ENV=$PWD/.venv .venv/bin/pytest tests/test_transcript_segment_ops.py -v
 ```
 
 Expected: 3 FAIL (ImportError).
@@ -188,7 +188,7 @@ def change_speaker(json_path: str, segment_index: int, new_speaker: str) -> None
 - [ ] **Step 1.4: Verify pass**
 
 ```bash
-VIRTUAL_ENV=/Users/Shared/code/whisper-pipeline/.venv .venv/bin/pytest tests/test_transcript_segment_ops.py -v
+VIRTUAL_ENV=$PWD/.venv .venv/bin/pytest tests/test_transcript_segment_ops.py -v
 ```
 
 Expected: 3 PASS.
@@ -257,7 +257,7 @@ def test_bulk_rename_speaker_returns_zero_when_no_match(sample_run):
 - [ ] **Step 2.2: Verify fail**
 
 ```bash
-VIRTUAL_ENV=/Users/Shared/code/whisper-pipeline/.venv .venv/bin/pytest tests/test_transcript_segment_ops.py -v
+VIRTUAL_ENV=$PWD/.venv .venv/bin/pytest tests/test_transcript_segment_ops.py -v
 ```
 
 Expected: 4 FAIL.
@@ -294,7 +294,7 @@ def bulk_rename_speaker(json_path: str, old_name: str, new_name: str) -> int:
 - [ ] **Step 2.4: Verify pass**
 
 ```bash
-VIRTUAL_ENV=/Users/Shared/code/whisper-pipeline/.venv .venv/bin/pytest tests/test_transcript_segment_ops.py -v
+VIRTUAL_ENV=$PWD/.venv .venv/bin/pytest tests/test_transcript_segment_ops.py -v
 ```
 
 Expected: 7 PASS.
@@ -372,7 +372,7 @@ def test_merge_segment_raises_when_no_next(sample_run):
 - [ ] **Step 3.2: Verify fail**
 
 ```bash
-VIRTUAL_ENV=/Users/Shared/code/whisper-pipeline/.venv .venv/bin/pytest tests/test_transcript_segment_ops.py -v
+VIRTUAL_ENV=$PWD/.venv .venv/bin/pytest tests/test_transcript_segment_ops.py -v
 ```
 
 Expected: 4 FAIL.
@@ -418,7 +418,7 @@ def merge_segment(json_path: str, segment_index: int) -> None:
 - [ ] **Step 3.4: Verify pass**
 
 ```bash
-VIRTUAL_ENV=/Users/Shared/code/whisper-pipeline/.venv .venv/bin/pytest tests/test_transcript_segment_ops.py -v
+VIRTUAL_ENV=$PWD/.venv .venv/bin/pytest tests/test_transcript_segment_ops.py -v
 ```
 
 Expected: 11 PASS.
@@ -520,7 +520,7 @@ def test_split_segment_splits_words_by_time(sample_run):
 - [ ] **Step 4.2: Verify fail**
 
 ```bash
-VIRTUAL_ENV=/Users/Shared/code/whisper-pipeline/.venv .venv/bin/pytest tests/test_transcript_segment_ops.py -v
+VIRTUAL_ENV=$PWD/.venv .venv/bin/pytest tests/test_transcript_segment_ops.py -v
 ```
 
 Expected: 6 FAIL.
@@ -600,7 +600,7 @@ def split_segment(json_path: str, segment_index: int, char_position: int) -> Non
 - [ ] **Step 4.4: Verify pass**
 
 ```bash
-VIRTUAL_ENV=/Users/Shared/code/whisper-pipeline/.venv .venv/bin/pytest tests/test_transcript_segment_ops.py -v
+VIRTUAL_ENV=$PWD/.venv .venv/bin/pytest tests/test_transcript_segment_ops.py -v
 ```
 
 Expected: 17 PASS.
@@ -608,7 +608,7 @@ Expected: 17 PASS.
 - [ ] **Step 4.5: Sanity-check existing tests**
 
 ```bash
-VIRTUAL_ENV=/Users/Shared/code/whisper-pipeline/.venv .venv/bin/pytest tests/ -v 2>&1 | tail -5
+VIRTUAL_ENV=$PWD/.venv .venv/bin/pytest tests/ -v 2>&1 | tail -5
 ```
 
 Expected: 114 PASS (97 existing + 17 new).
@@ -719,7 +719,7 @@ def test_cleanup_snapshots_keeps_cap(sample_run, monkeypatch):
 - [ ] **Step 5.2: Verify fail**
 
 ```bash
-VIRTUAL_ENV=/Users/Shared/code/whisper-pipeline/.venv .venv/bin/pytest tests/test_transcript_history.py -v
+VIRTUAL_ENV=$PWD/.venv .venv/bin/pytest tests/test_transcript_history.py -v
 ```
 
 Expected: 5 FAIL.
@@ -813,7 +813,7 @@ def cleanup_snapshots(json_path: str) -> int:
 - [ ] **Step 5.4: Verify pass**
 
 ```bash
-VIRTUAL_ENV=/Users/Shared/code/whisper-pipeline/.venv .venv/bin/pytest tests/test_transcript_history.py -v
+VIRTUAL_ENV=$PWD/.venv .venv/bin/pytest tests/test_transcript_history.py -v
 ```
 
 Expected: 5 PASS.
@@ -892,7 +892,7 @@ def test_list_history_returns_entries_newest_last(sample_run):
 - [ ] **Step 6.2: Verify fail**
 
 ```bash
-VIRTUAL_ENV=/Users/Shared/code/whisper-pipeline/.venv .venv/bin/pytest tests/test_transcript_history.py -v
+VIRTUAL_ENV=$PWD/.venv .venv/bin/pytest tests/test_transcript_history.py -v
 ```
 
 Expected: 4 FAIL.
@@ -944,7 +944,7 @@ def list_history(json_path: str) -> list[dict]:
 - [ ] **Step 6.4: Verify pass**
 
 ```bash
-VIRTUAL_ENV=/Users/Shared/code/whisper-pipeline/.venv .venv/bin/pytest tests/test_transcript_history.py -v
+VIRTUAL_ENV=$PWD/.venv .venv/bin/pytest tests/test_transcript_history.py -v
 ```
 
 Expected: 9 PASS.
@@ -993,7 +993,7 @@ def undo_last(json_path: str) -> dict | None:
 - [ ] **Step 6.5: Re-run tests**
 
 ```bash
-VIRTUAL_ENV=/Users/Shared/code/whisper-pipeline/.venv .venv/bin/pytest tests/test_transcript_history.py -v
+VIRTUAL_ENV=$PWD/.venv .venv/bin/pytest tests/test_transcript_history.py -v
 ```
 
 Expected: 9 PASS. If `test_undo_last_restores_pre_mutation_state` fails, debug the snapshot-vs-history ordering (see note above).
@@ -1112,7 +1112,7 @@ def test_save_word_edits_raises_on_length_mismatch(sample_run):
 - [ ] **Step 7.2: Verify fail**
 
 ```bash
-VIRTUAL_ENV=/Users/Shared/code/whisper-pipeline/.venv .venv/bin/pytest tests/test_transcript_word_ops.py -v
+VIRTUAL_ENV=$PWD/.venv .venv/bin/pytest tests/test_transcript_word_ops.py -v
 ```
 
 Expected: 7 FAIL.
@@ -1201,7 +1201,7 @@ def save_word_edits(json_path: str, segment_index: int, new_words: list[str]) ->
 - [ ] **Step 7.4: Verify pass**
 
 ```bash
-VIRTUAL_ENV=/Users/Shared/code/whisper-pipeline/.venv .venv/bin/pytest tests/test_transcript_word_ops.py -v
+VIRTUAL_ENV=$PWD/.venv .venv/bin/pytest tests/test_transcript_word_ops.py -v
 ```
 
 Expected: 7 PASS.
@@ -1350,7 +1350,7 @@ def test_compute_segment_diff_handles_split_segments(edited_run):
 - [ ] **Step 8.2: Verify fail**
 
 ```bash
-VIRTUAL_ENV=/Users/Shared/code/whisper-pipeline/.venv .venv/bin/pytest tests/test_transcript_diff.py -v
+VIRTUAL_ENV=$PWD/.venv .venv/bin/pytest tests/test_transcript_diff.py -v
 ```
 
 Expected: 5 FAIL.
@@ -1452,7 +1452,7 @@ def compute_segment_diff(json_path: str) -> list[dict]:
 - [ ] **Step 8.4: Verify pass**
 
 ```bash
-VIRTUAL_ENV=/Users/Shared/code/whisper-pipeline/.venv .venv/bin/pytest tests/test_transcript_diff.py -v
+VIRTUAL_ENV=$PWD/.venv .venv/bin/pytest tests/test_transcript_diff.py -v
 ```
 
 Expected: 5 PASS.
@@ -1460,7 +1460,7 @@ Expected: 5 PASS.
 - [ ] **Step 8.5: Full sweep**
 
 ```bash
-VIRTUAL_ENV=/Users/Shared/code/whisper-pipeline/.venv .venv/bin/pytest tests/ -v 2>&1 | tail -5
+VIRTUAL_ENV=$PWD/.venv .venv/bin/pytest tests/ -v 2>&1 | tail -5
 ```
 
 Expected: 135 PASS (97 + 17 segment ops + 9 history + 7 word + 5 diff).
@@ -1554,7 +1554,7 @@ def test_post_speaker_change_returns_segment_partial(client, populated_run):
 - [ ] **Step 9.2: Verify fail**
 
 ```bash
-VIRTUAL_ENV=/Users/Shared/code/whisper-pipeline/.venv .venv/bin/pytest tests/test_webgui_phase2_routes.py -v
+VIRTUAL_ENV=$PWD/.venv .venv/bin/pytest tests/test_webgui_phase2_routes.py -v
 ```
 
 Expected: 2 FAIL.
@@ -1669,7 +1669,7 @@ async def run_edit_speaker(stem: str, request: Request):
 - [ ] **Step 9.5: Verify pass**
 
 ```bash
-VIRTUAL_ENV=/Users/Shared/code/whisper-pipeline/.venv .venv/bin/pytest tests/test_webgui_phase2_routes.py -v
+VIRTUAL_ENV=$PWD/.venv .venv/bin/pytest tests/test_webgui_phase2_routes.py -v
 ```
 
 Expected: 2 PASS.
@@ -1724,7 +1724,7 @@ def test_post_bulk_rename_400_on_same_names(client, populated_run):
 - [ ] **Step 10.2: Verify fail**
 
 ```bash
-VIRTUAL_ENV=/Users/Shared/code/whisper-pipeline/.venv .venv/bin/pytest tests/test_webgui_phase2_routes.py -v
+VIRTUAL_ENV=$PWD/.venv .venv/bin/pytest tests/test_webgui_phase2_routes.py -v
 ```
 
 Expected: 2 FAIL.
@@ -1758,7 +1758,7 @@ async def run_edit_bulk_rename(stem: str, request: Request):
 - [ ] **Step 10.4: Verify pass**
 
 ```bash
-VIRTUAL_ENV=/Users/Shared/code/whisper-pipeline/.venv .venv/bin/pytest tests/test_webgui_phase2_routes.py -v
+VIRTUAL_ENV=$PWD/.venv .venv/bin/pytest tests/test_webgui_phase2_routes.py -v
 ```
 
 Expected: 4 PASS.
@@ -1824,7 +1824,7 @@ def test_post_split_400_on_invalid_position(client, populated_run):
 - [ ] **Step 11.2: Verify fail**
 
 ```bash
-VIRTUAL_ENV=/Users/Shared/code/whisper-pipeline/.venv .venv/bin/pytest tests/test_webgui_phase2_routes.py -v
+VIRTUAL_ENV=$PWD/.venv .venv/bin/pytest tests/test_webgui_phase2_routes.py -v
 ```
 
 Expected: 4 FAIL.
@@ -1914,7 +1914,7 @@ async def run_edit_split(stem: str, request: Request):
 - [ ] **Step 11.5: Verify pass**
 
 ```bash
-VIRTUAL_ENV=/Users/Shared/code/whisper-pipeline/.venv .venv/bin/pytest tests/test_webgui_phase2_routes.py -v
+VIRTUAL_ENV=$PWD/.venv .venv/bin/pytest tests/test_webgui_phase2_routes.py -v
 ```
 
 Expected: 8 PASS.
@@ -1973,7 +1973,7 @@ def test_post_undo_303_when_history_empty(client, populated_run):
 - [ ] **Step 12.2: Verify fail**
 
 ```bash
-VIRTUAL_ENV=/Users/Shared/code/whisper-pipeline/.venv .venv/bin/pytest tests/test_webgui_phase2_routes.py -v
+VIRTUAL_ENV=$PWD/.venv .venv/bin/pytest tests/test_webgui_phase2_routes.py -v
 ```
 
 Expected: 2 FAIL.
@@ -2001,7 +2001,7 @@ async def run_edit_undo(stem: str):
 - [ ] **Step 12.4: Verify pass**
 
 ```bash
-VIRTUAL_ENV=/Users/Shared/code/whisper-pipeline/.venv .venv/bin/pytest tests/test_webgui_phase2_routes.py -v
+VIRTUAL_ENV=$PWD/.venv .venv/bin/pytest tests/test_webgui_phase2_routes.py -v
 ```
 
 Expected: 10 PASS.
@@ -2071,7 +2071,7 @@ def test_post_words_saves_edits(client, populated_run):
 - [ ] **Step 13.2: Verify fail**
 
 ```bash
-VIRTUAL_ENV=/Users/Shared/code/whisper-pipeline/.venv .venv/bin/pytest tests/test_webgui_phase2_routes.py -v
+VIRTUAL_ENV=$PWD/.venv .venv/bin/pytest tests/test_webgui_phase2_routes.py -v
 ```
 
 Expected: 3 FAIL.
@@ -2187,7 +2187,7 @@ Create `webgui/templates/run_edit_words.html`:
 - [ ] **Step 13.5: Verify pass**
 
 ```bash
-VIRTUAL_ENV=/Users/Shared/code/whisper-pipeline/.venv .venv/bin/pytest tests/test_webgui_phase2_routes.py -v
+VIRTUAL_ENV=$PWD/.venv .venv/bin/pytest tests/test_webgui_phase2_routes.py -v
 ```
 
 Expected: 13 PASS.
@@ -2254,7 +2254,7 @@ def test_get_diff_shows_changed_segments(client, populated_run):
 - [ ] **Step 14.2: Verify fail**
 
 ```bash
-VIRTUAL_ENV=/Users/Shared/code/whisper-pipeline/.venv .venv/bin/pytest tests/test_webgui_phase2_routes.py -v
+VIRTUAL_ENV=$PWD/.venv .venv/bin/pytest tests/test_webgui_phase2_routes.py -v
 ```
 
 Expected: 2 FAIL.
@@ -2350,7 +2350,7 @@ Create `webgui/templates/run_diff.html`:
 - [ ] **Step 14.5: Verify pass**
 
 ```bash
-VIRTUAL_ENV=/Users/Shared/code/whisper-pipeline/.venv .venv/bin/pytest tests/test_webgui_phase2_routes.py -v
+VIRTUAL_ENV=$PWD/.venv .venv/bin/pytest tests/test_webgui_phase2_routes.py -v
 ```
 
 Expected: 15 PASS.
@@ -2609,7 +2609,7 @@ before the closing `</head>` (or wherever scripts are loaded).
 - [ ] **Step 15.8: Verify all tests still pass**
 
 ```bash
-VIRTUAL_ENV=/Users/Shared/code/whisper-pipeline/.venv .venv/bin/pytest tests/ -v 2>&1 | tail -5
+VIRTUAL_ENV=$PWD/.venv .venv/bin/pytest tests/ -v 2>&1 | tail -5
 ```
 
 Expected: ≥150 PASS (97 + 17 + 9 + 7 + 5 + 15 = 150).
@@ -2668,7 +2668,7 @@ Skip if testing only via automated suite. For thorough verification:
 - [ ] **Step 17.1: Start webgui**
 
 ```bash
-VIRTUAL_ENV=/Users/Shared/code/whisper-pipeline/.venv .venv/bin/python webgui.py
+VIRTUAL_ENV=$PWD/.venv .venv/bin/python webgui.py
 ```
 
 - [ ] **Step 17.2: Run a small audio through the pipeline with pause-after-transcribe enabled**
@@ -2695,7 +2695,7 @@ If anything is broken, fix it as a follow-up commit on this branch.
 - [ ] **Step 18.1: Final sweep**
 
 ```bash
-VIRTUAL_ENV=/Users/Shared/code/whisper-pipeline/.venv .venv/bin/pytest tests/ -v 2>&1 | tail -5
+VIRTUAL_ENV=$PWD/.venv .venv/bin/pytest tests/ -v 2>&1 | tail -5
 ```
 
 Confirm ≥150 PASS, 0 failures.

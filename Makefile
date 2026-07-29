@@ -4,7 +4,7 @@
 #   make check     # the full gate: lint + typecheck + test (mirrors pre-push)
 #   make serve     # run the WebGUI (the primary interface)
 
-.PHONY: install build lint format typecheck test test-all check serve watch screenshots hooks
+.PHONY: install build lint format typecheck test test-all check check-no-abs-paths serve watch screenshots hooks
 
 install:
 	uv sync
@@ -26,7 +26,10 @@ test:
 test-all:  # incl. slow + integration tests (need WhisperX models / YouTube creds)
 	uv run pytest tests/ -q
 
-check: lint typecheck test  # the full gate, as pre-push runs it
+check-no-abs-paths:  # CORE-META-14 gate: no absolute maintainer paths in tracked *.md
+	node scripts/check-no-abs-paths.mjs
+
+check: check-no-abs-paths lint typecheck test  # the full gate, as pre-push runs it
 
 serve:  # the WebGUI on http://localhost:8765
 	uv run python webgui.py
