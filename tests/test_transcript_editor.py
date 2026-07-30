@@ -66,6 +66,33 @@ def test_save_edits_preserves_times_and_speakers(sample_run):
     assert data["segments"][1]["speaker"] == "SPEAKER_01"
 
 
+def test_save_edits_propagates_the_corrected_text_into_words(sample_run):
+    """The renderer reads segment.words, not segment.text — an edit that stops
+    at .text is invisible in the MP4 (DialogueComposition.tsx:644)."""
+    from transcript_editor import save_edits
+
+    new_texts = ["All correct.", "Let's dive into this autopoiesis thing.", "Sounds good to me."]
+    save_edits(str(sample_run["json_path"]), new_texts)
+    data = json.loads(sample_run["json_path"].read_text(encoding="utf-8"))
+    words = data["segments"][0]["words"]
+    assert [w["word"] for w in words] == ["All", "correct."]
+    # The untouched word keeps its original slot.
+    assert words[0]["start"] == 0.04
+    assert words[0]["end"] == 0.1
+
+
+def test_save_edits_leaves_words_alone_when_only_other_segments_change(sample_run):
+    from transcript_editor import save_edits
+
+    new_texts = [" All right.", "Autopoiesis is fascinating.", "Sounds good to me."]
+    save_edits(str(sample_run["json_path"]), new_texts)
+    data = json.loads(sample_run["json_path"].read_text(encoding="utf-8"))
+    assert data["segments"][0]["words"] == [
+        {"word": "All", "start": 0.04, "end": 0.1, "score": 0.0},
+        {"word": "right.", "start": 0.12, "end": 0.24, "score": 0.375},
+    ]
+
+
 def test_save_edits_raises_on_length_mismatch(sample_run):
     from transcript_editor import save_edits
 

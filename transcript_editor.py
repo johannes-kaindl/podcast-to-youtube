@@ -9,6 +9,8 @@ import shutil
 from pathlib import Path
 from typing import Any
 
+from transcript_align import propagate_text_to_words
+
 
 def load_segments(json_path: str) -> list[dict[str, Any]]:
     """Return the list of segments from a WhisperX JSON file.
@@ -51,6 +53,9 @@ def save_edits(json_path: str, new_texts: list[str]) -> dict[str, Any]:
             seg["text"] = new_text
             seg["_edited"] = True
             edited_count += 1
+            # The renderer reads words, not text — carry the edit across or the
+            # correction never reaches the MP4.
+            propagate_text_to_words(seg)
     path.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
     regenerate_srt_txt(str(path))
     return {
