@@ -4,7 +4,7 @@
 
 ## Bug reports & feature requests
 
-Use the [issue tracker](https://git.jkaindl.de/jkaindl/podcast-to-youtube/issues) — the [bug-report and feature-request templates](.forgejo/issue_template/) prompt for everything below.
+Use the [issue tracker](https://git.jkaindl.de/jkaindl/podcast-to-youtube/issues) — the [bug-report and feature-request templates](.gitea/issue_template/) prompt for everything below.
 
 For bug reports please include:
 

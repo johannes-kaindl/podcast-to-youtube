@@ -45,5 +45,4 @@ repos:
         entry: python3 /Users/Shared/code/_docs/readme/readme_lint.py .
         language: system
         pass_filenames: false
-        always_run: true
-        stages: [manual]   # C entfernt dies, sobald das README grün lintet → dann live-blockend
+        always_run: true   # live-blockend seit 2026-07-30 (README lintet grün)

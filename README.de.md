@@ -290,7 +290,7 @@ Makefile               Standard targets (install / check / serve / …)
 
 ## Mitwirken
 
-Issues und Pull Requests sind willkommen auf der [Forgejo-Instanz des Projekts](https://git.jkaindl.de/jkaindl/podcast-to-youtube) — die Issue-Vorlagen in [`.forgejo/issue_template/`](.forgejo/issue_template/) fragen alles Nötige ab. Für größere Änderungen öffne bitte zuerst ein Issue. Siehe [`CONTRIBUTING.md`](CONTRIBUTING.md) für den Entwicklungs-Workflow und [`SECURITY.md`](SECURITY.md) für sicherheitsrelevante Meldungen.
+Issues und Pull Requests sind willkommen auf der [Forgejo-Instanz des Projekts](https://git.jkaindl.de/jkaindl/podcast-to-youtube) — die Issue-Vorlagen in [`.gitea/issue_template/`](.gitea/issue_template/) fragen alles Nötige ab. Für größere Änderungen öffne bitte zuerst ein Issue. Siehe [`CONTRIBUTING.md`](CONTRIBUTING.md) für den Entwicklungs-Workflow und [`SECURITY.md`](SECURITY.md) für sicherheitsrelevante Meldungen.
 
 ---
 
