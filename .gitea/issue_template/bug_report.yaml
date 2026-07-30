@@ -13,7 +13,7 @@ body:
         easier it is to reproduce, the faster the fix.
 
         **Security-sensitive issues** do not belong here — see
-        [`SECURITY.md`](https://codeberg.org/jkaindl/podcast-to-youtube/src/branch/main/SECURITY.md).
+        [`SECURITY.md`](https://git.jkaindl.de/jkaindl/podcast-to-youtube/src/branch/main/SECURITY.md).
         That includes anything around OAuth tokens, `client_secrets.json`,
         or the YouTube upload path.
   - type: textarea
@@ -84,7 +84,7 @@ body:
       options:
         - label: ffmpeg, WhisperX, MLX server and Remotion are installed and reachable.
           required: true
-        - label: I checked [existing issues](https://codeberg.org/jkaindl/podcast-to-youtube/issues) for duplicates.
+        - label: I checked [existing issues](https://git.jkaindl.de/jkaindl/podcast-to-youtube/issues) for duplicates.
           required: true
         - label: This is not a security issue (otherwise → SECURITY.md).
           required: true

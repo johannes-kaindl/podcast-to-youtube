@@ -4,12 +4,12 @@
 
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 [![Docs: CC BY-SA 4.0](https://img.shields.io/badge/docs-CC%20BY--SA%204.0-blue.svg)](https://creativecommons.org/licenses/by-sa/4.0/)
-[![Codeberg Release](https://img.shields.io/badge/codeberg-v1.0.0-green)](https://codeberg.org/jkaindl/podcast-to-youtube/releases)
+[![Release](https://img.shields.io/badge/release-v1.0.0-green)](https://git.jkaindl.de/jkaindl/podcast-to-youtube/releases/tag/v1.0.0)
 [![CI](https://github.com/johannes-kaindl/podcast-to-youtube/actions/workflows/ci.yml/badge.svg)](https://github.com/johannes-kaindl/podcast-to-youtube/actions/workflows/ci.yml)
-[![Tests](https://img.shields.io/badge/tests-151%20passing-brightgreen)](https://codeberg.org/jkaindl/podcast-to-youtube/src/branch/main/tests)
+[![Tests](https://img.shields.io/badge/tests-151%20passing-brightgreen)](https://git.jkaindl.de/jkaindl/podcast-to-youtube/src/branch/main/tests)
 [![Python](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/)
 [![Platform: macOS](https://img.shields.io/badge/platform-macOS%2015%2B%20%C2%B7%20Apple%20Silicon-lightgrey)](https://www.apple.com/macos/)
-[![Status: Active](https://img.shields.io/badge/status-active-brightgreen)](https://codeberg.org/jkaindl/podcast-to-youtube)
+[![Status: Active](https://img.shields.io/badge/status-active-brightgreen)](https://git.jkaindl.de/jkaindl/podcast-to-youtube)
 
 Automatisierte End-to-End-Pipeline: Podcast-Audio → fertiges YouTube-Video, läuft lokal auf Apple Silicon.
 
@@ -42,7 +42,7 @@ Vollständige Release-Notizen pro Version siehe [`CHANGELOG.md`](CHANGELOG.md).
 
 ---
 
-## Was es leistet
+## Features
 
 Vier Phasen, eine Pipeline:
 
@@ -62,10 +62,20 @@ flowchart TD
 
 ---
 
-## Schnellstart
+## Voraussetzungen
+
+- **macOS auf Apple Silicon** — die Pipeline ist um WhisperX und ein lokal bereitgestelltes MLX-Modell herum gebaut.
+- **[uv](https://docs.astral.sh/uv/)** für die Python-Umgebung · **Node.js** für den Remotion-Renderer.
+- **ffmpeg** — Audio-Analyse und Rendering (`brew install ffmpeg`).
+- **Ein lokaler, OpenAI-kompatibler LLM-Server auf Port 8080**, der das Modell für die Metadaten bereitstellt — siehe den zentralen [LLM-Setup-Guide](https://uplink.jkaindl.de/llm-setup). Welches Modell er bedient, wird über `MLX_MODEL` konfiguriert (siehe [Konfiguration](#konfiguration)).
+- **Ein OAuth-Client in der Google Cloud** — `client_secrets.json` (Desktop App, mit aktivierter YouTube Data API v3). `upload_youtube.py` gibt die Einrichtungsschritte aus, falls die Datei fehlt.
+
+---
+
+## Installation
 
 ```bash
-git clone https://codeberg.org/jkaindl/podcast-to-youtube.git
+git clone https://git.jkaindl.de/jkaindl/podcast-to-youtube.git
 cd podcast-to-youtube
 
 # Python environment (uv reads pyproject.toml + uv.lock, creates .venv)
@@ -87,11 +97,13 @@ python webgui.py
 
 Die WebGUI öffnet sich unter `http://localhost:8765`.
 
-Zwei externe Voraussetzungen: ein lokaler **MLX-Server auf Port 8080**, der das Metadaten-LLM bereitstellt, und ein **OAuth-Client** in der Google Cloud (`client_secrets.json`, Desktop App, mit aktivierter YouTube Data API v3). `upload_youtube.py` gibt die Einrichtungsschritte für die Google Cloud aus, falls `client_secrets.json` fehlt.
-
 ---
 
-## WebGUI
+## Verwendung
+
+Zwei Oberflächen auf dieselbe Pipeline: die **WebGUI** ist das primäre Interface, die **CLI** fährt dieselben vier Phasen headless. Beide lesen und schreiben dieselbe `output/<stem>/run-state.json` — ein in der einen gestarteter Lauf lässt sich also in der anderen einsehen.
+
+### WebGUI
 
 `python webgui.py` startet eine FastAPI- + HTMX-Oberfläche und öffnet den Browser unter `http://localhost:8765`.
 
@@ -123,7 +135,7 @@ Audiodatei auswählen, Optionen wählen, **Pipeline starten** klicken. Die Run-S
 | `Ctrl/Cmd+Z` | *(auf der Bearbeitungsseite)* Letzte Editor-Aktion rückgängig machen — das native Feld-Undo hat Vorrang, solange ein Texteingabefeld fokussiert ist |
 | `Ctrl/Cmd+S` | *(auf der Bearbeitungsseite)* Speichern & zurück zur Run-Seite |
 
-### Transkript-Editor
+#### Transkript-Editor
 
 Whisper vertippt sich gelegentlich bei Namen, Fachbegriffen und Fremdwörtern. Statt die gesamte Pipeline neu laufen zu lassen, ermöglicht der Editor, das Transkript zwischen den Phasen zu korrigieren und nur das neu laufen zu lassen, was sich geändert hat.
 
@@ -157,7 +169,7 @@ Das erste Speichern erstellt eine einmalige Sicherung `<stem>.whisperx.original.
 
 ---
 
-## CLI
+### CLI
 
 Die Pipeline läuft auch headless:
 
@@ -192,7 +204,7 @@ Die Ausgabe landet in `output/<stem>/`:
 - `<stem>-<viz>.mp4` — das fertige Video (1920×1080, 30 fps)
 - `snapshots/<unix-ts>.json` — Undo-Schnappschüsse pro Mutation, vom Editor geschrieben; automatisch auf die 20 neuesten gekürzt
 
-### Skripte
+#### Skripte
 
 | Skript | Zweck |
 |---|---|
@@ -278,7 +290,7 @@ Makefile               Standard targets (install / check / serve / …)
 
 ## Mitwirken
 
-Issues und Pull Requests sind willkommen bei [Codeberg](https://codeberg.org/jkaindl/podcast-to-youtube) — die Issue-Vorlagen in [`.forgejo/issue_template/`](.forgejo/issue_template/) fragen alles Nötige ab. Für größere Änderungen öffne bitte zuerst ein Issue. Siehe [`CONTRIBUTING.md`](CONTRIBUTING.md) für den Entwicklungs-Workflow und [`SECURITY.md`](SECURITY.md) für sicherheitsrelevante Meldungen.
+Issues und Pull Requests sind willkommen auf der [Forgejo-Instanz des Projekts](https://git.jkaindl.de/jkaindl/podcast-to-youtube) — die Issue-Vorlagen in [`.forgejo/issue_template/`](.forgejo/issue_template/) fragen alles Nötige ab. Für größere Änderungen öffne bitte zuerst ein Issue. Siehe [`CONTRIBUTING.md`](CONTRIBUTING.md) für den Entwicklungs-Workflow und [`SECURITY.md`](SECURITY.md) für sicherheitsrelevante Meldungen.
 
 ---
 

@@ -7,7 +7,7 @@ on:
 
 # Runs the same gate as the pre-push hook + Makefile `check`, plus the
 # visualizer's TS checks. Lives in .github/workflows/ so it runs on the GitHub
-# mirror for free; Forgejo/Codeberg also picks it up when Actions is enabled.
+# mirror for free; the origin Forgejo runs no CI (no runner by design).
 
 jobs:
   python:

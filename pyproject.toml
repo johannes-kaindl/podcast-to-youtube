@@ -42,7 +42,7 @@ dependencies = [
 transcribe = ["whisperx>=3.8.0"]
 
 [project.urls]
-Repository = "https://codeberg.org/jkaindl/podcast-to-youtube"
+Repository = "https://git.jkaindl.de/jkaindl/podcast-to-youtube"
 
 # Flat application layout (17 top-level modules; webgui.py vs. the webgui/ package
 # would collide as installed names), so this is a uv "virtual" project: a managed

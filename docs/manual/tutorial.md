@@ -23,7 +23,7 @@ Open Terminal and clone the project, then let `uv` build the Python environment.
 `uv sync` reads `pyproject.toml` and `uv.lock` and creates a `.venv` for you.
 
 ```bash
-git clone https://codeberg.org/jkaindl/podcast-to-youtube.git
+git clone https://git.jkaindl.de/jkaindl/podcast-to-youtube.git
 cd podcast-to-youtube
 
 # Python environment for the WebGUI, metadata, and upload

@@ -4,7 +4,7 @@
 
 ## Bug reports & feature requests
 
-Use the [Codeberg issue tracker](https://codeberg.org/jkaindl/podcast-to-youtube/issues) — the [bug-report and feature-request templates](.forgejo/issue_template/) prompt for everything below.
+Use the [issue tracker](https://git.jkaindl.de/jkaindl/podcast-to-youtube/issues) — the [bug-report and feature-request templates](.forgejo/issue_template/) prompt for everything below.
 
 For bug reports please include:
 
@@ -18,7 +18,7 @@ For security-sensitive reports see [`SECURITY.md`](SECURITY.md) — please **do 
 ## Development setup
 
 ```bash
-git clone https://codeberg.org/jkaindl/podcast-to-youtube.git
+git clone https://git.jkaindl.de/jkaindl/podcast-to-youtube.git
 cd podcast-to-youtube
 
 uv sync                       # add --extra transcribe for the WhisperX phase

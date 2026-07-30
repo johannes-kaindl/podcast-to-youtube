@@ -27,7 +27,7 @@ Preferred channel:
 - Email: **code.jkaindl@mailbox.org**
 - Subject line: `[security] podcast-to-youtube: <short description>`
 
-If you don't get an acknowledgement within 7 days, please open a placeholder Codeberg issue titled `Security report pending` (no details) and mention that you tried email — that flags it without disclosing the vulnerability.
+If you don't get an acknowledgement within 7 days, please open a placeholder issue titled `Security report pending` (no details) and mention that you tried email — that flags it without disclosing the vulnerability.
 
 Please include:
 

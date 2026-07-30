@@ -59,7 +59,7 @@ body:
     attributes:
       label: Pre-flight checks
       options:
-        - label: I checked [existing issues](https://codeberg.org/jkaindl/podcast-to-youtube/issues) for duplicates.
+        - label: I checked [existing issues](https://git.jkaindl.de/jkaindl/podcast-to-youtube/issues) for duplicates.
           required: true
         - label: I understand the local-first / Mac-only platform stance.
           required: true
