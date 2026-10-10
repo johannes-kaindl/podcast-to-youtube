@@ -17,7 +17,7 @@ Automatisierte End-to-End-Pipeline: Podcast-Audio → fertiges YouTube-Video, l�
 > **Status: v1.0.0 — erstes öffentliches Release.** Die vollständige Vier-Phasen-Pipeline läuft durchgängig von Anfang bis Ende; die WebGUI ist die primäre Schnittstelle. Mac Silicon, AGPL-3.0.
 
 <p align="center">
-  <img src="docs/images/webgui-start.png" width="880"
+  <img src="docs/images/webgui-start.png" width="820"
        alt="Der Startbildschirm der WebGUI: ein Feld für den Audio-Pfad, der Visualizer, Optionen für Sprache, Modell und Sprecher sowie die Schaltfläche „Pipeline starten“.">
 </p>
 
@@ -111,17 +111,17 @@ Audiodatei auswählen, Optionen wählen, **Pipeline starten** klicken. Die Run-S
 <table>
   <tr>
     <td width="33%" valign="top">
-      <a href="docs/images/webgui-running.png"><img src="docs/images/webgui-running.png"
+      <a href="docs/images/webgui-running.png"><img src="docs/images/webgui-running.png" width="260"
         alt="Die WebGUI während eines laufenden Durchlaufs: die Render-Phase ist in Arbeit, das Pipeline-Log streamt, und die Vorschauen für Transkript und YouTube-Metadaten sind bereits gefüllt."></a>
       <br><sub><b>Laufender Durchlauf</b> — Phasen-Stepper, streamendes Log, Transkript &amp; Metadaten, sobald sie eintreffen.</sub>
     </td>
     <td width="33%" valign="top">
-      <a href="docs/images/webgui-upload.png"><img src="docs/images/webgui-upload.png"
+      <a href="docs/images/webgui-upload.png"><img src="docs/images/webgui-upload.png" width="260"
         alt="Die WebGUI im Bereit-zum-Hochladen-Zustand: die Vorschau des gerenderten Videos mit der Upload-Karte, in der du vor dem Bestätigen des Uploads zwischen privater und nicht gelisteter Sichtbarkeit wählst."></a>
       <br><sub><b>Bereit zum Hochladen</b> — Render-Vorschau steht bereit; du wählst die Sichtbarkeit und bestätigst. Nie automatisch.</sub>
     </td>
     <td width="33%" valign="top">
-      <a href="docs/images/webgui-done.png"><img src="docs/images/webgui-done.png"
+      <a href="docs/images/webgui-done.png"><img src="docs/images/webgui-done.png" width="260"
         alt="Die WebGUI im abgeschlossenen Zustand: alle vier Phasen fertig, das gerenderte Video und eine Karte, die auf das hochgeladene YouTube-Video verlinkt."></a>
       <br><sub><b>Fertig</b> — alle vier Phasen abgeschlossen, Video gerendert und hochgeladen.</sub>
     </td>
@@ -139,7 +139,7 @@ Audiodatei auswählen, Optionen wählen, **Pipeline starten** klicken. Die Run-S
 Whisper vertippt sich gelegentlich bei Namen, Fachbegriffen und Fremdwörtern. Statt die gesamte Pipeline neu laufen zu lassen, ermöglicht der Editor, das Transkript zwischen den Phasen zu korrigieren und nur das neu laufen zu lassen, was sich geändert hat.
 
 <p align="center">
-  <a href="docs/images/webgui-editor.png"><img src="docs/images/webgui-editor.png" width="880"
+  <a href="docs/images/webgui-editor.png"><img src="docs/images/webgui-editor.png" width="820"
     alt="Der Transkript-Editor: ein Formular zum Sammel-Umbenennen von Sprechern, dann eine Karte pro Segment mit Zeitstempel, einem Sprecher-Dropdown, einem editierbaren Textfeld und Merge-/Split-Steuerungen. Oben rechts sitzt ein Undo-Dropdown; unten befinden sich die Aktionen Speichern & Zurück / Speichern & Weiter / Abbrechen. Das Speichern macht die Metadaten- und Render-Phasen ungültig, sodass sie mit dem korrigierten Transkript neu laufen."></a>
   <br><sub><b>Transkript-Editor</b> — Text- und Sprecher-Bearbeitung pro Segment, Merge/Split, Sammel-Umbenennung von Sprechern und Undo. Das Speichern lässt nur die betroffenen Phasen neu laufen.</sub>
 </p>
@@ -150,7 +150,7 @@ Zwei Wege hinein:
 - **Jederzeit bearbeiten** — jeder Durchlauf mit einem Transkript zeigt auf der Run-Seite einen Link *Edit transcript* an. Das Speichern einer Bearbeitung setzt die Phasen `meta` + `render` auf `pending` zurück; klicke auf die Phasenanzeige, um sie mit dem korrigierten Transkript neu laufen zu lassen.
 
 <p align="center">
-  <a href="docs/images/webgui-paused.png"><img src="docs/images/webgui-paused.png" width="880"
+  <a href="docs/images/webgui-paused.png"><img src="docs/images/webgui-paused.png" width="820"
     alt="Ein nach der Transkription pausierter Durchlauf: der Phasen-Stepper zeigt Transcribe als erledigt an, während Metadata, Render und Upload ausstehen, und eine Karte „Pipeline paused after Transcribe“ bietet „Edit Transcript“ oder „Continue without editing“ an, mit der Transkript-Vorschau darunter."></a>
   <br><sub><b>Pause nach dem Transkribieren</b> — die Pipeline stoppt nach Whisper; bearbeite das Transkript und fahre dann mit Meta + Render fort.</sub>
 </p>

@@ -17,7 +17,7 @@ Automated end-to-end pipeline: podcast audio → finished YouTube video, running
 > **Status: v1.0.0 — first public release.** The full four-phase pipeline runs end-to-end; the WebGUI is the primary interface. Mac Silicon, AGPL-3.0.
 
 <p align="center">
-  <img src="docs/images/webgui-start.png" width="880"
+  <img src="docs/images/webgui-start.png" width="820"
        alt="The WebGUI start screen: an audio-path field, the visualizer, language, model and speaker options, and the Start pipeline button.">
 </p>
 
@@ -111,17 +111,17 @@ Pick an audio file, choose the options, click **Start pipeline**. The run page s
 <table>
   <tr>
     <td width="33%" valign="top">
-      <a href="docs/images/webgui-running.png"><img src="docs/images/webgui-running.png"
+      <a href="docs/images/webgui-running.png"><img src="docs/images/webgui-running.png" width="260"
         alt="WebGUI during a live run: the render phase in progress, the pipeline log streaming, and the transcript and YouTube-metadata previews already populated."></a>
       <br><sub><b>Live run</b> — phase stepper, streaming log, transcript &amp; metadata as they land.</sub>
     </td>
     <td width="33%" valign="top">
-      <a href="docs/images/webgui-upload.png"><img src="docs/images/webgui-upload.png"
+      <a href="docs/images/webgui-upload.png"><img src="docs/images/webgui-upload.png" width="260"
         alt="WebGUI ready-to-upload state: the rendered video preview with the upload card, where you choose private or unlisted visibility before confirming the upload."></a>
       <br><sub><b>Ready to upload</b> — render preview ready; you pick visibility and confirm. Never automatic.</sub>
     </td>
     <td width="33%" valign="top">
-      <a href="docs/images/webgui-done.png"><img src="docs/images/webgui-done.png"
+      <a href="docs/images/webgui-done.png"><img src="docs/images/webgui-done.png" width="260"
         alt="WebGUI finished state: all four phases complete, the rendered video, and a card linking to the uploaded YouTube video."></a>
       <br><sub><b>Done</b> — all four phases complete, video rendered and uploaded.</sub>
     </td>
@@ -139,7 +139,7 @@ Pick an audio file, choose the options, click **Start pipeline**. The run page s
 Whisper occasionally mistypes names, jargon, and foreign words. Rather than re-running the whole pipeline, the editor lets the transcript be corrected between phases and reruns only what changed.
 
 <p align="center">
-  <a href="docs/images/webgui-editor.png"><img src="docs/images/webgui-editor.png" width="880"
+  <a href="docs/images/webgui-editor.png"><img src="docs/images/webgui-editor.png" width="820"
     alt="The transcript editor: a bulk speaker-rename form, then one card per segment with a timestamp, a speaker dropdown, an editable text field, and merge/split controls. An Undo dropdown sits top-right; Save & Return / Save & Continue / Cancel actions sit at the bottom. Saving invalidates the metadata and render phases so they re-run with the corrected transcript."></a>
   <br><sub><b>Transcript editor</b> — per-segment text and speaker edits, merge/split, bulk speaker rename, and undo. Saving reruns only the affected phases.</sub>
 </p>
@@ -150,7 +150,7 @@ Two ways in:
 - **Edit anytime** — every run with a transcript exposes an *Edit transcript* link on the run page. Saving an edit resets the `meta` + `render` phases to `pending`; click the phase indicator to re-run them with the corrected transcript.
 
 <p align="center">
-  <a href="docs/images/webgui-paused.png"><img src="docs/images/webgui-paused.png" width="880"
+  <a href="docs/images/webgui-paused.png"><img src="docs/images/webgui-paused.png" width="820"
     alt="A run paused after transcription: the phase stepper shows Transcribe done with Metadata, Render and Upload pending, and a 'Pipeline paused after Transcribe' card offers 'Edit Transcript' or 'Continue without editing', with the transcript preview below."></a>
   <br><sub><b>Pause after transcribe</b> — the pipeline stops after Whisper; edit the transcript, then continue with Meta + Render.</sub>
 </p>
