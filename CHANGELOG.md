@@ -48,6 +48,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Fixed
 
+- **Transcript edits never reached the rendered video** — saving a corrected segment text updated SRT/TXT but not `segment.words`, which drives the karaoke highlight, so the MP4 kept the old wording. `transcript_align.propagate_text_to_words()` now rewrites the word list on save: unchanged words keep their measured timings, replaced words share the span of the words they replace, and inserted words borrow a neighbour's span so every word gets a highlightable window — including insertions at the start of a segment, where WhisperX leaves no room before the first word.
 - **Stale docs + broken render scripts** — rewrote `visualizer/README.md` to the current Dialogue/Monologue architecture; fixed the broken `render:waveform` / `render:ring` npm scripts (those compositions no longer exist) to `render:dialogue` / `render:monologue`; corrected stale module docstrings (`render_video.py` converts to WAV not MP3; `pipeline.py` metadata is a local MLX LLM, not the "Claude API").
 - **Speaker dropdown duplicated the current speaker** — the fallback `<option>` rendered unconditionally, so any speaker already present in the distinct-speakers list appeared twice in every segment dropdown. The fallback now renders only when the speaker is unknown.
 
