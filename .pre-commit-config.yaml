@@ -42,7 +42,7 @@ repos:
         stages: [pre-push] # only on push; the fast suite needs no models or YouTube creds
       - id: readme-lint
         name: README-Lint (readme_lint.py, zentral in _docs)
-        entry: python3 /Users/Shared/code/_docs/readme/readme_lint.py .
+        entry: bash -c 'python3 "$HOME/Projects/jkaindl/workspace/_docs/readme/readme_lint.py" .'
         language: system
         pass_filenames: false
         always_run: true   # live-blockend seit 2026-07-30 (README lintet grün)
