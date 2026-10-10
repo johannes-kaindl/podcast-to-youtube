@@ -12,6 +12,10 @@ regenerate_srt_txt from transcript_editor, so a back-import would be circular).
 from difflib import SequenceMatcher
 from typing import Any
 
+# Below this, the room before a segment's first word is too short to highlight
+# an inserted word visibly (a few frames at 30 fps); borrow the neighbour instead.
+_MIN_ROOM = 0.1
+
 
 def _distribute(
     tokens: list[str],
@@ -19,12 +23,13 @@ def _distribute(
     t1: float,
     template: dict[str, Any],
     anchor_first: bool = False,
+    anchor_last: bool = False,
 ) -> list[dict[str, Any]]:
     """Spread tokens across [t0, t1], each token's share by character length.
 
     template supplies the non-timing fields (score, speaker, …). With
-    anchor_first the leading token is a re-timed but textually unchanged word,
-    so it does not get the _edited flag.
+    anchor_first / anchor_last the leading / trailing token is a re-timed but
+    textually unchanged word, so it does not get the _edited flag.
     """
     total = sum(len(t) for t in tokens) or 1
     span = max(t1 - t0, 0.0)
@@ -36,7 +41,8 @@ def _distribute(
         word["start"] = round(cursor, 3)
         cursor += span * (len(token) / total)
         word["end"] = round(cursor, 3)
-        if not (anchor_first and idx == 0):
+        is_anchor = (anchor_first and idx == 0) or (anchor_last and idx == len(tokens) - 1)
+        if not is_anchor:
             word["_edited"] = True
         out.append(word)
     if out:
@@ -67,18 +73,20 @@ def propagate_text_to_words(segment: dict[str, Any]) -> int:
 
     new_words: list[dict[str, Any]] = []
     changed = 0
+    consumed = 0  # old words already emitted (a head insertion may borrow one)
     matcher = SequenceMatcher(a=old_tokens, b=tokens, autojunk=False)
     for tag, i1, i2, j1, j2 in matcher.get_opcodes():
         if tag == "equal":
-            new_words.extend(words[i1:i2])
+            new_words.extend(words[max(i1, consumed) : i2])
+            consumed = max(consumed, i2)
             continue
 
         block_tokens = tokens[j1:j2]
         old_block = words[i1:i2]
+        anchor_first = anchor_last = False
         if old_block:
             template = old_block[0]
             t0, t1 = old_block[0]["start"], old_block[-1]["end"]
-            anchor_first = False
         elif new_words:
             # Pure insertion: pull the left neighbour back in and re-time both.
             anchor = new_words.pop()
@@ -88,13 +96,20 @@ def propagate_text_to_words(segment: dict[str, Any]) -> int:
             t1 = words[i2]["start"] if i2 < len(words) else segment["end"]
             anchor_first = True
         else:
-            # Insertion at the very head of the segment.
+            # Insertion at the very head of the segment: use the room before the
+            # next word — but WhisperX segments usually start exactly on their
+            # first word, so without room borrow that word's span instead.
             template = words[0]
             t0 = segment["start"]
             t1 = words[i2]["start"] if i2 < len(words) else segment["end"]
-            anchor_first = False
+            if t1 - t0 < _MIN_ROOM and i2 < len(words):
+                block_tokens = [*block_tokens, words[i2]["word"]]
+                t1 = words[i2]["end"]
+                anchor_last = True
+                consumed = i2 + 1
 
-        new_words.extend(_distribute(block_tokens, t0, t1, template, anchor_first))
+        new_words.extend(_distribute(block_tokens, t0, t1, template, anchor_first, anchor_last))
+        consumed = max(consumed, i2)
         changed += len(tokens[j1:j2])
 
     segment["words"] = new_words

@@ -102,3 +102,35 @@ def test_inserted_word_gets_a_highlightable_slot_between_gapless_neighbours():
     assert all(a["end"] <= b["start"] for a, b in pairwise(words))
     assert words[0]["start"] >= segment["start"]
     assert words[-1]["end"] <= segment["end"]
+
+
+def test_inserted_word_at_segment_head_gets_a_highlightable_slot():
+    """WhisperX segments start exactly where their first word starts (measured:
+    715 of 716 segments in a real run), so there is no room before the first
+    word — the head insertion has to share the right neighbour's span."""
+    from transcript_align import propagate_text_to_words
+
+    segment = {
+        "start": 0.0,
+        "end": 1.0,
+        "text": "also wir deployen heute",
+        "words": [
+            {"word": "wir", "start": 0.0, "end": 0.3, "score": 0.9},
+            {"word": "deployen", "start": 0.3, "end": 0.7, "score": 0.9},
+            {"word": "heute", "start": 0.7, "end": 1.0, "score": 0.9},
+        ],
+    }
+
+    propagate_text_to_words(segment)
+
+    words = segment["words"]
+    assert [w["word"] for w in words] == ["also", "wir", "deployen", "heute"]
+    for w in words:
+        assert w["end"] > w["start"], f"{w['word']} has an empty window"
+    assert all(a["end"] <= b["start"] for a, b in pairwise(words))
+    assert words[0]["start"] >= segment["start"]
+    # Only the inserted word is an edit; the re-timed neighbour keeps its text.
+    assert words[0].get("_edited") is True
+    assert "_edited" not in words[1]
+    # Words after the borrowed neighbour are untouched.
+    assert words[2] == {"word": "deployen", "start": 0.3, "end": 0.7, "score": 0.9}
