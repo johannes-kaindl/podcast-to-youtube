@@ -29,6 +29,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - **Visualizer dev tooling** — npm scripts (`dev` / `build` / `test` / `lint` / `typecheck`), vitest tests for the timeline + speaker helpers, and biome lint/format.
 - **Dual-licensing** — `LICENSING.md` (AGPL by default + an on-request commercial license) and `CLA.md` (a lightweight inbound contributor grant that keeps relicensing possible), linked from the README and CONTRIBUTING.
 - **German README** — `README.de.md` (full translation), with a language-toggle line at the top of both READMEs.
+- **CI** — `.github/workflows/ci.yml` runs the full gate on every push / PR: `ruff` + `ruff format --check` + `mypy --strict` + the fast pytest selection, plus the visualizer's biome / tsc / vitest. Runs on the GitHub mirror (free); the self-hosted Forgejo origin has Actions disabled.
 
 ### Changed
 
@@ -38,7 +39,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - **Test suite** — grew from 64 to 151 tests (transcript editor V1 + Phase 2 modules and routes).
 - **Strict lint + types** — the codebase now passes `ruff` and `mypy --strict` (app modules); a one-time `ruff format` was applied. `.editorconfig`: TOML set to 4-space.
 - **Setup → uv** — README + CONTRIBUTING use `uv sync` (`--extra transcribe` for WhisperX) instead of `pip install -r requirements.txt`.
-- **README badges** — reordered to the canonical License · Release · Platform sequence.
+- **README badges** — reordered to the canonical License · Release · CI · Platform sequence.
 
 ### Removed
 
