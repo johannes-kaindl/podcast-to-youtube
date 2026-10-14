@@ -8,7 +8,7 @@ import { AbsoluteFill, Audio, spring, staticFile, useCurrentFrame, useVideoConfi
 
 import { ChamberBackground } from './components/ChamberBackground';
 import { ProgressHairline } from './components/ProgressHairline';
-import { SectionCard } from './components/SectionCard';
+import { SectionCard, sectionCardVisibility } from './components/SectionCard';
 import { useFontsReady } from './utils/fonts';
 import { SIGNAL_BY_SPEAKER, SIGNAL_LAUT_BY_SPEAKER } from './utils/speakers';
 import type { Timeline, Turn } from './utils/timeline';
@@ -184,6 +184,13 @@ export const DialogueVisualizer: React.FC<DialogueProps> = ({
         ? 1 - (timeUntilEnd - (FADE_END - END_FADE_IN)) / END_FADE_IN
         : 1;
 
+  // Die Kapitelkarte beginnt mit dem Segment, das gerade gesprochen wird, und
+  // liegt daher immer über der aktiven Zeile. Solange sie steht, tritt der
+  // Inhalt mit derselben Kurve zurück, mit der die Karte ein- und ausblendet.
+  const CARD_DUCK = 0.8;
+  const cardOpacity = sectionCardVisibility(chapter, frame, fps, false).opacity;
+  const stageAlpha = contentAlpha * (1 - CARD_DUCK * cardOpacity);
+
   return (
     <AbsoluteFill className="ksp-stage">
       <ChamberBackground />
@@ -205,7 +212,7 @@ export const DialogueVisualizer: React.FC<DialogueProps> = ({
         silenceBreath={silenceBreath}
       />
 
-      <div style={{ opacity: contentAlpha, transition: 'none' }}>
+      <div style={{ opacity: stageAlpha, transition: 'none' }}>
         {vizMode === 'dialogue' ? (
           <>
             <PrompterArea timeline={timeline} currentTurn={currentTurn} frame={frame} fps={fps} />

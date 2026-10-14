@@ -11,25 +11,29 @@ type Props = {
   reducedMotion: boolean;
 };
 
+/** Frames the card stays up after the chapter starts (fade-out ends here). */
+export const SECTION_CARD_FRAMES = 90;
+const FADE_OUT_FROM = 78;
+
 /**
- * Section / Chapter title-card overlay in the stage accent (birds of yore,
- * Subtheme Crimson; until 2026-10-14 the KSP aspect Sensei/Ember). Animation:
- *
- *  • A spring scales a horizontal rule from 0 → 1 across 18 frames.
- *  • The kanji + roman title fade up 12 px on entry.
- *  • Holds for the full chapter duration if the chapter is short
- *    (< 6 s); for longer chapters the card auto-dismisses after 90
- *    frames so it doesn't block the visualiser.
+ * Visibility of the card at `frame`: `opacity` (0 when hidden) and the
+ * entry `enterProgress` (0 → 1). Pure, so the composition can duck the
+ * running caption with the same curve the card fades with.
  */
-export const SectionCard: React.FC<Props> = ({ chapter, frame, fps, reducedMotion }) => {
-  if (!chapter) return null;
+export const sectionCardVisibility = (
+  chapter: ChapterMarker | null,
+  frame: number,
+  fps: number,
+  reducedMotion: boolean,
+): { opacity: number; enterProgress: number } => {
+  if (!chapter) return { opacity: 0, enterProgress: 0 };
 
   const chapterFrameStart = (chapter.startMs / 1000) * fps;
   const localFrame = frame - chapterFrameStart;
 
-  // Visible during the first ~90 frames of the chapter, fading out
-  // smoothly between frame 78 and 90.
-  if (localFrame < 0 || localFrame > 90) return null;
+  // Visible during the first SECTION_CARD_FRAMES of the chapter, fading
+  // out smoothly over the last 12 of them.
+  if (localFrame < 0 || localFrame > SECTION_CARD_FRAMES) return { opacity: 0, enterProgress: 0 };
 
   const enterProgress = reducedMotion
     ? Math.min(1, Math.max(0, localFrame / 12))
@@ -40,12 +44,27 @@ export const SectionCard: React.FC<Props> = ({ chapter, frame, fps, reducedMotio
         durationInFrames: 24,
       });
 
-  const fadeOut = interpolate(localFrame, [78, 90], [1, 0], {
+  const fadeOut = interpolate(localFrame, [FADE_OUT_FROM, SECTION_CARD_FRAMES], [1, 0], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
   });
 
-  const opacity = Math.min(enterProgress, fadeOut);
+  return { opacity: Math.min(enterProgress, fadeOut), enterProgress };
+};
+
+/**
+ * Section / Chapter title-card overlay in the stage accent (birds of yore,
+ * Subtheme Crimson; until 2026-10-14 the KSP aspect Sensei/Ember). Animation:
+ *
+ *  • A spring scales a horizontal rule from 0 → 1 across 18 frames.
+ *  • The kanji + roman title fade up 12 px on entry.
+ *  • Dismisses after SECTION_CARD_FRAMES (3 s at 30 fps), whatever the
+ *    chapter length, so it doesn't block the visualiser.
+ */
+export const SectionCard: React.FC<Props> = ({ chapter, frame, fps, reducedMotion }) => {
+  const { opacity, enterProgress } = sectionCardVisibility(chapter, frame, fps, reducedMotion);
+  if (!chapter || opacity <= 0) return null;
+
   const lift = (1 - enterProgress) * 12;
 
   return (
