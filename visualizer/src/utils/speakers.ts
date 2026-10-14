@@ -10,3 +10,12 @@ export const SIGNAL_BY_SPEAKER: Record<string, string> = {
   SPEAKER_02: 'var(--signal-ember)',
   SPEAKER_03: 'var(--signal-circuit)',
 };
+
+/**
+ * The same family in its loud expression, for whatever is "now": the word being
+ * spoken, the voice speaking. Everything at rest keeps SIGNAL_BY_SPEAKER.
+ * birds of yore, decided 2026-10-14 (_design, identities/birds-of-yore/targets/remotion.md).
+ */
+export const SIGNAL_LAUT_BY_SPEAKER: Record<string, string> = Object.fromEntries(
+  Object.entries(SIGNAL_BY_SPEAKER).map(([k, v]) => [k, `${v.slice(0, -1)}-laut)`]),
+);

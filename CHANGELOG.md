@@ -33,6 +33,8 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Changed
 
+- **Visualizer look is now the identity *birds of yore* (mode Kuro, subtheme Crimson)** instead of the older "Kuro Signal Protocol" values. Signal colours, ground, text and faces come from the maintainer's design house (pinned commit in `visualizer/src/design/VENDOR.json`). Whatever is "now" (the spoken word, the speaking voice) uses the loud expression of its colour, everything at rest the quiet one. The stage accent is one variable (`--accent`), so a different subtheme is a one-line change. Running text and UI are set in JetBrains Mono, titles in EB Garamond italic; Inter and Space Grotesk are gone, and so are the aspect attributes. Dim and faint text now reach 6.5:1 and 4.5:1 on the ground.
+- **Fonts are local** (`visualizer/src/design/fonts/`, SIL OFL 1.1). The render no longer fetches Google Fonts, and frame 0 waits until the faces are loaded; a face that fails to load aborts the render instead of falling back silently.
 - **README** — added Python / platform / tests / docs-license badges, a release-status table, and corrected the test count to 64.
 - **CONTRIBUTING.md** — referenced the issue templates and `SECURITY.md`, expanded the development-setup block, restated the out-of-scope list.
 - **Codeberg repo metadata** — set the public description and topics so the project shows up correctly in topic searches.

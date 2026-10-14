@@ -9,7 +9,8 @@ import { AbsoluteFill, Audio, spring, staticFile, useCurrentFrame, useVideoConfi
 import { ChamberBackground } from './components/ChamberBackground';
 import { ProgressHairline } from './components/ProgressHairline';
 import { SectionCard } from './components/SectionCard';
-import { SIGNAL_BY_SPEAKER } from './utils/speakers';
+import { useFontsReady } from './utils/fonts';
+import { SIGNAL_BY_SPEAKER, SIGNAL_LAUT_BY_SPEAKER } from './utils/speakers';
 import type { Timeline, Turn } from './utils/timeline';
 import { useActiveChapter, useEffectiveSpeaker, useNextTurn, useTimeline } from './utils/timeline';
 
@@ -80,6 +81,7 @@ export const DialogueVisualizer: React.FC<DialogueProps> = ({
   episode,
   showName,
 }) => {
+  useFontsReady();
   const frame = useCurrentFrame();
   const { fps, durationInFrames } = useVideoConfig();
 
@@ -183,7 +185,7 @@ export const DialogueVisualizer: React.FC<DialogueProps> = ({
         : 1;
 
   return (
-    <AbsoluteFill className="ksp-stage" data-aspect="kantoku">
+    <AbsoluteFill className="ksp-stage">
       <ChamberBackground />
       <ProgressHairline
         frame={frame}
@@ -293,7 +295,7 @@ const EndFrame: React.FC<{
         fontFamily: 'var(--font-mono)',
         fontSize: 22,
         letterSpacing: '0.08em',
-        color: 'var(--signal-crimson)',
+        color: 'var(--accent)',
         marginTop: 16,
       }}
     >
@@ -304,7 +306,7 @@ const EndFrame: React.FC<{
         fontFamily: 'var(--font-display)',
         fontStyle: 'italic',
         fontSize: 28,
-        color: 'var(--void-700)',
+        color: 'var(--text-dim)',
         marginTop: 64,
         letterSpacing: '0.01em',
       }}
@@ -339,10 +341,10 @@ const MetaBar: React.FC<{
   // Speaker-Farbe + Mono-Label. Bei null (Silence) gedimmt mit „—".
   const speakerColor =
     activeSpeaker === 0
-      ? 'var(--signal-phosphor)'
+      ? 'var(--signal-phosphor-laut)'
       : activeSpeaker === 1
-        ? 'var(--signal-spectre)'
-        : 'var(--void-600)';
+        ? 'var(--signal-spectre-laut)'
+        : 'var(--text-faint)';
   const speakerLabel = activeSpeaker === 0 ? 'SPK·01' : activeSpeaker === 1 ? 'SPK·02' : '—';
   return (
     <div
@@ -363,7 +365,7 @@ const MetaBar: React.FC<{
             width: 28,
             height: 28,
             borderRadius: 8,
-            background: 'linear-gradient(135deg, var(--signal-crimson), var(--signal-ember))',
+            background: 'var(--accent)',
           }}
         />
         <span
@@ -377,7 +379,7 @@ const MetaBar: React.FC<{
           {showName}
         </span>
         <div style={{ width: 1, height: 14, background: 'var(--void-400)' }} />
-        <span style={{ fontWeight: 400, fontSize: 15, color: 'var(--void-700)' }}>{episode}</span>
+        <span style={{ fontWeight: 400, fontSize: 15, color: 'var(--text-dim)' }}>{episode}</span>
       </div>
       {/* Center: Active-Speaker-Indicator */}
       <div
@@ -420,7 +422,7 @@ const MetaBar: React.FC<{
             fontFamily: 'var(--font-mono)',
             fontVariantNumeric: 'tabular-nums',
             fontSize: 15,
-            color: 'var(--void-700)',
+            color: 'var(--text-dim)',
           }}
         >
           {fmtTc(elapsed)} / {fmtTc(total)}
@@ -434,8 +436,8 @@ const MetaBar: React.FC<{
               width: 6,
               height: 6,
               borderRadius: 999,
-              background: 'var(--signal-crimson)',
-              boxShadow: '0 0 8px var(--signal-crimson)',
+              background: 'var(--accent)',
+              boxShadow: '0 0 8px var(--accent)',
               opacity: isSilent ? 0.3 + silenceBreath * 0.25 : 0.7 + audioLevel * 0.3,
             }}
           />
@@ -566,7 +568,9 @@ const PrompterArea: React.FC<{
       >
         {timeline.turns.map((turn, i) => {
           const isActive = i === activeIdx && scrollFrac < 0.5;
-          const color = SIGNAL_BY_SPEAKER[turn.speaker] ?? 'var(--accent)';
+          const color =
+            (isActive ? SIGNAL_LAUT_BY_SPEAKER : SIGNAL_BY_SPEAKER)[turn.speaker] ??
+            'var(--accent)';
           const ref = i === activeIdx ? activeRef : i === activeIdx + 1 ? nextRef : null;
           return (
             <TurnBlock
@@ -623,7 +627,7 @@ const TurnBlock = React.forwardRef<
             fontVariantNumeric: 'tabular-nums',
             fontWeight: 400,
             fontSize: 13,
-            color: 'var(--void-600)',
+            color: 'var(--text-faint)',
           }}
         >
           {turn.score.toFixed(2)}
@@ -814,7 +818,7 @@ const PanelHead: React.FC<{ title: string; sub: string }> = ({ title, sub }) => 
         fontVariantNumeric: 'tabular-nums',
         fontWeight: 400,
         fontSize: 12,
-        color: 'var(--void-600)',
+        color: 'var(--text-faint)',
       }}
     >
       {sub}
@@ -1051,8 +1055,8 @@ const CompactRing: React.FC<{
     <svg viewBox="0 0 420 380" width={420} height={380} style={{ display: 'block' }}>
       <defs>
         <radialGradient id="cr-glow" cx="0.5" cy="0.5" r="0.5">
-          <stop offset="0%" stopColor="var(--signal-crimson)" stopOpacity={glowOpacity} />
-          <stop offset="100%" stopColor="var(--signal-crimson)" stopOpacity={0} />
+          <stop offset="0%" stopColor="var(--accent)" stopOpacity={glowOpacity} />
+          <stop offset="100%" stopColor="var(--accent)" stopOpacity={0} />
         </radialGradient>
         <radialGradient id="cr-bar-00" cx="0.5" cy="1" r="1">
           <stop offset="0%" stopColor="var(--signal-phosphor)" />
@@ -1147,10 +1151,10 @@ const CompactRing: React.FC<{
         cy={CY}
         r={arcR}
         fill="none"
-        stroke="var(--signal-crimson)"
+        stroke="var(--accent)"
         strokeWidth={1}
         opacity={ringOpacity}
-        style={{ filter: 'drop-shadow(0 0 8px var(--signal-crimson))' }}
+        style={{ filter: 'drop-shadow(0 0 8px var(--accent))' }}
       />
       <circle cx={CX} cy={CY} r={66} fill="var(--void-050)" />
       <line
@@ -1192,27 +1196,21 @@ const CompactRing: React.FC<{
 
       <path
         d={arcPath}
-        stroke="var(--signal-crimson)"
+        stroke="var(--accent)"
         strokeWidth={1.5}
         fill="none"
         strokeLinecap="round"
         opacity={0.85}
-        style={{ filter: 'drop-shadow(0 0 6px var(--signal-crimson))' }}
+        style={{ filter: 'drop-shadow(0 0 6px var(--accent))' }}
       />
-      <circle
-        cx={CX}
-        cy={CY}
-        r={pupilR + 8}
-        fill="var(--signal-crimson)"
-        opacity={0.12 + pulse * 0.18}
-      />
+      <circle cx={CX} cy={CY} r={pupilR + 8} fill="var(--accent)" opacity={0.12 + pulse * 0.18} />
       <circle
         cx={CX}
         cy={CY}
         r={pupilR}
-        fill="var(--signal-crimson)"
+        fill="var(--accent)"
         opacity={0.98}
-        style={{ filter: 'drop-shadow(0 0 14px var(--signal-crimson))' }}
+        style={{ filter: 'drop-shadow(0 0 14px var(--accent))' }}
       />
       <circle cx={CX} cy={CY} r={4} fill="var(--signal-pearl)" />
     </svg>
@@ -1274,7 +1272,7 @@ const UpNextBar: React.FC<{
       />
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         <span
-          style={{ fontWeight: 500, fontSize: 13, color: 'var(--void-600)', marginRight: 'auto' }}
+          style={{ fontWeight: 500, fontSize: 13, color: 'var(--text-faint)', marginRight: 'auto' }}
         >
           Up next
         </span>
@@ -1295,7 +1293,7 @@ const UpNextBar: React.FC<{
             fontFamily: 'var(--font-mono)',
             fontVariantNumeric: 'tabular-nums',
             fontSize: 12,
-            color: 'var(--void-600)',
+            color: 'var(--text-faint)',
           }}
         >
           {dtLabel}
@@ -1363,7 +1361,7 @@ const MonologueArea: React.FC<{
   }, [spectrum]);
 
   const speakerColor =
-    SIGNAL_BY_SPEAKER[currentTurn?.speaker ?? 'SPEAKER_00'] ?? 'var(--signal-phosphor)';
+    SIGNAL_LAUT_BY_SPEAKER[currentTurn?.speaker ?? 'SPEAKER_00'] ?? 'var(--signal-phosphor-laut)';
 
   const AFTERGLOW_MS = 500;
 
@@ -1394,13 +1392,13 @@ const MonologueArea: React.FC<{
               fontWeight: 500,
               fontSize: 11,
               letterSpacing: '0.18em',
-              color: 'var(--void-700)',
+              color: 'var(--text-dim)',
               whiteSpace: 'nowrap',
               textTransform: 'uppercase',
             }}
           >
             CHAPTER
-            <span style={{ color: 'var(--signal-crimson)' }}> · 章 · </span>
+            <span style={{ color: 'var(--accent)' }}> · 章 · </span>
             {activeChapter.title}
           </span>
         </div>
@@ -1442,7 +1440,7 @@ const MonologueArea: React.FC<{
                 fontVariantNumeric: 'tabular-nums',
                 fontWeight: 400,
                 fontSize: 13,
-                color: 'var(--void-600)',
+                color: 'var(--text-faint)',
               }}
             >
               {currentTurn.score.toFixed(2)}
@@ -1624,8 +1622,8 @@ const MonoRing: React.FC<{
     <svg viewBox="0 0 600 600" width={600} height={600} style={{ display: 'block' }}>
       <defs>
         <radialGradient id="mr-glow" cx="0.5" cy="0.5" r="0.5">
-          <stop offset="0%" stopColor="var(--signal-crimson)" stopOpacity={glowOpacity} />
-          <stop offset="100%" stopColor="var(--signal-crimson)" stopOpacity={0} />
+          <stop offset="0%" stopColor="var(--accent)" stopOpacity={glowOpacity} />
+          <stop offset="100%" stopColor="var(--accent)" stopOpacity={0} />
         </radialGradient>
         <radialGradient id="mr-bar-00" cx="0.5" cy="1" r="1">
           <stop offset="0%" stopColor="var(--signal-phosphor)" />
@@ -1697,10 +1695,10 @@ const MonoRing: React.FC<{
         cy={MCY}
         r={arcR}
         fill="none"
-        stroke="var(--signal-crimson)"
+        stroke="var(--accent)"
         strokeWidth={1}
         opacity={ringOpacity}
-        style={{ filter: 'drop-shadow(0 0 10px var(--signal-crimson))' }}
+        style={{ filter: 'drop-shadow(0 0 10px var(--accent))' }}
       />
       <circle cx={MCX} cy={MCY} r={98} fill="var(--void-050)" />
       <line
@@ -1742,27 +1740,21 @@ const MonoRing: React.FC<{
 
       <path
         d={arcPath}
-        stroke="var(--signal-crimson)"
+        stroke="var(--accent)"
         strokeWidth={1.5}
         fill="none"
         strokeLinecap="round"
         opacity={0.85}
-        style={{ filter: 'drop-shadow(0 0 8px var(--signal-crimson))' }}
+        style={{ filter: 'drop-shadow(0 0 8px var(--accent))' }}
       />
-      <circle
-        cx={MCX}
-        cy={MCY}
-        r={pupilR + 12}
-        fill="var(--signal-crimson)"
-        opacity={0.14 + pulse * 0.2}
-      />
+      <circle cx={MCX} cy={MCY} r={pupilR + 12} fill="var(--accent)" opacity={0.14 + pulse * 0.2} />
       <circle
         cx={MCX}
         cy={MCY}
         r={pupilR}
-        fill="var(--signal-crimson)"
+        fill="var(--accent)"
         opacity={0.98}
-        style={{ filter: 'drop-shadow(0 0 18px var(--signal-crimson))' }}
+        style={{ filter: 'drop-shadow(0 0 18px var(--accent))' }}
       />
       <circle cx={MCX} cy={MCY} r={6} fill="var(--signal-pearl)" />
     </svg>
@@ -1806,13 +1798,13 @@ const MonoWaveform: React.FC<{ waveform: number[]; color: string }> = ({ wavefor
           fontWeight: 500,
           fontSize: 11,
           letterSpacing: '0.16em',
-          color: 'var(--void-600)',
+          color: 'var(--text-faint)',
           marginBottom: 8,
           textTransform: 'uppercase',
         }}
       >
         <span style={{ color }}>Waveform</span>
-        <span style={{ color: 'var(--void-700)' }}>Single-Lane · live</span>
+        <span style={{ color: 'var(--text-dim)' }}>Single-Lane · live</span>
       </div>
       <svg
         viewBox="0 0 1680 60"
@@ -1896,7 +1888,7 @@ const FooterBar: React.FC<{ vizMode: DialogueVizMode }> = ({ vizMode }) => (
         fontSize: 11,
         letterSpacing: '0.12em',
         textTransform: 'uppercase',
-        color: 'var(--void-600)',
+        color: 'var(--text-faint)',
       }}
     >
       {vizMode === 'dialogue' ? 'Dialogue View · 対話' : 'Monologue View · 独白'}
@@ -1906,7 +1898,7 @@ const FooterBar: React.FC<{ vizMode: DialogueVizMode }> = ({ vizMode }) => (
         fontFamily: 'var(--font-mono)',
         fontWeight: 400,
         fontSize: 12,
-        color: 'var(--void-600)',
+        color: 'var(--text-faint)',
       }}
     >
       {vizMode === 'dialogue' ? 'Dual-Lane · WhisperX' : 'Single-Lane · WhisperX'}

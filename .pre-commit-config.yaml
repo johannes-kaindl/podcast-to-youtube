@@ -10,9 +10,9 @@ repos:
     hooks:
       - id: trailing-whitespace
         args: [--markdown-linebreak-ext=md] # keep Markdown hard line breaks
-        exclude: ^tests/fixtures/
+        exclude: ^(tests/fixtures/|visualizer/src/design/)
       - id: end-of-file-fixer
-        exclude: ^tests/fixtures/
+        exclude: ^(tests/fixtures/|visualizer/src/design/)
       - id: check-yaml
       - id: check-toml
       - id: check-added-large-files

@@ -1,0 +1,43 @@
+{
+  "source": "_design (maintainer's design house, maintainer-local)",
+  "identity": "birds-of-yore",
+  "variant": "crimson (Subtheme), mode Kuro",
+  "commit": "dbb075e82743a048c62daceb312e4ca118fab1c4",
+  "vendored": "2026-10-14",
+  "files": {
+    "fonts/OFL-EBGaramond.txt": {
+      "from": "identities/birds-of-yore/system/assets/fonts/OFL-EBGaramond.txt",
+      "sha256": "058611bd968817d532cedeab6acaa055e882d365a88523df00e7917ad7a0f704"
+    },
+    "fonts/OFL-JetBrainsMono.txt": {
+      "from": "identities/birds-of-yore/system/assets/fonts/OFL-JetBrainsMono.txt",
+      "sha256": "a76abf002c49097d146e86740a3105a5d00450b1592e820a1109a8c5680cd697"
+    },
+    "fonts/eb-garamond-italic-latin.woff2": {
+      "from": "identities/birds-of-yore/system/assets/fonts/eb-garamond-italic-latin.woff2",
+      "sha256": "d2761541b314509e02df3539cd35fc712954a48a50f4e0ab424dde817c699c2a"
+    },
+    "fonts/eb-garamond-normal-latin.woff2": {
+      "from": "identities/birds-of-yore/system/assets/fonts/eb-garamond-normal-latin.woff2",
+      "sha256": "68fd4b247dde89984ee835d99953d235e4927be2b1b732ad81173b519869cee8"
+    },
+    "fonts/jetbrains-mono-italic-latin.woff2": {
+      "from": "identities/birds-of-yore/system/assets/fonts/jetbrains-mono-italic-latin.woff2",
+      "sha256": "6548575d68391672486bf3815a8dd9fe0ae251d1087875581ac8912d5cb52baa"
+    },
+    "fonts/jetbrains-mono-normal-latin.woff2": {
+      "from": "identities/birds-of-yore/system/assets/fonts/jetbrains-mono-normal-latin.woff2",
+      "sha256": "1e06740a02a443fb7f3eeda8fcaa685a0f6c620e3f01e6666e847295469ce3ad"
+    }
+  },
+  "tokens": {
+    "into": "../styles.css",
+    "from": [
+      "identities/birds-of-yore/system/tokens/colors.css",
+      "identities/birds-of-yore/system/tokens/subthemes.css",
+      "identities/birds-of-yore/system/tokens/type.css"
+    ],
+    "how": "dark value of each light-dark() copied by hand; the cell identities/birds-of-yore/targets/remotion.md records the mapping"
+  },
+  "license": "Fonts: SIL Open Font License 1.1 (OFL-*.txt beside them), not covered by the repository's LICENSE"
+}

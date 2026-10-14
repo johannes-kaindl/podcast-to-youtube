@@ -12,9 +12,8 @@ type Props = {
 };
 
 /**
- * Section / Chapter title-card overlay. Drives off the Mentor (Sensei /
- * Ember) aspect — overrides the host viz aspect for the duration of
- * the card. Animation:
+ * Section / Chapter title-card overlay in the stage accent (birds of yore,
+ * Subtheme Crimson; until 2026-10-14 the KSP aspect Sensei/Ember). Animation:
  *
  *  • A spring scales a horizontal rule from 0 → 1 across 18 frames.
  *  • The kanji + roman title fade up 12 px on entry.
@@ -51,7 +50,6 @@ export const SectionCard: React.FC<Props> = ({ chapter, frame, fps, reducedMotio
 
   return (
     <div
-      data-aspect="sensei"
       style={{
         position: 'absolute',
         inset: 0,
@@ -62,7 +60,7 @@ export const SectionCard: React.FC<Props> = ({ chapter, frame, fps, reducedMotio
         justifyContent: 'center',
         opacity,
         background: `radial-gradient(ellipse at center,
-          color-mix(in oklab, var(--signal-ember) 14%, transparent) 0%,
+          color-mix(in oklab, var(--accent) 14%, transparent) 0%,
           transparent 60%)`,
       }}
     >
@@ -71,7 +69,7 @@ export const SectionCard: React.FC<Props> = ({ chapter, frame, fps, reducedMotio
         style={{
           fontSize: 13,
           letterSpacing: '0.24em',
-          color: 'var(--signal-ember)',
+          color: 'var(--accent)',
           marginBottom: 16,
           transform: `translateY(${lift}px)`,
         }}
@@ -100,8 +98,8 @@ export const SectionCard: React.FC<Props> = ({ chapter, frame, fps, reducedMotio
           marginTop: 32,
           width: `${Math.round(enterProgress * 320)}px`,
           height: 2,
-          background: 'var(--signal-ember)',
-          boxShadow: '0 0 18px var(--signal-ember)',
+          background: 'var(--accent)',
+          boxShadow: '0 0 18px var(--accent)',
         }}
       />
     </div>

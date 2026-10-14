@@ -1,57 +1,83 @@
 /* ============================================================
-   Kuro Signal Protocol — composition-scoped tokens.
-   Mirrors `colors_and_type.css` from the design system; kept
-   inline here so the Remotion bundle ships self-contained.
+   birds of yore — Modus Kuro, Subtheme Crimson.
+   Werte aus dem Designhaus _design @ dbb075e (siehe design/VENDOR.json):
+   identities/birds-of-yore/system/tokens/{colors,subthemes,type}.css,
+   je der dunkle Wert aus light-dark(). Zelle mit den Entscheidungen:
+   identities/birds-of-yore/targets/remotion.md. Hier nicht tunen —
+   Änderungen gehören nach _design, dann neu übernehmen.
+   Bis 2026-10-14 stand hier der Stand „Kuro Signal Protocol“ (KSP 2.0).
    ============================================================ */
 
-@import url("https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap");
+/* Schriften lokal, keine Anfrage beim Rendern (design/fonts, OFL 1.1). */
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 100 800;
+  font-display: block;
+  src: url("./design/fonts/jetbrains-mono-normal-latin.woff2") format("woff2");
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: italic;
+  font-weight: 100 800;
+  font-display: block;
+  src: url("./design/fonts/jetbrains-mono-italic-latin.woff2") format("woff2");
+}
+@font-face {
+  font-family: "EB Garamond";
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: block;
+  src: url("./design/fonts/eb-garamond-normal-latin.woff2") format("woff2");
+}
+@font-face {
+  font-family: "EB Garamond";
+  font-style: italic;
+  font-weight: 400 800;
+  font-display: block;
+  src: url("./design/fonts/eb-garamond-italic-latin.woff2") format("woff2");
+}
 
 :root {
-  /* Twelve Signals */
-  --signal-crimson: #d4203a;
-  --signal-phosphor: #39ff7a;
-  --signal-ember: #ffb442;
-  --signal-spectre: #a878ff;
-  --signal-circuit: #4ac8d8;
-  --signal-ghost: #7ab8c4;
+  /* Signale: ruhig für alles, was ruht; laut für das, was gerade ist
+     (gesprochenes Wort, sprechende Stimme). Entscheidung 2026-10-14. */
+  --signal-crimson: #ff361c;
+  --signal-crimson-laut: #ff6d4e;
+  --signal-phosphor: #00a200;
+  --signal-phosphor-laut: #06f902;
+  --signal-ember: #e4e401;
+  --signal-ember-laut: #fbfc00;
+  --signal-spectre: #f501f5;
+  --signal-spectre-laut: #ff59fc;
+  --signal-circuit: #0de3e3;
+  --signal-circuit-laut: #04fbfb;
+  --signal-ghost: #9c70ff;
+  --signal-ghost-laut: #b28bff;
   --signal-pearl: #e8e4d8;
+  --signal-pearl-laut: #fffbef;
 
-  /* Void scale */
-  --void-000: #000000;
-  --void-050: #060709;
-  --void-100: #0b0d11;
-  --void-150: #11141a;
-  --void-200: #181c24;
-  --void-300: #22272f;
-  --void-400: #2e343d;
-  --void-500: #3d4450;
-  --void-600: #5a6170;
-  --void-700: #828a97;
-  --void-800: #c8cbd2;
+  /* Grund und Flächen (--ground, --surface*, --border*). Die Namen void-*
+     bleiben, weil die Komponenten sie tragen. */
+  --void-050: #060709; /* ground */
+  --void-100: #0b0d11; /* surface */
+  --void-150: #11141a; /* surface-raised */
+  --void-200: #181c24; /* surface-overlay */
+  --void-300: #22272f; /* border-subtle */
+  --void-400: #2e343d; /* border */
+  --void-500: #3d4450; /* border-strong */
 
-  --fg-primary: var(--signal-pearl);
-  --fg-secondary: var(--void-700);
-  --fg-tertiary: var(--void-600);
+  /* Schrift: 13,43:1 · 6,47:1 · 4,52:1 auf dem Grund. */
+  --fg-primary: #e8e4d8;
+  --text-dim: #98a0ad;
+  --text-faint: #7c8491;
 
-  --font-display: "EB Garamond", Georgia, serif;
-  --font-sans: "Space Grotesk", -apple-system, sans-serif;
-  --font-body: "Inter", -apple-system, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --font-display: "EB Garamond", Georgia, "Times New Roman", serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-body: var(--font-mono);
 
-  --accent: var(--signal-phosphor);
-}
-
-[data-aspect="shugo"] {
-  --accent: var(--signal-phosphor);
-}
-[data-aspect="gunshi"] {
-  --accent: var(--signal-spectre);
-}
-[data-aspect="kantoku"] {
+  /* Subtheme Crimson: der Akzent der Bühne. Ein anderes Subtheme
+     tauscht nur diese Zeile. */
   --accent: var(--signal-crimson);
-}
-[data-aspect="sensei"] {
-  --accent: var(--signal-ember);
 }
 
 .ksp-stage {
@@ -66,7 +92,7 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.12em;
-  color: var(--fg-tertiary);
+  color: var(--text-faint);
 }
 
 .ksp-display {
